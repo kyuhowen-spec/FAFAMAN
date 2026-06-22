@@ -1,5 +1,14 @@
 // Sample data for PAPA HR system
-window.PAPA_DATA = {
+const STORAGE_KEY = 'papa_workspace_data';
+let initialData = null;
+try {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) initialData = JSON.parse(stored);
+} catch (e) {
+  console.error("Failed to load local PAPA data", e);
+}
+
+const defaultData = {
   employees: [
     { id: 'kh', name: '김규호', en: 'Kyuho',   role: 'admin',  title: '대표이사',     team: 'ID', joined: '2016-03-15', initials: 'KH', color: 'av-0', birthday: '05-22', email: 'kyuho@foundfounded.kr',   phone: '010-2214-3391' },
     { id: 'sy', name: '이서연', en: 'Seoyeon', role: 'senior', title: '디렉터',       team: 'ID', joined: '2017-06-01', initials: 'SY', color: 'av-4', birthday: '09-14', email: 'seoyeon@foundfounded.kr', phone: '010-8841-2207' },
@@ -262,4 +271,19 @@ window.PAPA_DATA = {
     issuerTitle: '대표이사',
     showSalary: false,
   },
+};
+
+if (!initialData) {
+  initialData = defaultData;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(initialData));
+  } catch (e) {}
+}
+
+window.PAPA_DATA = initialData;
+
+window.savePapaData = () => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(window.PAPA_DATA));
+  } catch (e) {}
 };

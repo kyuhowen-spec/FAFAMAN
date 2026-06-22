@@ -31,25 +31,65 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
       return;
     }
     if (editTarget) {
+      // Update account email if changed
+      const oldEmp = employees.find(e => e.id === editTarget);
+      if (oldEmp && oldEmp.email !== form.email) {
+        const oldEmailKey = oldEmp.email.trim().toLowerCase();
+        const newEmailKey = form.email.trim().toLowerCase();
+        if (data.accounts[oldEmailKey]) {
+          data.accounts[newEmailKey] = data.accounts[oldEmailKey];
+          delete data.accounts[oldEmailKey];
+        }
+      }
       setEmployees(prev => prev.map(e => e.id === editTarget ? { ...e, ...form } : e));
     } else {
       const newId = form.id || `e${Date.now().toString(36).slice(-4)}`;
       const initials = form.name ? form.name.slice(-2).toUpperCase() : 'NN';
       const colorIdx = employees.length % 8;
-      setEmployees(prev => [...prev, {
+      const newEmp = {
         ...form,
         id: newId,
         initials: form.initials || initials,
         color: `av-${colorIdx}`,
-      }]);
+      };
+      setEmployees(prev => [...prev, newEmp]);
+
+      // Create login account with password '0000' and email as key
+      const emailKey = form.email.trim().toLowerCase();
+      if (!data.accounts[emailKey]) {
+        data.accounts[emailKey] = {
+          pw: '0000',
+          userId: newId,
+          isInitial: true
+        };
+      }
     }
+
+    // Save to localStorage
+    if (window.savePapaData) {
+      setTimeout(() => {
+        window.savePapaData();
+      }, 50);
+    }
+
     setShowForm(false);
     setEditTarget(null);
   };
 
   const handleDelete = (empId) => {
+    const emp = employees.find(e => e.id === empId);
+    if (emp && emp.email) {
+      delete data.accounts[emp.email.trim().toLowerCase()];
+    }
     setEmployees(prev => prev.filter(e => e.id !== empId));
     setConfirmDelete(null);
+
+    // Save to localStorage
+    if (window.savePapaData) {
+      setTimeout(() => {
+        window.savePapaData();
+      }, 50);
+    }
   };
 
   const editingEmp = editTarget ? employees.find(e => e.id === editTarget) : null;
@@ -192,6 +232,10 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
 
 const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete }) => {
   const [hover, setHover] = React.useState(false);
+  const data = window.PAPA_DATA;
+  const emailKey = emp.email ? emp.email.trim().toLowerCase() : '';
+  const acct = data.accounts[emailKey];
+  const isInitialPending = acct && (acct.pw === '0000' || acct.isInitial);
 
   return (
     <div
@@ -239,6 +283,13 @@ const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete }) => {
               letterSpacing: '.05em',
               border: '1px solid rgba(245,166,35,.4)',
             }}>INTERN</span>
+          )}
+          {isInitialPending && (
+            <span style={{
+              fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
+              background: 'rgba(235,94,85,.12)', color: '#eb5e55', letterSpacing: '.05em',
+              border: '1px solid rgba(235,94,85,.35)',
+            }}>최초 로그인 대기</span>
           )}
         </div>
         <div style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 2,
