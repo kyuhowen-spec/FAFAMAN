@@ -12,6 +12,11 @@ const LoginScreen = ({ onLogin }) => {
   const [newPw, setNewPw] = React.useState('');
   const [confirmNewPw, setConfirmNewPw] = React.useState('');
 
+  // Host restriction check
+  const allowedHosts = data.allowedHosts || [];
+  const currentHost = window.location.hostname;
+  const isHostAllowed = allowedHosts.length === 0 || allowedHosts.some(h => h.trim().toLowerCase() === currentHost.toLowerCase());
+
   const submit = (e) => {
     e.preventDefault();
     setError('');
@@ -70,6 +75,93 @@ const LoginScreen = ({ onLogin }) => {
     setPw(h.pw);
     setError('');
   };
+
+  // Block screen when accessing from unauthorized host
+  if (!isHostAllowed) {
+    return (
+      <div style={{
+        minHeight: '100vh', width: '100%',
+        display: 'grid', gridTemplateColumns: '1fr 1fr',
+        background: 'var(--bg)',
+      }}>
+        {/* Left brand panel */}
+        <div className="hero-gradient" style={{
+          display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+          padding: '56px 56px 48px', position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{
+            position: 'absolute', right: -80, bottom: -60,
+            fontSize: 420, fontWeight: 900, lineHeight: 1,
+            color: 'rgba(255,255,255,.06)', letterSpacing: '-.06em', pointerEvents: 'none',
+          }}>P</div>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12, background: 'white',
+              color: 'var(--accent)', display: 'grid', placeItems: 'center',
+              fontWeight: 800, fontSize: 17,
+            }}>P</div>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-.02em' }}>PAPA</div>
+              <div style={{ fontSize: 11, opacity: .8, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 600 }}>
+                found / Founded
+              </div>
+            </div>
+          </div>
+          <div style={{ position: 'relative' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '.16em', opacity: .8, textTransform: 'uppercase' }}>
+              ACCESS RESTRICTED
+            </div>
+            <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-.03em', lineHeight: 1.1, marginTop: 14 }}>
+              사내 네트워크에서만<br/>접속할 수 있어요
+            </div>
+          </div>
+          <div style={{ position: 'relative', fontSize: 12, opacity: .7, fontWeight: 500 }}>
+            © found / Founded. All rights reserved.
+          </div>
+        </div>
+
+        {/* Right blocked panel */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
+          <div style={{ width: 400, maxWidth: '100%', textAlign: 'center' }}>
+            <div style={{
+              width: 72, height: 72, borderRadius: 18, margin: '0 auto 24px',
+              background: 'var(--danger-soft, rgba(248,99,99,.12))', color: 'var(--danger)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Icon name="shield" size={32}/>
+            </div>
+            <div className="eyebrow" style={{ color: 'var(--danger)' }}>NETWORK NOT AUTHORIZED</div>
+            <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-.03em', marginTop: 8 }}>
+              접근이 제한되었습니다
+            </h1>
+            <div style={{ fontSize: 14, color: 'var(--ink-soft)', marginTop: 12, lineHeight: 1.6, fontWeight: 500 }}>
+              이 시스템은 관리자가 허용한 사내 서버에서만 접속 가능합니다.<br/>
+              사내 네트워크에 연결한 후 다시 시도해 주세요.
+            </div>
+            <div style={{
+              marginTop: 24, padding: '14px 18px', borderRadius: 12,
+              background: 'var(--bg)', border: '1px solid var(--line)',
+              fontSize: 12, fontWeight: 600, color: 'var(--ink-mute)',
+            }}>
+              <div style={{ marginBottom: 6 }}>현재 접속 주소</div>
+              <div className="mono" style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
+                {currentHost}
+              </div>
+              <div style={{ marginTop: 10, fontSize: 11, lineHeight: 1.5 }}>
+                허용된 서버: {allowedHosts.length > 0 ? allowedHosts.join(', ') : '(설정 없음)'}
+              </div>
+            </div>
+            <button onClick={() => window.location.reload()} className="btn" style={{
+              marginTop: 20, fontSize: 13, fontWeight: 700,
+            }}>
+              <Icon name="refresh-cw" size={13}/>
+              새로고침
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{

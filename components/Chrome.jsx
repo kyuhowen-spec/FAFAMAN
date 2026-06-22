@@ -7,6 +7,7 @@ const navItems = [
   { key: 'payroll',   label: '급여',         icon: 'wallet',     roles: ['admin','senior','member','accountant'] },
   { key: 'cert',      label: '재직증명서',    icon: 'file-text',  roles: ['admin','senior','member'] },
   { key: 'policy',    label: '근무 규정',    icon: 'book',       roles: ['admin','senior','member'] },
+  { key: 'settings',  label: '서버 설정',    icon: 'settings',   roles: ['admin'] },
 ];
 
 const Sidebar = ({ role, currentUserId, active, onNav, inboxCount, onLogout }) => {

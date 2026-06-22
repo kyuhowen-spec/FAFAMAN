@@ -411,7 +411,10 @@ const App = () => {
               onToast={setToast}
             />
           )}
-          {active !== 'dashboard' && active !== 'calendar' && active !== 'policy' && active !== 'org' && active !== 'inbox' && active !== 'payroll' && active !== 'cert' && (
+          {active === 'settings' && me.role === 'admin' && (
+            <SettingsPage onToast={setToast} />
+          )}
+          {active !== 'dashboard' && active !== 'calendar' && active !== 'policy' && active !== 'org' && active !== 'inbox' && active !== 'payroll' && active !== 'cert' && active !== 'settings' && (
             <PlaceholderPage tabKey={active} />
           )}
         </div>
@@ -602,6 +605,177 @@ const DashboardPage = ({ me, myRole, attendance, approvals, lateCounter, lateLog
         <PolicyStrip policies={data.policyHighlights} />
       </div>
     </>
+  );
+};
+
+// Settings page — admin-only: manage allowed hosts
+const SettingsPage = ({ onToast }) => {
+  const data = window.PAPA_DATA;
+  const [hosts, setHosts] = React.useState(data.allowedHosts || []);
+  const [newHost, setNewHost] = React.useState('');
+
+  const addHost = () => {
+    const val = newHost.trim();
+    if (!val) return;
+    if (hosts.some(h => h.toLowerCase() === val.toLowerCase())) {
+      onToast && onToast({ text: '이미 등록된 호스트입니다.', icon: 'alert-triangle' });
+      return;
+    }
+    const updated = [...hosts, val];
+    setHosts(updated);
+    data.allowedHosts = updated;
+    if (window.savePapaData) window.savePapaData();
+    setNewHost('');
+    onToast && onToast({ text: `${val} 추가 완료`, icon: 'check' });
+  };
+
+  const removeHost = (idx) => {
+    const removed = hosts[idx];
+    const updated = hosts.filter((_, i) => i !== idx);
+    setHosts(updated);
+    data.allowedHosts = updated;
+    if (window.savePapaData) window.savePapaData();
+    onToast && onToast({ text: `${removed} 제거됨`, icon: 'x' });
+  };
+
+  const currentHost = window.location.hostname;
+  const isCurrentAllowed = hosts.length === 0 || hosts.some(h => h.trim().toLowerCase() === currentHost.toLowerCase());
+
+  return (
+    <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div>
+        <div className="eyebrow">SETTINGS</div>
+        <h1 style={{ fontSize: 32, fontWeight: 800, marginTop: 8, letterSpacing: '-.02em' }}>
+          서버 접속 제한 설정
+        </h1>
+        <div style={{ marginTop: 8, color: 'var(--ink-mute)', fontSize: 14, fontWeight: 500, lineHeight: 1.5 }}>
+          등록된 호스트(IP 또는 도메인)에서 접속할 때만 로그인이 가능합니다.<br/>
+          목록이 비어 있으면 모든 호스트에서 접속을 허용합니다.
+        </div>
+      </div>
+
+      {/* Current connection info */}
+      <div className="card" style={{ padding: '20px 24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: 10,
+            background: isCurrentAllowed ? 'rgba(61,207,166,.15)' : 'var(--danger-soft, rgba(248,99,99,.12))',
+            color: isCurrentAllowed ? 'var(--ok-ink, #1d7a5a)' : 'var(--danger)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Icon name={isCurrentAllowed ? 'check-circle' : 'alert-triangle'} size={20} />
+          </div>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', letterSpacing: '.06em' }}>현재 접속 호스트</div>
+            <div className="mono" style={{ fontSize: 16, fontWeight: 700, marginTop: 2 }}>{currentHost}</div>
+          </div>
+          <div style={{ marginLeft: 'auto' }}>
+            <span style={{
+              fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 6,
+              background: isCurrentAllowed ? 'rgba(61,207,166,.15)' : 'var(--danger-soft, rgba(248,99,99,.12))',
+              color: isCurrentAllowed ? 'var(--ok-ink, #1d7a5a)' : 'var(--danger)',
+            }}>
+              {isCurrentAllowed ? '접속 허용됨' : '접속 차단됨'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Host list */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{
+          padding: '20px 24px', borderBottom: '1px solid var(--line-soft)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 800 }}>허용 호스트 목록</div>
+            <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 4 }}>
+              {hosts.length}개 등록됨
+            </div>
+          </div>
+        </div>
+
+        {/* Add new host */}
+        <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--line-soft)', display: 'flex', gap: 8 }}>
+          <input
+            className="input"
+            value={newHost}
+            onChange={e => setNewHost(e.target.value)}
+            placeholder="IP 또는 도메인 입력 (예: 192.168.0.100)"
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addHost(); } }}
+            style={{ flex: 1, fontSize: 14 }}
+          />
+          <button className="btn btn-primary" onClick={addHost}>
+            <Icon name="plus" size={14} strokeWidth={2.5} />
+            추가
+          </button>
+        </div>
+
+        {/* Host entries */}
+        <div style={{ padding: '8px 16px' }}>
+          {hosts.length === 0 ? (
+            <div style={{
+              padding: '32px 16px', textAlign: 'center',
+              color: 'var(--ink-mute)', fontSize: 13, fontWeight: 500,
+            }}>
+              <Icon name="globe" size={24} style={{ marginBottom: 8, opacity: .5 }} />
+              <div>등록된 호스트가 없습니다.</div>
+              <div style={{ fontSize: 12, marginTop: 4 }}>모든 네트워크에서 접속이 허용됩니다.</div>
+            </div>
+          ) : (
+            hosts.map((h, i) => {
+              const isCurrent = h.trim().toLowerCase() === currentHost.toLowerCase();
+              return (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '12px 12px', borderRadius: 10,
+                  borderBottom: i < hosts.length - 1 ? '1px solid var(--line-soft)' : 'none',
+                }}>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 8,
+                    background: isCurrent ? 'rgba(61,207,166,.15)' : 'var(--bg)',
+                    color: isCurrent ? 'var(--ok-ink, #1d7a5a)' : 'var(--ink-mute)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <Icon name="server" size={15} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div className="mono" style={{ fontSize: 14, fontWeight: 700 }}>{h}</div>
+                  </div>
+                  {isCurrent && (
+                    <span style={{
+                      fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 4,
+                      background: 'rgba(61,207,166,.15)', color: 'var(--ok-ink, #1d7a5a)',
+                    }}>현재 접속 중</span>
+                  )}
+                  <button
+                    onClick={() => removeHost(i)}
+                    className="btn-icon"
+                    style={{ background: 'var(--bg)', width: 30, height: 30, color: 'var(--danger)' }}
+                    title="삭제"
+                  >
+                    <Icon name="trash" size={13} />
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* Warning note */}
+      <div style={{
+        padding: '16px 20px', borderRadius: 12,
+        background: 'rgba(245,166,35,.1)', border: '1px solid rgba(245,166,35,.3)',
+        display: 'flex', gap: 12, alignItems: 'flex-start',
+      }}>
+        <Icon name="alert-triangle" size={16} style={{ color: '#b56b00', marginTop: 2, flexShrink: 0 }} />
+        <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.5, fontWeight: 500 }}>
+          <strong>주의:</strong> 현재 접속 중인 호스트(<span className="mono" style={{ fontWeight: 700 }}>{currentHost}</span>)를 목록에서 제거하면,
+          다음 로그아웃 후 이 위치에서 재접속할 수 없습니다.
+        </div>
+      </div>
+    </div>
   );
 };
 
