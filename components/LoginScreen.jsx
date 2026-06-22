@@ -20,8 +20,25 @@ const LoginScreen = ({ onLogin }) => {
   const submit = (e) => {
     e.preventDefault();
     setError('');
-    const emailKey = loginId.trim().toLowerCase();
-    const acct = data.accounts[emailKey];
+    const input = loginId.trim().toLowerCase();
+
+    // 1차: 직접 키 매칭 (기존 accounts[kyuho] 방식)
+    let acct = data.accounts[input];
+
+    // 2차: 입력이 이메일인 경우, 모든 employees에서 이메일로 userId 찾아 accounts에서 매칭
+    if (!acct && input.includes('@')) {
+      const allEmps = [...(data.employees || []), ...(data.externalUsers || [])];
+      const emp = allEmps.find(e => e.email && e.email.trim().toLowerCase() === input);
+      if (emp) {
+        // accounts에서 해당 userId를 가진 계정 찾기
+        acct = Object.values(data.accounts).find(a => a.userId === emp.id);
+      }
+      // 이메일 키로 직접 등록된 계정도 확인 (관리자가 이메일로 등록한 경우)
+      if (!acct) {
+        acct = data.accounts[input];
+      }
+    }
+
     if (!acct || acct.pw !== pw) {
       setError('아이디 또는 비밀번호가 올바르지 않습니다.');
       return;
@@ -54,8 +71,14 @@ const LoginScreen = ({ onLogin }) => {
       return;
     }
 
-    const emailKey = loginId.trim().toLowerCase();
-    const acct = data.accounts[emailKey];
+    const resetInput = loginId.trim().toLowerCase();
+    let acct = data.accounts[resetInput];
+    if (!acct && resetInput.includes('@')) {
+      const allEmps = [...(data.employees || []), ...(data.externalUsers || [])];
+      const emp = allEmps.find(e => e.email && e.email.trim().toLowerCase() === resetInput);
+      if (emp) acct = Object.values(data.accounts).find(a => a.userId === emp.id);
+      if (!acct) acct = data.accounts[resetInput];
+    }
     if (acct) {
       acct.pw = newPw;
       delete acct.isInitial;
