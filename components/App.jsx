@@ -175,12 +175,24 @@ const App = () => {
       setToast({ text: `${checkIn} 출근 체크인 완료`, icon: 'check' });
     }
   };
+  const [showCheckOutConfirm, setShowCheckOutConfirm] = React.useState(false);
 
   const handleCheckOut = () => {
+    setShowCheckOutConfirm(true);
+  };
+
+  const confirmCheckOut = () => {
     setAttendance(prev => ({
       ...prev,
-      [currentUserId]: { ...prev[currentUserId], status: 'not_checked_in', checkIn: null, plannedOut: null },
+      [currentUserId]: {
+        ...prev[currentUserId],
+        status: 'checked_out',
+        checkIn: null,
+        plannedOut: null,
+        checkedOutAt: new Date().toISOString(),
+      },
     }));
+    setShowCheckOutConfirm(false);
     setToast({ text: '오늘 수고하셨어요 👋', icon: 'check' });
   };
 
@@ -436,6 +448,50 @@ const App = () => {
           onClose={() => setShowLunchForm(false)}
           onSubmit={handleSubmitLunch}
         />
+      )}
+
+      {/* 퇴근 확인 팝업 */}
+      {showCheckOutConfirm && (
+        <div onClick={() => setShowCheckOutConfirm(false)} style={{
+          position: 'fixed', inset: 0, background: 'rgba(20,22,32,.55)',
+          backdropFilter: 'blur(6px)', zIndex: 110,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 24,
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: 'white', borderRadius: 16,
+            width: 420, padding: 28,
+            boxShadow: '0 24px 80px rgba(0,0,0,.18)',
+            textAlign: 'center',
+          }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: 14,
+              background: 'var(--accent-soft)', color: 'var(--accent)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 20px',
+            }}>
+              <Icon name="log-out" size={24} />
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-.02em' }}>
+              오늘도 수고하셨습니다.
+            </div>
+            <div style={{ fontSize: 15, color: 'var(--ink-soft)', marginTop: 10, lineHeight: 1.5, fontWeight: 500 }}>
+              퇴근하시겠습니까?
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 8, lineHeight: 1.5 }}>
+              퇴근 후에는 다음 날 오전 9시까지 출근하기 버튼이 비활성화됩니다.
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 24, justifyContent: 'center' }}>
+              <button className="btn" onClick={() => setShowCheckOutConfirm(false)} style={{ minWidth: 100 }}>
+                취소
+              </button>
+              <button className="btn btn-primary" onClick={confirmCheckOut} style={{ minWidth: 100 }}>
+                <Icon name="check" size={14} strokeWidth={2.5} />
+                퇴근하기
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <Toast toast={toast} onDismiss={() => setToast(null)} />

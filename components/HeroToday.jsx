@@ -5,7 +5,22 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
   const isWorking = att.status === 'working';
   const isVacation = att.status === 'vacation';
   const isHalfday = att.status === 'halfday';
+  const isCheckedOut = att.status === 'checked_out';
   const notIn = att.status === 'not_checked_in';
+
+  // 퇴근 후 다음날 9시까지 출근 차단
+  const canCheckIn = (() => {
+    if (!notIn && !isCheckedOut) return false; // 이미 근무중이면 출근 불가
+    if (isCheckedOut && att.checkedOutAt) {
+      const outTime = new Date(att.checkedOutAt);
+      const nextDay9AM = new Date(outTime);
+      nextDay9AM.setDate(nextDay9AM.getDate() + 1);
+      nextDay9AM.setHours(9, 0, 0, 0);
+      if (new Date() < nextDay9AM) return false;
+    }
+    if (isCheckedOut) return false; // checkedOutAt 없어도 차단
+    return true;
+  })();
 
   const today = window.PAPA_DATA.today.date;
   const penalty = penaltyMode?.[me];
@@ -35,6 +50,10 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
     statusLabel = '오늘은 연차';
     clockLabel = '—';
     subLabel = '즐거운 하루 보내세요 🌿';
+  } else if (isCheckedOut) {
+    statusLabel = '퇴근 완료';
+    clockLabel = '—';
+    subLabel = '오늘도 수고하셨어요 · 내일 9시 이후 출근 가능';
   } else {
     statusLabel = '출근 전';
     clockLabel = '00:00';
@@ -166,10 +185,12 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
 
         {/* Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 22 }}>
-          {notIn && (
-            <button className="btn btn-lg btn-white" onClick={onCheckIn}>
+          {(notIn || isCheckedOut) && (
+            <button className="btn btn-lg btn-white" onClick={onCheckIn}
+              disabled={!canCheckIn}
+              style={{ opacity: canCheckIn ? 1 : .45, cursor: canCheckIn ? 'pointer' : 'not-allowed' }}>
               <Icon name="play" size={13} />
-              지금 출근하기
+              {isCheckedOut ? '퇴근 완료 · 내일 출근 가능' : '지금 출근하기'}
             </button>
           )}
           {(isWorking || isHalfday) && (

@@ -68,6 +68,7 @@ const StatusChip = ({ status }) => {
   const map = {
     working:        { label: '근무중',   cls: 'status-in',       pill: 'pill-ok' },
     not_checked_in: { label: '출근 전',  cls: 'status-off',      pill: 'pill-mute' },
+    checked_out:    { label: '퇴근',     cls: 'status-off',      pill: 'pill-mute' },
     vacation:       { label: '연차',      cls: 'status-vacation', pill: 'pill-warn' },
     halfday:        { label: '반차',      cls: 'status-halfday',  pill: 'pill-member' },
   };
@@ -89,12 +90,11 @@ const fmtDuration = (totalMins) => {
   return `${h}시간 ${m}분`;
 };
 
-// Format HH:MM:SS from seconds
+// Format HH:MM from seconds (초 단위 제거)
 const fmtClock = (totalSecs) => {
   const h = String(Math.floor(totalSecs / 3600)).padStart(2, '0');
   const m = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
-  const s = String(totalSecs % 60).padStart(2, '0');
-  return `${h}:${m}:${s}`;
+  return `${h}:${m}`;
 };
 
 // Calculate tenure in years from join date
