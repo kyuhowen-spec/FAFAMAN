@@ -837,6 +837,43 @@ const SettingsPage = ({ onToast }) => {
 
 window.App = App;
 
-// Mount
+// Mount with Async Data Initialization & Sync Listener
+const PapaRoot = () => {
+  const [ready, setReady] = React.useState(false);
+  const [syncTick, setSyncTick] = React.useState(0);
+
+  React.useEffect(() => {
+    // 1. Fetch data initially from Firestore
+    if (window.initPapaData) {
+      window.initPapaData().then(() => setReady(true));
+    } else {
+      setReady(true);
+    }
+
+    // 2. Listen for realtime syncs from Firestore onSnapshot
+    const handleSync = () => {
+      setSyncTick(t => t + 1); // Force full remount on data sync
+    };
+    window.addEventListener('papa-data-updated', handleSync);
+    return () => window.removeEventListener('papa-data-updated', handleSync);
+  }, []);
+
+  if (!ready) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', color: 'var(--ink)' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
+          <div style={{ fontWeight: 600 }}>Loading PAPA Workspace...</div>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  // Using syncTick as key forces a complete remount of the app when data syncs,
+  // ensuring all internal component states (like React.useState) re-initialize with the fresh PAPA_DATA.
+  return <App key={syncTick} />;
+};
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+root.render(<PapaRoot />);

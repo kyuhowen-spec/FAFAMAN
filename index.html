@@ -41,6 +41,7 @@
   <!-- Firebase 연동 -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCbiRluC-sF36GKyCDzwuCQv49ZyFodS1s",
@@ -54,8 +55,10 @@
 
     try {
       const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
       window.firebaseApp = app;
       window.firebaseConfig = firebaseConfig;
+      window.firebaseDb = db;
       console.log("[PAPA] Firebase 초기화 완료:", app.options.projectId);
 
       // Analytics는 일부 미리보기/샌드박스 환경에서 차단될 수 있어 안전하게 시도

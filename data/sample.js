@@ -1,13 +1,4 @@
 // Sample data for PAPA HR system
-const STORAGE_KEY = 'papa_workspace_data';
-let initialData = null;
-try {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) initialData = JSON.parse(stored);
-} catch (e) {
-  console.error("Failed to load local PAPA data", e);
-}
-
 const defaultData = {
   employees: [
     { id: 'kh', name: '김규호', en: 'Kyuho',   role: 'admin',  title: '대표이사',     team: 'ID', joined: '2016-03-15', initials: 'KH', color: 'av-0', birthday: '05-22', email: 'kyuho@foundfounded.kr',   phone: '010-2214-3391' },
@@ -280,17 +271,43 @@ const defaultData = {
   allowedHosts: ['localhost', '127.0.0.1', 'kyuhowen-spec.github.io', 'fafaman.vercel.app'],
 };
 
-if (!initialData) {
-  initialData = defaultData;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(initialData));
-  } catch (e) {}
-}
+window.PAPA_DATA = null;
 
-window.PAPA_DATA = initialData;
+window.initPapaData = async () => {
+  // Wait for firebase initialization
+  while (!window.firebaseDb) {
+    await new Promise(r => setTimeout(r, 50));
+  }
+  const db = window.firebaseDb;
+  const { doc, getDoc, setDoc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
+  
+  const docRef = doc(db, 'workspaces', 'main');
+  const snapshot = await getDoc(docRef);
+  
+  if (snapshot.exists()) {
+    window.PAPA_DATA = snapshot.data();
+  } else {
+    window.PAPA_DATA = defaultData;
+    await setDoc(docRef, window.PAPA_DATA);
+  }
 
-window.savePapaData = () => {
+  // Realtime Sync Listener
+  onSnapshot(docRef, (docSnap) => {
+    if (docSnap.exists()) {
+      window.PAPA_DATA = docSnap.data();
+      // Dispatch event to trigger React re-render
+      window.dispatchEvent(new Event('papa-data-updated'));
+    }
+  });
+};
+
+window.savePapaData = async () => {
+  if (!window.PAPA_DATA || !window.firebaseDb) return;
+  const db = window.firebaseDb;
+  const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(window.PAPA_DATA));
-  } catch (e) {}
+    await setDoc(doc(db, 'workspaces', 'main'), window.PAPA_DATA);
+  } catch (e) {
+    console.error("Failed to save PAPA_DATA to Firestore:", e);
+  }
 };
