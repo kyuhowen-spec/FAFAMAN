@@ -1,0 +1,612 @@
+// Main App - orchestrates everything
+const App = () => {
+  const data = window.PAPA_DATA;
+
+  // Tweakable defaults
+  const tweaks = /*EDITMODE-BEGIN*/{
+    "currentUserId": "jh"
+  }/*EDITMODE-END*/;
+
+  const initialUserId = (() => {
+    try {
+      const stored = localStorage.getItem('papa_auth');
+      if (stored && getEmployee(stored)) return stored;
+    } catch {}
+    return null;
+  })();
+
+  const [currentUserId, setCurrentUserId] = React.useState(initialUserId);
+  const [active, setActive] = React.useState(getEmployee(initialUserId)?.role === 'accountant' ? 'payroll' : 'dashboard');
+  const [attendance, setAttendance] = React.useState(data.attendance);
+  const [approvals, setApprovals] = React.useState(data.approvals);
+  const [lateCounter, setLateCounter] = React.useState(data.lateCounter);
+  const [lateLogs, setLateLogs] = React.useState(data.lateLogs);
+  const [penaltyMode, setPenaltyMode] = React.useState(data.penaltyMode || {});
+  const [payroll, setPayroll] = React.useState(data.payroll);
+  const [payrollSchema, setPayrollSchema] = React.useState(data.payrollSchema);
+  const [payMonth, setPayMonth] = React.useState('2026-06');
+  const [certTemplate, setCertTemplate] = React.useState(data.certTemplate);
+  const [clockSecs, setClockSecs] = React.useState(0);
+  const [showLeaveForm, setShowLeaveForm] = React.useState(false);
+  const [showLunchForm, setShowLunchForm] = React.useState(false);
+  const [toast, setToast] = React.useState(null);
+  const [selectedMember, setSelectedMember] = React.useState(null);
+  const [editMode, setEditMode] = React.useState(false);
+
+  const me = getEmployee(currentUserId);
+  const myAtt = attendance[currentUserId];
+
+  // Persist auth
+  React.useEffect(() => {
+    try {
+      if (currentUserId) localStorage.setItem('papa_auth', currentUserId);
+    } catch {}
+  }, [currentUserId]);
+
+  const handleLogin = (id) => {
+    setCurrentUserId(id);
+    setActive(getEmployee(id)?.role === 'accountant' ? 'payroll' : 'dashboard');
+  };
+  const handleLogout = () => {
+    try { localStorage.removeItem('papa_auth'); } catch {}
+    setCurrentUserId(null);
+  };
+
+  // Payroll handlers
+  const handleUpdateCell = (month, empId, kind, name, value) => {
+    setPayroll(prev => {
+      const m = { ...(prev[month] || {}) };
+      const rec = { earnings: { ...(m[empId]?.earnings || {}) }, deductions: { ...(m[empId]?.deductions || {}) } };
+      rec[kind][name] = value;
+      m[empId] = rec;
+      return { ...prev, [month]: m };
+    });
+  };
+  const handleAddPayItem = (kind, name) => {
+    setPayrollSchema(prev => ({ ...prev, [kind]: [...prev[kind], name] }));
+  };
+  const handleBulkPayroll = (month, updates) => {
+    setPayroll(prev => {
+      const m = { ...(prev[month] || {}) };
+      Object.entries(updates).forEach(([empId, rec]) => {
+        m[empId] = {
+          earnings: { ...(m[empId]?.earnings || {}), ...rec.earnings },
+          deductions: { ...(m[empId]?.deductions || {}), ...rec.deductions },
+        };
+      });
+      return { ...prev, [month]: m };
+    });
+  };
+
+  // Work clock: tick every second when working
+  React.useEffect(() => {
+    if (!myAtt || (myAtt.status !== 'working' && myAtt.status !== 'halfday') || !myAtt.checkIn) {
+      return;
+    }
+    const computeSecs = () => {
+      const [h, m] = myAtt.checkIn.split(':').map(Number);
+      // use a fake "now" tied to wall clock progression from checkIn
+      // Start at checkIn + artificial offset
+      const baseSecs = h * 3600 + m * 60;
+      // Simulate "now" as 11:15 + elapsed real seconds since mount for feel
+      const now = new Date();
+      // Use actual local wall clock offset from midnight modulo — but clamp so we don't show negative
+      // Simpler: show elapsed time since checkIn, using "now" of 11:15 + real ticks
+      const simulatedNow = 11 * 3600 + 15 * 60 + Math.floor((Date.now() - mountTime) / 1000);
+      const diff = simulatedNow - baseSecs;
+      return Math.max(0, diff);
+    };
+    const mountTime = Date.now();
+    setClockSecs(computeSecs());
+    const id = setInterval(() => {
+      const secs = (() => {
+        const [h, m] = myAtt.checkIn.split(':').map(Number);
+        const baseSecs = h * 3600 + m * 60;
+        const simulatedNow = 11 * 3600 + 15 * 60 + Math.floor((Date.now() - mountTime) / 1000);
+        return Math.max(0, simulatedNow - baseSecs);
+      })();
+      setClockSecs(secs);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [myAtt?.checkIn, myAtt?.status, currentUserId]);
+
+  // Actions
+  const isPenaltyActiveToday = (empId) => {
+    const pm = penaltyMode[empId];
+    if (!pm) return false;
+    const today = window.PAPA_DATA.today.date;
+    return pm.startDate <= today && today <= pm.endDate;
+  };
+
+  const handleCheckIn = () => {
+    // Simulate "now" = 11:15 (matches the clock simulation baseline)
+    const simH = 11;
+    const simM = 15;
+    const checkIn = `${String(simH).padStart(2,'0')}:${String(simM).padStart(2,'0')}`;
+    const outH = (simH + 9) % 24;
+    const plannedOut = `${String(outH).padStart(2,'0')}:${String(simM).padStart(2,'0')}`;
+
+    // Deadline: 11:00 normally, 10:00 when penalty is active
+    const inPenalty = isPenaltyActiveToday(currentUserId);
+    const deadlineMins = (inPenalty ? 10 : 11) * 60;
+    const checkInMins = simH * 60 + simM;
+    const lateMins = Math.max(0, checkInMins - deadlineMins);
+    const wasLate = lateMins > 0;
+
+    setAttendance(prev => ({
+      ...prev,
+      [currentUserId]: { ...prev[currentUserId], status: 'working', checkIn, plannedOut, lunch: 60, wasLate, lateMins },
+    }));
+
+    if (wasLate) {
+      const today = window.PAPA_DATA.today.date;
+      const reasonNote = inPenalty ? '(벌칙 근태 · 10시 마감 조과)' : '(자동 기록 · 체크인 시각 기준)';
+      const newLog = {
+        id: 'll_' + Date.now(),
+        empId: currentUserId,
+        date: today,
+        time: checkIn,
+        delta: lateMins,
+        reason: reasonNote,
+      };
+      setLateLogs(prev => [newLog, ...prev]);
+
+      // Increment counter; trigger penalty at 5
+      setLateCounter(prev => {
+        const next = (prev[currentUserId] || 0) + 1;
+        if (next >= 5 && !penaltyMode[currentUserId]) {
+          // Start penalty tomorrow, 7 days
+          const tmr = new Date(today);
+          tmr.setDate(tmr.getDate() + 1);
+          const end = new Date(tmr);
+          end.setDate(end.getDate() + 6);
+          const iso = (d) => d.toISOString().slice(0, 10);
+          setPenaltyMode(pm => ({
+            ...pm,
+            [currentUserId]: { startDate: iso(tmr), endDate: iso(end), reason: '지각 5회 누적' },
+          }));
+          setToast({ text: `⚠️ 지각 5회 도달 · 내일부터 7일간 10시 출근 벌칙 적용`, icon: 'flame' });
+          return { ...prev, [currentUserId]: next };
+        }
+        setToast({ text: `${checkIn} 체크인 · ${lateMins}분 지각 자동 기록`, icon: 'alert-triangle' });
+        return { ...prev, [currentUserId]: next };
+      });
+    } else {
+      setToast({ text: `${checkIn} 출근 체크인 완료`, icon: 'check' });
+    }
+  };
+
+  const handleCheckOut = () => {
+    setAttendance(prev => ({
+      ...prev,
+      [currentUserId]: { ...prev[currentUserId], status: 'not_checked_in', checkIn: null, plannedOut: null },
+    }));
+    setToast({ text: '오늘 수고하셨어요 👋', icon: 'check' });
+  };
+
+  const handleChangeLunch = (mins) => {
+    if (mins === 60) {
+      setAttendance(prev => ({
+        ...prev,
+        [currentUserId]: { ...prev[currentUserId], lunch: 60, lunchSlot: null, lunchStatus: null },
+      }));
+      setToast({ text: '점심 1시간으로 변경', icon: 'coffee' });
+    } else {
+      // 90 minutes → must go through approval
+      setShowLunchForm(true);
+    }
+  };
+
+  const handleSubmitLunch = ({ slot, note, assignedSenior }) => {
+    // Set pending state on user's attendance
+    setAttendance(prev => ({
+      ...prev,
+      [currentUserId]: { ...prev[currentUserId], lunch: 90, lunchSlot: slot, lunchStatus: 'pending', lunchNote: note },
+    }));
+    // Add approval record
+    const newAppr = {
+      id: `lunch${Date.now()}`,
+      empId: currentUserId,
+      type: '점심 1.5h',
+      subtype: slot,
+      start: '2026-04-30',
+      end: '2026-04-30',
+      days: 0,
+      reason: note || (slot === 'early' ? '12:00–13:30 희망' : '12:30–14:00 희망'),
+      appliedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
+      stage: me.role === 'senior' ? 'approved' : 'pending_senior',
+      isLunch: true,
+      lunchSlot: slot,
+      assignedSenior: assignedSenior || null,
+    };
+    setApprovals(prev => [newAppr, ...prev]);
+    setShowLunchForm(false);
+    if (me.role === 'senior') {
+      setAttendance(prev => ({
+        ...prev,
+        [currentUserId]: { ...prev[currentUserId], lunchStatus: 'approved' },
+      }));
+      setToast({ text: '점심 1.5h 자동 승인', icon: 'check' });
+    } else {
+      const seniorName = assignedSenior ? getEmployee(assignedSenior).name : '시니어';
+      setToast({ text: `${seniorName}에게 점심 1.5h 신청 완료`, icon: 'coffee' });
+    }
+  };
+
+  const handleApprove = (id) => {
+    setApprovals(prev => prev.map(a => {
+      if (a.id !== id) return a;
+      const meEmp = getEmployee(currentUserId);
+      // Lunch requests only need senior approval (not a full two-stage flow)
+      if (a.isLunch) {
+        setAttendance(prevAtt => ({
+          ...prevAtt,
+          [a.empId]: { ...prevAtt[a.empId], lunchStatus: 'approved' },
+        }));
+        return { ...a, stage: 'approved' };
+      }
+      if (meEmp.role === 'senior' && a.stage === 'pending_senior') return { ...a, stage: 'pending_admin' };
+      if (meEmp.role === 'admin') return { ...a, stage: 'approved' };
+      return a;
+    }));
+    setToast({ text: '결재 승인 완료', icon: 'check' });
+  };
+
+  const handleReject = (id, msg) => {
+    const now = new Date();
+    const ts = `${now.toISOString().slice(0, 10)} ${now.toTimeString().slice(0, 5)}`;
+    setApprovals(prev => prev.map(a => a.id === id ? {
+      ...a,
+      stage: 'rejected',
+      rejectedAt: ts,
+      rejectedBy: currentUserId,
+      rejectReason: msg || a.rejectReason,
+    } : a));
+    setToast({ text: '결재 반려 처리', icon: 'x' });
+  };
+
+  const handleSubmitLeave = (payload) => {
+    const newAppr = {
+      id: `a${Date.now()}`,
+      empId: currentUserId,
+      type: payload.type,
+      subtype: payload.subtype,
+      start: payload.start,
+      end: payload.end,
+      days: payload.days,
+      reason: payload.reason || '—',
+      appliedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
+      stage: me.role === 'senior' ? 'pending_admin' : 'pending_senior',
+      assignedSenior: payload.assignedSenior || null,
+    };
+    setApprovals(prev => [newAppr, ...prev]);
+    setShowLeaveForm(false);
+    setToast({ text: '휴가 신청이 접수되었어요', icon: 'plane' });
+  };
+
+  const handleReportLate = (payload) => {
+    const now = new Date();
+    const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const [ph, pm] = payload.plannedAt.split(':').map(Number);
+    const delta = Math.max(1, (now.getHours() * 60 + now.getMinutes()) - (ph * 60 + pm));
+    const newLog = {
+      id: `l${Date.now()}`,
+      empId: currentUserId,
+      date: '2026-04-21',
+      time,
+      plannedAt: payload.plannedAt,
+      delta,
+      reason: payload.reason || '(사유 미기재)',
+    };
+    setLateLogs(prev => [newLog, ...prev]);
+    setLateCounter(prev => ({ ...prev, [currentUserId]: (prev[currentUserId] || 0) + 1 }));
+    setShowLateForm(false);
+    setToast({ text: `지각 ${delta}분 기록 완료`, icon: 'alert-triangle' });
+  };
+
+  // Tweaks listener
+  React.useEffect(() => {
+    const handler = (e) => {
+      if (e.data?.type === '__activate_edit_mode') setEditMode(true);
+      if (e.data?.type === '__deactivate_edit_mode') setEditMode(false);
+    };
+    window.addEventListener('message', handler);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
+  const handleSetUser = (id) => {
+    setCurrentUserId(id);
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { currentUserId: id } }, '*');
+  };
+
+  // Auth gate — must log in as yourself
+  if (!currentUserId || !me) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
+
+  // Visible approvals for sidebar badge
+  const inboxCount = approvals.filter(a => {
+    if (me.role === 'senior') return a.stage === 'pending_senior' && a.assignedSenior === currentUserId;
+    if (me.role === 'admin') return a.stage === 'pending_admin' || a.stage === 'pending_senior';
+    return false;
+  }).length;
+
+  return (
+    <div className="app" data-screen-label="Dashboard">
+      <Sidebar
+        role={me.role}
+        currentUserId={currentUserId}
+        active={active}
+        onNav={setActive}
+        inboxCount={inboxCount}
+        onLogout={handleLogout}
+      />
+      <div className="main-col">
+        <Topbar
+          today={data.today}
+          currentUserId={currentUserId}
+          role={me.role}
+          notifCount={inboxCount}
+        />
+        <div className="content">
+          {active === 'dashboard' && me.role !== 'accountant' && (
+            <DashboardPage
+              me={currentUserId}
+              myRole={me.role}
+              attendance={attendance}
+              approvals={approvals}
+              lateCounter={lateCounter}
+              lateLogs={lateLogs}
+              penaltyMode={penaltyMode}
+              clockSecs={clockSecs}
+              onCheckIn={handleCheckIn}
+              onCheckOut={handleCheckOut}
+              onChangeLunch={handleChangeLunch}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              onShowLeaveForm={() => setShowLeaveForm(true)}
+              onSelectMember={setSelectedMember}
+            />
+          )}
+          {active === 'calendar' && <CalendarPage events={data.events} />}
+          {active === 'policy' && <PolicyBoardPage role={me.role} currentUserId={currentUserId} />}
+          {active === 'org' && (
+            <OrgPage
+              role={me.role}
+              currentUserId={currentUserId}
+              onSelectMember={setSelectedMember}
+            />
+          )}
+          {active === 'inbox' && (me.role === 'admin' || me.role === 'senior') && (
+            <InboxPage
+              role={me.role}
+              currentUserId={currentUserId}
+              approvals={approvals}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              onSelectMember={setSelectedMember}
+            />
+          )}
+          {active === 'payroll' && (
+            <PayrollPage
+              role={me.role}
+              currentUserId={currentUserId}
+              payroll={payroll}
+              schema={payrollSchema}
+              month={payMonth}
+              setMonth={setPayMonth}
+              onUpdateCell={handleUpdateCell}
+              onAddItem={handleAddPayItem}
+              onBulkApply={handleBulkPayroll}
+              onToast={setToast}
+            />
+          )}
+          {active === 'cert' && (
+            <CertificatePage
+              role={me.role}
+              currentUserId={currentUserId}
+              template={certTemplate}
+              onUpdateTemplate={setCertTemplate}
+              onToast={setToast}
+            />
+          )}
+          {active !== 'dashboard' && active !== 'calendar' && active !== 'policy' && active !== 'org' && active !== 'inbox' && active !== 'payroll' && active !== 'cert' && (
+            <PlaceholderPage tabKey={active} />
+          )}
+        </div>
+      </div>
+
+      {showLeaveForm && (
+        <LeaveRequestForm
+          me={me}
+          onClose={() => setShowLeaveForm(false)}
+          onSubmit={handleSubmitLeave}
+        />
+      )}
+      {selectedMember && (
+        <MemberProfilePopup empId={selectedMember} currentUserId={currentUserId} onClose={() => setSelectedMember(null)} />
+      )}
+      {showLunchForm && (
+        <LunchRequestForm
+          me={me}
+          onClose={() => setShowLunchForm(false)}
+          onSubmit={handleSubmitLunch}
+        />
+      )}
+
+      <Toast toast={toast} onDismiss={() => setToast(null)} />
+      <TweaksPanel
+        show={editMode}
+        currentUserId={currentUserId}
+        onSetUser={handleSetUser}
+      />
+    </div>
+  );
+};
+
+// Calendar-only page (full width)
+const CalendarPage = ({ events }) => {
+  const data = window.PAPA_DATA;
+  return (
+    <>
+      <div style={{ marginBottom: 28 }}>
+        <div className="eyebrow">CALENDAR</div>
+        <h1 style={{
+          fontSize: 52, fontWeight: 800, letterSpacing: '-.04em',
+          marginTop: 8, lineHeight: 1,
+        }}>
+          팀 캘린더
+        </h1>
+        <div style={{ fontSize: 17, color: 'var(--ink-soft)', marginTop: 10, fontWeight: 500 }}>
+          연차 · 반차 · 생일을 한 화면에서 확인하세요.
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 20 }}>
+        <div style={{ gridColumn: 'span 12' }}>
+          <MiniCalendar events={events} />
+        </div>
+      </div>
+    </>
+  );
+};
+
+// Placeholder for not-yet-built tabs
+const PlaceholderPage = ({ tabKey }) => {
+  const item = (window.navItems || []).find(n => n.key === tabKey) || { label: tabKey, icon: 'sparkles' };
+  return (
+    <>
+      <div style={{ marginBottom: 28 }}>
+        <div className="eyebrow">{(tabKey || '').toUpperCase()}</div>
+        <h1 style={{
+          fontSize: 52, fontWeight: 800, letterSpacing: '-.04em',
+          marginTop: 8, lineHeight: 1,
+        }}>
+          {item.label}
+        </h1>
+      </div>
+      <div className="card" style={{
+        padding: '80px 40px',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+        background: 'var(--surface)',
+      }}>
+        <div style={{
+          width: 64, height: 64, borderRadius: 16,
+          background: 'var(--accent-soft)', color: 'var(--accent)',
+          display: 'grid', placeItems: 'center', marginBottom: 18,
+        }}>
+          <Icon name={item.icon} size={28}/>
+        </div>
+        <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-.02em' }}>
+          곧 준비할 화면이에요
+        </div>
+        <div style={{ fontSize: 14, color: 'var(--ink-mute)', marginTop: 8, maxWidth: 360, lineHeight: 1.5 }}>
+          이 페이지는 다음 스프린트에서 만들 예정입니다. 지금은 대시보드와 캘린더만 사용 가능해요.
+        </div>
+      </div>
+    </>
+  );
+};
+
+// Dashboard page layout
+const DashboardPage = ({ me, myRole, attendance, approvals, lateCounter, lateLogs, penaltyMode, clockSecs,
+  onCheckIn, onCheckOut, onChangeLunch, onApprove, onReject, onShowLeaveForm, onSelectMember }) => {
+  const data = window.PAPA_DATA;
+  const isSeniorOrAdmin = myRole === 'senior' || myRole === 'admin';
+  const emp = getEmployee(me);
+
+  // Page heading banner
+  return (
+    <>
+      {/* Page header with big type */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 20 }}>
+          <div>
+            <div className="eyebrow">DASHBOARD / {myRole.toUpperCase()}</div>
+            <h1 style={{
+              fontSize: 52, fontWeight: 800, letterSpacing: '-.04em',
+              marginTop: 8, lineHeight: 1,
+            }}>
+              좋은 아침이에요.
+            </h1>
+            <div style={{ fontSize: 17, color: 'var(--ink-soft)', marginTop: 10, fontWeight: 500 }}>
+              {myRole === 'admin' && `오늘 ${data.employees.length - 1}명의 동료들과 함께합니다.`}
+              {myRole === 'senior' && `결재 ${approvals.filter(a => a.stage === 'pending_senior' && a.assignedSenior === me).length}건이 기다리고 있어요.`}
+              {myRole === 'member' && `${emp.name}님의 하루를 응원해요.`}
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div className="eyebrow">이번주 누적</div>
+            <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-.03em', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
+              32<span style={{ fontSize: 16, color: 'var(--ink-mute)', marginLeft: 4, fontWeight: 700 }}>h 14m</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Grid: Hero (8col) + right column (4col: 2x2 of widgets) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 20, marginBottom: 20 }}>
+        <HeroToday
+          me={me}
+          attendance={attendance}
+          penaltyMode={penaltyMode}
+          clockSecs={clockSecs}
+          onCheckIn={onCheckIn}
+          onCheckOut={onCheckOut}
+          onChangeLunch={onChangeLunch}
+          onShowLeaveForm={onShowLeaveForm}
+        />
+        <div style={{ gridColumn: 'span 4', display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <LateCounter
+            empId={me}
+            counter={lateCounter[me] || 0}
+            penalty={penaltyMode?.[me]}
+          />
+          <LeaveBalance balance={data.leaveBalance[me]} />
+        </div>
+      </div>
+
+      {/* Second row: Team status (2/3) + Approval queue (1/3) OR calendar */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 20, marginBottom: 20 }}>
+        <div style={{ gridColumn: 'span 8' }}>
+          <TeamStatus
+            attendance={attendance}
+            employees={data.employees}
+            lateCounter={lateCounter}
+            onSelectMember={onSelectMember}
+          />
+        </div>
+        <div style={{ gridColumn: 'span 4', display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <ApprovalPending
+            role={myRole}
+            approvals={approvals}
+            currentUserId={me}
+            onApprove={onApprove}
+            onReject={onReject}
+          />
+        </div>
+      </div>
+
+      {/* Third row: Late log feed (senior/admin) or policy-focused empty (member) */}
+      {isSeniorOrAdmin && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 20, marginBottom: 20 }}>
+          <div style={{ gridColumn: 'span 12' }}>
+            <LateLogFeed lateLogs={lateLogs} employees={data.employees} />
+          </div>
+        </div>
+      )}
+
+      {/* Policy strip */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 20 }}>
+        <PolicyStrip policies={data.policyHighlights} />
+      </div>
+    </>
+  );
+};
+
+window.App = App;
+
+// Mount
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);

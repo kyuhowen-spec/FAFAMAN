@@ -1,0 +1,158 @@
+// Login screen — entry point. Anti-proxy: must log in as yourself to check in.
+const LoginScreen = ({ onLogin }) => {
+  const data = window.PAPA_DATA;
+  const [loginId, setLoginId] = React.useState('');
+  const [pw, setPw] = React.useState('');
+  const [error, setError] = React.useState('');
+  const [busy, setBusy] = React.useState(false);
+  const [showHints, setShowHints] = React.useState(false);
+
+  const submit = (e) => {
+    e.preventDefault();
+    setError('');
+    const acct = data.accounts[loginId.trim().toLowerCase()];
+    if (!acct || acct.pw !== pw) {
+      setError('아이디 또는 비밀번호가 올바르지 않습니다.');
+      return;
+    }
+    setBusy(true);
+    setTimeout(() => onLogin(acct.userId), 350);
+  };
+
+  const quickFill = (h) => {
+    setLoginId(h.loginId);
+    setPw(h.pw);
+    setError('');
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh', width: '100%',
+      display: 'grid', gridTemplateColumns: '1fr 1fr',
+      background: 'var(--bg)',
+    }}>
+      {/* Left brand panel */}
+      <div className="hero-gradient" style={{
+        display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+        padding: '56px 56px 48px', position: 'relative', overflow: 'hidden',
+      }}>
+        <div style={{
+          position: 'absolute', right: -80, bottom: -60,
+          fontSize: 420, fontWeight: 900, lineHeight: 1,
+          color: 'rgba(255,255,255,.06)', letterSpacing: '-.06em', pointerEvents: 'none',
+        }}>P</div>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: 12, background: 'white',
+            color: 'var(--accent)', display: 'grid', placeItems: 'center',
+            fontWeight: 800, fontSize: 17,
+          }}>P</div>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-.02em' }}>PAPA</div>
+            <div style={{ fontSize: 11, opacity: .8, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 600 }}>
+              found / Founded
+            </div>
+          </div>
+        </div>
+
+        <div style={{ position: 'relative' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '.16em', opacity: .8, textTransform: 'uppercase' }}>
+            HR · 근태 · 급여 워크스페이스
+          </div>
+          <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-.03em', lineHeight: 1.1, marginTop: 14 }}>
+            본인 계정으로<br/>로그인하고 출근하세요
+          </div>
+          <div style={{ fontSize: 14, opacity: .85, marginTop: 16, lineHeight: 1.6, maxWidth: 380, fontWeight: 500 }}>
+            출퇴근 체크는 로그인한 본인만 가능합니다.<br/>대리 출근을 방지하기 위한 인증 절차예요.
+          </div>
+        </div>
+
+        <div style={{ position: 'relative', fontSize: 12, opacity: .7, fontWeight: 500 }}>
+          © found / Founded. All rights reserved.
+        </div>
+      </div>
+
+      {/* Right form panel */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
+        <form onSubmit={submit} style={{ width: 360, maxWidth: '100%' }}>
+          <div className="eyebrow">SIGN IN</div>
+          <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: '-.03em', marginTop: 8 }}>
+            로그인
+          </h1>
+          <div style={{ fontSize: 14, color: 'var(--ink-soft)', marginTop: 8, fontWeight: 500 }}>
+            회사에서 발급받은 계정으로 접속하세요.
+          </div>
+
+          <div style={{ marginTop: 28 }}>
+            <div className="eyebrow" style={{ marginBottom: 8 }}>아이디</div>
+            <input
+              className="input" value={loginId} autoFocus autoComplete="username"
+              onChange={e => setLoginId(e.target.value)}
+              placeholder="예: jihoon"
+              style={{ fontSize: 15 }}
+            />
+          </div>
+          <div style={{ marginTop: 14 }}>
+            <div className="eyebrow" style={{ marginBottom: 8 }}>비밀번호</div>
+            <input
+              className="input" type="password" value={pw} autoComplete="current-password"
+              onChange={e => setPw(e.target.value)}
+              placeholder="••••••••"
+              style={{ fontSize: 15 }}
+            />
+          </div>
+
+          {error && (
+            <div style={{
+              marginTop: 14, padding: '10px 14px', borderRadius: 10,
+              background: 'var(--danger-soft, rgba(248,99,99,.12))', color: 'var(--danger)',
+              fontSize: 13, fontWeight: 600,
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              <Icon name="alert-triangle" size={14}/> {error}
+            </div>
+          )}
+
+          <button type="submit" className="btn btn-primary btn-lg" disabled={busy}
+            style={{ width: '100%', marginTop: 22, opacity: busy ? .7 : 1 }}>
+            {busy ? '로그인 중…' : '로그인'}
+          </button>
+
+          {/* Demo hints */}
+          <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--line)' }}>
+            <button type="button" onClick={() => setShowHints(s => !s)} style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              fontSize: 12, fontWeight: 700, color: 'var(--ink-mute)',
+            }}>
+              <Icon name="info" size={13}/>
+              데모 계정 {showHints ? '숨기기' : '보기'}
+              <Icon name={showHints ? 'chevron-down' : 'chevron-right'} size={13}/>
+            </button>
+            {showHints && (
+              <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {data.loginHints.map(h => (
+                  <button type="button" key={h.loginId} onClick={() => quickFill(h)} style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '10px 12px', borderRadius: 10,
+                    background: 'var(--bg)', border: '1px solid var(--line)',
+                    textAlign: 'left', transition: 'all .12s',
+                  }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700 }}>{h.label}</div>
+                      <div className="mono" style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 2 }}>
+                        {h.loginId} / {h.pw}
+                      </div>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)' }}>자동 입력</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+window.LoginScreen = LoginScreen;
