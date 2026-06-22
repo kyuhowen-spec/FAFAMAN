@@ -298,15 +298,15 @@ const LoginScreen = ({ onLogin }) => {
               로그인
             </h1>
             <div style={{ fontSize: 14, color: 'var(--ink-soft)', marginTop: 8, fontWeight: 500 }}>
-              회사에서 발급받은 계정으로 접속하세요.
+              회사 이메일로 접속하세요.
             </div>
 
             <div style={{ marginTop: 28 }}>
-              <div className="eyebrow" style={{ marginBottom: 8 }}>아이디</div>
+              <div className="eyebrow" style={{ marginBottom: 8 }}>이메일</div>
               <input
                 className="input" value={loginId} autoFocus autoComplete="username"
                 onChange={e => setLoginId(e.target.value)}
-                placeholder="예: jihoon"
+                placeholder="예: name@foundfounded.kr"
                 style={{ fontSize: 15 }}
               />
             </div>

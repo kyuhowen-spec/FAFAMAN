@@ -191,26 +191,26 @@ const defaultData = {
     { id: 'acc', name: '이정민', en: 'Jeongmin', role: 'accountant', title: '담당 회계사', team: '세림세무회계', initials: 'JM', color: 'av-6', email: 'jm@serim-tax.kr', phone: '010-3380-7742' },
   ],
 
-  // Login accounts — loginId → { pw, userId }
+  // Login accounts — email → { pw, userId }
   accounts: {
-    kyuho:   { pw: 'papa1234', userId: 'kh' },
-    seoyeon: { pw: 'papa1234', userId: 'sy' },
-    minjun:  { pw: 'papa1234', userId: 'mj' },
-    yujin:   { pw: 'papa1234', userId: 'yj' },
-    jihoon:  { pw: 'papa1234', userId: 'jh' },
-    hayoon:  { pw: 'papa1234', userId: 'hy' },
-    dohyun:  { pw: 'papa1234', userId: 'dh' },
-    soeun:   { pw: 'papa1234', userId: 'ns' },
-    taegyeong: { pw: 'papa1234', userId: 'rt' },
-    finance: { pw: 'tax1234',  userId: 'acc' },
+    'kyuho@foundfounded.kr':     { pw: 'papa1234', userId: 'kh' },
+    'seoyeon@foundfounded.kr':   { pw: 'papa1234', userId: 'sy' },
+    'minjun@foundfounded.kr':    { pw: 'papa1234', userId: 'mj' },
+    'yujin@foundfounded.kr':     { pw: 'papa1234', userId: 'yj' },
+    'jihoon@foundfounded.kr':    { pw: 'papa1234', userId: 'jh' },
+    'hayoon@foundfounded.kr':    { pw: 'papa1234', userId: 'hy' },
+    'dohyun@foundfounded.kr':    { pw: 'papa1234', userId: 'dh' },
+    'soeun@foundfounded.kr':     { pw: 'papa1234', userId: 'ns' },
+    'taegyeong@foundfounded.kr': { pw: 'papa1234', userId: 'rt' },
+    'jm@serim-tax.kr':           { pw: 'tax1234',  userId: 'acc' },
   },
 
   // Demo login hints shown on login screen
   loginHints: [
-    { loginId: 'kyuho',   pw: 'papa1234', label: '관리자 · 김규호 대표이사' },
-    { loginId: 'minjun',  pw: 'papa1234', label: '시니어 · 박민준 디렉터' },
-    { loginId: 'jihoon',  pw: 'papa1234', label: '멤버 · 정지훈 디자이너' },
-    { loginId: 'finance', pw: 'tax1234',  label: '회계법인 · 세림세무회계' },
+    { loginId: 'kyuho@foundfounded.kr',  pw: 'papa1234', label: '관리자 · 김규호 대표이사' },
+    { loginId: 'minjun@foundfounded.kr', pw: 'papa1234', label: '시니어 · 박민준 디렉터' },
+    { loginId: 'jihoon@foundfounded.kr', pw: 'papa1234', label: '멤버 · 정지훈 디자이너' },
+    { loginId: 'jm@serim-tax.kr',       pw: 'tax1234',  label: '회계법인 · 세림세무회계' },
   ],
 
   // Personal profiles for certificates (주민번호 앞자리 등)
