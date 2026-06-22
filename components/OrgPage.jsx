@@ -84,11 +84,32 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
     setEmployees(prev => prev.filter(e => e.id !== empId));
     setConfirmDelete(null);
 
-    // Save to localStorage
+    // Save to Firestore
     if (window.savePapaData) {
       setTimeout(() => {
         window.savePapaData();
       }, 50);
+    }
+  };
+
+  const handleResetPassword = (empId) => {
+    const emp = employees.find(e => e.id === empId);
+    if (!emp || !emp.email) return;
+
+    if (window.confirm(`${emp.name}님의 비밀번호를 '0000'으로 초기화 하시겠습니까?`)) {
+      const emailKey = emp.email.trim().toLowerCase();
+      data.accounts[emailKey] = {
+        pw: '0000',
+        userId: emp.id,
+        isInitial: true
+      };
+      
+      // Force re-render to update the '최초 로그인 대기' badge
+      setEmployees([...employees]);
+      
+      if (window.savePapaData) {
+        window.savePapaData();
+      }
     }
   };
 
@@ -176,6 +197,7 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
                       onView={() => onSelectMember && onSelectMember(emp.id)}
                       onEdit={() => { setEditTarget(emp.id); setShowForm(true); }}
                       onDelete={() => setConfirmDelete(emp.id)}
+                      onResetPw={() => handleResetPassword(emp.id)}
                     />
                   ))}
                 </div>
@@ -230,7 +252,7 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
   );
 };
 
-const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete }) => {
+const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete, onResetPw }) => {
   const [hover, setHover] = React.useState(false);
   const data = window.PAPA_DATA;
   const emailKey = emp.email ? emp.email.trim().toLowerCase() : '';
@@ -299,6 +321,13 @@ const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete }) => {
       </div>
       {isAdmin ? (
         <div style={{ display: 'flex', gap: 4, opacity: hover ? 1 : 0, transition: 'opacity .15s' }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); onResetPw(); }}
+            className="btn-icon"
+            style={{ background: 'var(--bg)', width: 30, height: 30, color: '#b56b00' }}
+            title="비밀번호 초기화">
+            <Icon name="key" size={13} />
+          </button>
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
             className="btn-icon"
