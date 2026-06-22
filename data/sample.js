@@ -274,7 +274,7 @@ const defaultData = {
 
   // 관리자 지정 허용 호스트 목록 — 이 목록에 있는 도메인/IP에서만 로그인 가능
   // 빈 배열이면 모든 호스트에서 로그인 허용
-  allowedHosts: ['localhost', '127.0.0.1'],
+  allowedHosts: ['localhost', '127.0.0.1', 'kyuhowen-spec.github.io'],
 };
 
 if (!initialData) {
