@@ -19,6 +19,7 @@ const defaultData = {
     { id: 'dh', name: '한도현', en: 'Dohyun',  role: 'member', title: '디자이너',     team: 'VD', joined: '2024-01-08', initials: 'DH', color: 'av-5', birthday: '12-19', email: 'dohyun@foundfounded.kr',  phone: '010-4418-2205' },
     { id: 'ns', name: '남소은', en: 'Soeun',   role: 'member', title: '인턴',         team: 'ID', joined: '2026-01-13', initials: 'NS', color: 'av-2', birthday: '08-11', email: 'soeun@foundfounded.kr',   phone: '010-7720-1845' },
     { id: 'rt', name: '류태경', en: 'Taegyeong', role: 'member', title: '인턴',       team: 'VD', joined: '2026-03-02', initials: 'RT', color: 'av-7', birthday: '02-04', email: 'taegyeong@foundfounded.kr', phone: '010-5587-6620' },
+    { id: 'jg', name: '정구',   en: 'Jungu',     role: 'member', title: '신규입사자', team: 'VD', joined: '2026-04-21', initials: 'JG', color: 'av-3', birthday: '01-01', email: 'jungu@foundfounded.com',  phone: '010-0000-0000' },
   ],
 
   // Title rank order for org chart grouping
@@ -46,6 +47,7 @@ const defaultData = {
     jh: { status: 'working',  checkIn: '10:47', plannedOut: '19:47', lunch: 60, wasLate: true },
     hy: { status: 'halfday',  checkIn: '10:05', plannedOut: '14:05', lunch: 60 },
     dh: { status: 'vacation', checkIn: null, plannedOut: null, lunch: null },
+    jg: { status: 'not_checked_in', checkIn: null, plannedOut: null, lunch: 60 },
   },
 
   // Late logs — only seniors & admin can view full feed
@@ -202,6 +204,7 @@ const defaultData = {
     'dohyun@foundfounded.kr':    { pw: 'papa1234', userId: 'dh' },
     'soeun@foundfounded.kr':     { pw: 'papa1234', userId: 'ns' },
     'taegyeong@foundfounded.kr': { pw: 'papa1234', userId: 'rt' },
+    'jungu@foundfounded.com':    { pw: '0000',     userId: 'jg', isInitial: true },
     'jm@serim-tax.kr':           { pw: 'tax1234',  userId: 'acc' },
   },
 
