@@ -418,6 +418,42 @@ const App = () => {
     return false;
   }).length;
 
+  // Compute dynamic calendar events from approvals + static late events
+  const calendarEvents = React.useMemo(() => {
+    // Keep only late events from static data (or anything else not related to leaves)
+    const base = window.PAPA_DATA.events.filter(e => e.type === 'late' || e.type === 'birthday');
+    
+    // Generate events for all leaves (pending & approved)
+    const leaveEvents = [];
+    approvals.forEach(a => {
+      if (a.isLunch || a.isOvertime || a.stage === 'rejected') return;
+      const emp = window.PAPA_DATA.employees.find(e => e.id === a.empId);
+      if (!emp) return;
+      
+      const s = new Date(a.start);
+      const e = new Date(a.end);
+      const statusSuffix = a.stage === 'approved' ? '' : '(대기)';
+      const typeStr = a.type;
+      const evType = a.type === '반차' ? 'halfday' : 'vacation';
+      
+      let cur = new Date(s);
+      while (cur <= e) {
+        const wd = cur.getDay();
+        if (wd !== 0 && wd !== 6) { // skip weekends
+          leaveEvents.push({
+            date: cur.toISOString().slice(0, 10),
+            type: evType,
+            empId: a.empId,
+            label: `${emp.name} ${typeStr}${statusSuffix}`,
+          });
+        }
+        cur.setDate(cur.getDate() + 1);
+      }
+    });
+    
+    return [...base, ...leaveEvents];
+  }, [approvals]);
+
   return (
     <div className="app" data-screen-label="Dashboard">
       <Sidebar
@@ -456,7 +492,7 @@ const App = () => {
               onSelectMember={setSelectedMember}
             />
           )}
-          {active === 'calendar' && <CalendarPage events={data.events} />}
+          {active === 'calendar' && <CalendarPage events={calendarEvents} />}
           {active === 'policy' && <PolicyBoardPage role={me.role} currentUserId={currentUserId} />}
           {active === 'org' && (
             <OrgPage

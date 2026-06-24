@@ -183,7 +183,7 @@ const MemberProfilePopup = ({ empId, currentUserId, onClose }) => {
               background: 'var(--bg)',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
             }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)', whiteSpace: 'nowrap' }}>
                 <Icon name="info" size={11}/> 본인 프로필 — 사진을 변경할 수 있습니다
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
