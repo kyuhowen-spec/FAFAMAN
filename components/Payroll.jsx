@@ -175,37 +175,39 @@ const EmployeePayslip = ({ currentUserId, payroll, schema, month, setMonth, mont
 
   return (
     <div className="fade-in">
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 24 }}>
-        <div>
-          <div className="eyebrow">PAYSLIP</div>
-          <h1 style={{ fontSize: 32, fontWeight: 800, marginTop: 8, letterSpacing: '-.02em' }}>급여명세서</h1>
-          <div style={{ marginTop: 8, color: 'var(--ink-mute)', fontSize: 14, fontWeight: 500 }}>
-            월별 급여명세서를 조회하고 PDF로 저장하세요.
+      <div className="no-print">
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 24 }}>
+          <div>
+            <div className="eyebrow">PAYSLIP</div>
+            <h1 style={{ fontSize: 32, fontWeight: 800, marginTop: 8, letterSpacing: '-.02em' }}>급여명세서</h1>
+            <div style={{ marginTop: 8, color: 'var(--ink-mute)', fontSize: 14, fontWeight: 500 }}>
+              월별 급여명세서를 조회하고 PDF로 저장하세요.
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <MonthSelect month={month} onChange={setMonth} months={months} />
+            {rec && (
+              <button className="btn btn-primary" onClick={() => setPrinting(true)}>
+                <Icon name="book" size={14}/> PDF 다운로드
+              </button>
+            )}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <MonthSelect month={month} onChange={setMonth} months={months} />
-          {rec && (
-            <button className="btn btn-primary" onClick={() => setPrinting(true)}>
-              <Icon name="book" size={14}/> PDF 다운로드
-            </button>
-          )}
-        </div>
-      </div>
 
-      {!rec ? (
-        <div className="card" style={{ padding: '60px 24px', textAlign: 'center' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📄</div>
-          <div style={{ fontSize: 16, fontWeight: 700 }}>{monthLabel(month)} 명세서가 아직 없어요</div>
-          <div style={{ fontSize: 13, color: 'var(--ink-mute)', marginTop: 6 }}>회계법인에서 급여가 등록되면 표시됩니다.</div>
-        </div>
-      ) : (
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '8px', background: 'var(--bg)' }}>
-            <PayslipDocument empId={currentUserId} month={month} payroll={payroll} schema={schema} />
+        {!rec ? (
+          <div className="card" style={{ padding: '60px 24px', textAlign: 'center' }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>📄</div>
+            <div style={{ fontSize: 16, fontWeight: 700 }}>{monthLabel(month)} 명세서가 아직 없어요</div>
+            <div style={{ fontSize: 13, color: 'var(--ink-mute)', marginTop: 6 }}>회계법인에서 급여가 등록되면 표시됩니다.</div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{ padding: '8px', background: 'var(--bg)' }}>
+              <PayslipDocument empId={currentUserId} month={month} payroll={payroll} schema={schema} />
+            </div>
+          </div>
+        )}
+      </div>
 
       {printing && (
         <PrintDocOverlay title={`${monthLabel(month)} 급여명세서_${window.getEmployee(currentUserId).name}`} onClose={() => setPrinting(false)}>

@@ -14,7 +14,7 @@ const Sidebar = ({ role, currentUserId, active, onNav, inboxCount, onLogout }) =
   const me = getEmployee(currentUserId);
   const items = navItems.filter(i => i.roles.includes(role));
   return (
-    <aside style={{
+    <aside className="no-print" style={{
       background: 'var(--surface)',
       borderRight: '1px solid var(--line)',
       padding: '24px 16px',
@@ -98,7 +98,7 @@ const Sidebar = ({ role, currentUserId, active, onNav, inboxCount, onLogout }) =
 const Topbar = ({ today, currentUserId, role, notifCount }) => {
   const me = getEmployee(currentUserId);
   return (
-    <header style={{
+    <header className="no-print" style={{
       height: 72,
       padding: '0 40px',
       display: 'flex', alignItems: 'center', gap: 20,

@@ -119,59 +119,61 @@ const EmployeeCertificate = ({ currentUserId, template }) => {
 
   return (
     <div className="fade-in">
-      <div style={{ marginBottom: 24 }}>
-        <div className="eyebrow">CERTIFICATE</div>
-        <h1 style={{ fontSize: 32, fontWeight: 800, marginTop: 8, letterSpacing: '-.02em' }}>재직증명서 발급</h1>
-        <div style={{ marginTop: 8, color: 'var(--ink-mute)', fontSize: 14, fontWeight: 500 }}>
-          용도를 선택하면 내 정보로 자동 작성됩니다. PDF로 저장해 제출하세요.
+      <div className="no-print">
+        <div style={{ marginBottom: 24 }}>
+          <div className="eyebrow">CERTIFICATE</div>
+          <h1 style={{ fontSize: 32, fontWeight: 800, marginTop: 8, letterSpacing: '-.02em' }}>재직증명서 발급</h1>
+          <div style={{ marginTop: 8, color: 'var(--ink-mute)', fontSize: 14, fontWeight: 500 }}>
+            용도를 선택하면 내 정보로 자동 작성됩니다. PDF로 저장해 제출하세요.
+          </div>
         </div>
-      </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 20, alignItems: 'start' }}>
-        {/* Issue controls */}
-        <div className="card">
-          <div className="eyebrow" style={{ marginBottom: 12 }}>발급 정보</div>
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', marginBottom: 8 }}>발급 목적 (제출처)</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {template.purposes.map(p => (
-                <button key={p} onClick={() => setPurpose(p)} style={{
-                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
-                  borderRadius: 10, textAlign: 'left',
-                  background: purpose === p ? 'var(--accent-soft)' : 'var(--bg)',
-                  border: `1px solid ${purpose === p ? 'var(--accent)' : 'transparent'}`,
-                  fontSize: 13, fontWeight: 600,
-                  color: purpose === p ? 'var(--accent-dark)' : 'var(--ink-soft)',
-                }}>
-                  <div style={{
-                    width: 16, height: 16, borderRadius: '50%', flexShrink: 0,
-                    border: `2px solid ${purpose === p ? 'var(--accent)' : 'var(--ink-mute)'}`,
-                    display: 'grid', placeItems: 'center',
+        <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 20, alignItems: 'start' }}>
+          {/* Issue controls */}
+          <div className="card">
+            <div className="eyebrow" style={{ marginBottom: 12 }}>발급 정보</div>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', marginBottom: 8 }}>발급 목적 (제출처)</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {template.purposes.map(p => (
+                  <button key={p} onClick={() => setPurpose(p)} style={{
+                    display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
+                    borderRadius: 10, textAlign: 'left',
+                    background: purpose === p ? 'var(--accent-soft)' : 'var(--bg)',
+                    border: `1px solid ${purpose === p ? 'var(--accent)' : 'transparent'}`,
+                    fontSize: 13, fontWeight: 600,
+                    color: purpose === p ? 'var(--accent-dark)' : 'var(--ink-soft)',
                   }}>
-                    {purpose === p && <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)' }}/>}
-                  </div>
-                  {p}
-                </button>
-              ))}
+                    <div style={{
+                      width: 16, height: 16, borderRadius: '50%', flexShrink: 0,
+                      border: `2px solid ${purpose === p ? 'var(--accent)' : 'var(--ink-mute)'}`,
+                      display: 'grid', placeItems: 'center',
+                    }}>
+                      {purpose === p && <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)' }}/>}
+                    </div>
+                    {p}
+                  </button>
+                ))}
+              </div>
+              {purpose === '기타' && (
+                <input className="input" style={{ marginTop: 8 }} value={customPurpose}
+                  onChange={e => setCustomPurpose(e.target.value)} placeholder="제출처를 입력하세요" />
+              )}
             </div>
-            {purpose === '기타' && (
-              <input className="input" style={{ marginTop: 8 }} value={customPurpose}
-                onChange={e => setCustomPurpose(e.target.value)} placeholder="제출처를 입력하세요" />
-            )}
+            <button className="btn btn-primary btn-lg" style={{ width: '100%' }} onClick={() => setPrinting(true)}>
+              <Icon name="book" size={14}/> PDF 다운로드 (인쇄)
+            </button>
+            <div style={{ marginTop: 12, fontSize: 11, color: 'var(--ink-mute)', lineHeight: 1.5, display: 'flex', gap: 6 }}>
+              <Icon name="info" size={12}/>
+              발급일은 오늘({fmtKDate(TODAY)})로 자동 기재됩니다.
+            </div>
           </div>
-          <button className="btn btn-primary btn-lg" style={{ width: '100%' }} onClick={() => setPrinting(true)}>
-            <Icon name="book" size={14}/> PDF 다운로드 (인쇄)
-          </button>
-          <div style={{ marginTop: 12, fontSize: 11, color: 'var(--ink-mute)', lineHeight: 1.5, display: 'flex', gap: 6 }}>
-            <Icon name="info" size={12}/>
-            발급일은 오늘({fmtKDate(TODAY)})로 자동 기재됩니다.
-          </div>
-        </div>
 
-        {/* Live preview */}
-        <div className="card" style={{ padding: 8, background: 'var(--bg)' }}>
-          <div style={{ transform: 'scale(.82)', transformOrigin: 'top center' }}>
-            <CertificateDocument empId={currentUserId} template={template} purpose={effectivePurpose} issueDate={TODAY} />
+          {/* Live preview */}
+          <div className="card" style={{ padding: 8, background: 'var(--bg)' }}>
+            <div style={{ transform: 'scale(.82)', transformOrigin: 'top center' }}>
+              <CertificateDocument empId={currentUserId} template={template} purpose={effectivePurpose} issueDate={TODAY} />
+            </div>
           </div>
         </div>
       </div>
@@ -202,80 +204,86 @@ const AdminCertificate = ({ template, onUpdateTemplate, onToast }) => {
 
   return (
     <div className="fade-in">
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 24 }}>
-        <div>
-          <div className="eyebrow">CERTIFICATE TEMPLATE</div>
-          <h1 style={{ fontSize: 32, fontWeight: 800, marginTop: 8, letterSpacing: '-.02em' }}>재직증명서 양식 관리</h1>
-          <div style={{ marginTop: 8, color: 'var(--ink-mute)', fontSize: 14, fontWeight: 500 }}>
-            여기서 등록한 양식으로 직원들이 자동 발급합니다.
-          </div>
-        </div>
-        <button className="btn btn-primary" onClick={save} disabled={!dirty}
-          style={{ opacity: dirty ? 1 : .4, cursor: dirty ? 'pointer' : 'not-allowed' }}>
-          <Icon name="check" size={14} strokeWidth={2.5}/> 양식 저장
-        </button>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 20, alignItems: 'start' }}>
-        {/* Editor */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <CertField label="문서 제목" value={draft.docTitle} onChange={v => set('docTitle', v)} />
-          <CertField label="회사명" value={draft.company} onChange={v => set('company', v)} />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <CertField label="대표자명" value={draft.ceo} onChange={v => set('ceo', v)} />
-            <CertField label="직인 직위" value={draft.issuerTitle} onChange={v => set('issuerTitle', v)} />
-          </div>
+    <div className="fade-in">
+      <div className="no-print">
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 24 }}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', marginBottom: 6 }}>직인 이미지 <span style={{ fontWeight: 500 }}>(선택)</span></div>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              {draft.stampImage ? (
-                <img src={draft.stampImage} alt="stamp" style={{ width: 44, height: 44, border: '1px solid var(--line)', borderRadius: 6, objectFit: 'contain' }} />
-              ) : (
-                <div style={{ width: 44, height: 44, border: '1px dashed var(--ink-mute)', borderRadius: 6, display: 'grid', placeItems: 'center', fontSize: 10, color: 'var(--ink-mute)' }}>미등록</div>
-              )}
-              <label className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 12, cursor: 'pointer' }}>
-                이미지 등록
-                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  if (file.size > 2 * 1024 * 1024) { alert('2MB 이하 이미지만 가능합니다.'); return; }
-                  const reader = new FileReader();
-                  reader.onload = () => set('stampImage', reader.result);
-                  reader.readAsDataURL(file);
-                  e.target.value = '';
-                }} />
-              </label>
-              {draft.stampImage && (
-                <button className="btn btn-ghost" onClick={() => set('stampImage', null)} style={{ padding: '6px 12px', fontSize: 12, color: 'var(--danger)' }}>삭제</button>
-              )}
+            <div className="eyebrow">CERTIFICATE TEMPLATE</div>
+            <h1 style={{ fontSize: 32, fontWeight: 800, marginTop: 8, letterSpacing: '-.02em' }}>재직증명서 양식 관리</h1>
+            <div style={{ marginTop: 8, color: 'var(--ink-mute)', fontSize: 14, fontWeight: 500 }}>
+              여기서 등록한 양식으로 직원들이 자동 발급합니다.
             </div>
           </div>
-          <CertField label="사업자등록번호" value={draft.bizNo} onChange={v => set('bizNo', v)} />
-          <CertField label="회사 주소" value={draft.address} onChange={v => set('address', v)} />
-          <CertField label="대표 전화" value={draft.tel} onChange={v => set('tel', v)} />
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', marginBottom: 6 }}>증명 문구</div>
-            <textarea className="input" rows="2" value={draft.bodyTemplate}
-              onChange={e => set('bodyTemplate', e.target.value)} style={{ resize: 'vertical', fontFamily: 'inherit' }}/>
-          </div>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', marginBottom: 6 }}>발급 목적 목록 <span style={{ fontWeight: 500 }}>(한 줄에 하나)</span></div>
-            <textarea className="input" rows="5" value={purposesText}
-              onChange={e => setPurposesText(e.target.value)} style={{ resize: 'vertical', fontFamily: 'inherit' }}/>
-          </div>
+          <button className="btn btn-primary" onClick={save} disabled={!dirty}
+            style={{ opacity: dirty ? 1 : .4, cursor: dirty ? 'pointer' : 'not-allowed' }}>
+            <Icon name="check" size={14} strokeWidth={2.5}/> 양식 저장
+          </button>
         </div>
 
-        {/* Live preview */}
-        <div className="card" style={{ padding: 8, background: 'var(--bg)' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', padding: '6px 10px' }}>
-            미리보기 — {getEmployee(previewEmp).name} 직원 기준
+        <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 20, alignItems: 'start' }}>
+          {/* Editor */}
+          <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <CertField label="문서 제목" value={draft.docTitle} onChange={v => set('docTitle', v)} />
+            <CertField label="회사명" value={draft.company} onChange={v => set('company', v)} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <CertField label="대표자명" value={draft.ceo} onChange={v => set('ceo', v)} />
+              <CertField label="직인 직위" value={draft.issuerTitle} onChange={v => set('issuerTitle', v)} />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', marginBottom: 6 }}>직인 이미지 <span style={{ fontWeight: 500 }}>(선택)</span></div>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                {draft.stampImage ? (
+                  <img src={draft.stampImage} alt="stamp" style={{ width: 44, height: 44, border: '1px solid var(--line)', borderRadius: 6, objectFit: 'contain' }} />
+                ) : (
+                  <div style={{ width: 44, height: 44, border: '1px dashed var(--ink-mute)', borderRadius: 6, display: 'grid', placeItems: 'center', fontSize: 10, color: 'var(--ink-mute)' }}>미등록</div>
+                )}
+                <label className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 12, cursor: 'pointer' }}>
+                  이미지 등록
+                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 2 * 1024 * 1024) { alert('2MB 이하 이미지만 가능합니다.'); return; }
+                    const reader = new FileReader();
+                    reader.onload = () => set('stampImage', reader.result);
+                    reader.readAsDataURL(file);
+                    e.target.value = '';
+                  }} />
+                </label>
+                {draft.stampImage && (
+                  <button className="btn btn-ghost" onClick={() => set('stampImage', null)} style={{ padding: '6px 12px', fontSize: 12, color: 'var(--danger)' }}>삭제</button>
+                )}
+              </div>
+            </div>
+            <CertField label="사업자등록번호" value={draft.bizNo} onChange={v => set('bizNo', v)} />
+            <CertField label="회사 주소" value={draft.address} onChange={v => set('address', v)} />
+            <CertField label="대표 전화" value={draft.tel} onChange={v => set('tel', v)} />
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', marginBottom: 6 }}>증명 문구</div>
+              <textarea className="input" rows="2" value={draft.bodyTemplate}
+                onChange={e => set('bodyTemplate', e.target.value)} style={{ resize: 'vertical', fontFamily: 'inherit' }}/>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', marginBottom: 6 }}>발급 목적 목록 <span style={{ fontWeight: 500 }}>(한 줄에 하나)</span></div>
+              <textarea className="input" rows="5" value={purposesText}
+                onChange={e => setPurposesText(e.target.value)} style={{ resize: 'vertical', fontFamily: 'inherit' }}/>
+            </div>
+            <button className="btn btn-primary btn-lg" style={{ width: '100%' }} onClick={() => setPrinting(true)}>
+              <Icon name="book" size={14}/> PDF 다운로드 (인쇄) 테스트
+            </button>
           </div>
-          <div style={{ transform: 'scale(.82)', transformOrigin: 'top center' }}>
-            <CertificateDocument
-              empId={previewEmp}
-              template={{ ...draft, purposes: purposesText.split('\n').map(s => s.trim()).filter(Boolean) }}
-              purpose={(purposesText.split('\n').map(s => s.trim()).filter(Boolean)[0]) || '제출용'}
-              issueDate={TODAY} />
+
+          {/* Live preview */}
+          <div className="card" style={{ padding: 8, background: 'var(--bg)' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', padding: '6px 10px' }}>
+              미리보기 — {window.getEmployee(previewEmp).name} 직원 기준
+            </div>
+            <div style={{ transform: 'scale(.82)', transformOrigin: 'top center' }}>
+              <CertificateDocument
+                empId={previewEmp}
+                template={{ ...draft, purposes: purposesText.split('\n').map(s => s.trim()).filter(Boolean) }}
+                purpose={(purposesText.split('\n').map(s => s.trim()).filter(Boolean)[0]) || '제출용'}
+                issueDate={TODAY} />
+            </div>
           </div>
         </div>
       </div>

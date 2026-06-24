@@ -280,6 +280,7 @@ a { color: inherit; text-decoration: none; }
   /* Destroy grids/flex that cause wide intrinsic widths */
   html, body, .app, .main-col, .content {
     display: block !important;
+    position: static !important;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
@@ -298,11 +299,13 @@ a { color: inherit; text-decoration: none; }
     overflow: visible !important;
     background: transparent !important;
     visibility: visible !important;
+    display: block !important;
   }
   
   .print-overlay * { visibility: visible !important; }
   
   .print-wrapper {
+    display: block !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
@@ -310,6 +313,7 @@ a { color: inherit; text-decoration: none; }
   }
   
   .print-area {
+    display: block !important;
     position: relative !important;
     box-shadow: none !important;
     width: 100% !important;
