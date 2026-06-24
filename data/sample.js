@@ -298,7 +298,8 @@ window.initPapaData = async () => {
   }
 
   // Realtime Sync Listener
-  onSnapshot(docRef, (docSnap) => {
+  onSnapshot(docRef, { includeMetadataChanges: true }, (docSnap) => {
+    if (docSnap.metadata.hasPendingWrites) return; // ignore local changes
     if (docSnap.exists()) {
       window.PAPA_DATA = docSnap.data();
       // Dispatch event to trigger React re-render

@@ -26,7 +26,28 @@ const App = () => {
   const [payrollSchema, setPayrollSchema] = React.useState(data.payrollSchema);
   const [payMonth, setPayMonth] = React.useState('2026-06');
   const [certTemplate, setCertTemplate] = React.useState(data.certTemplate);
-  const [clockSecs, setClockSecs] = React.useState(0);
+  // Clock state
+  const [clockSecs, setClockSecs] = React.useState(() => {
+    const now = new Date();
+    return now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  });
+
+  // Auto-sync state changes to window.PAPA_DATA and Firestore
+  React.useEffect(() => {
+    let changed = false;
+    if (data.attendance !== attendance) { data.attendance = attendance; changed = true; }
+    if (data.penaltyMode !== penaltyMode) { data.penaltyMode = penaltyMode; changed = true; }
+    if (data.lateCounter !== lateCounter) { data.lateCounter = lateCounter; changed = true; }
+    if (data.lateLogs !== lateLogs) { data.lateLogs = lateLogs; changed = true; }
+    if (data.approvals !== approvals) { data.approvals = approvals; changed = true; }
+    if (data.payroll !== payroll) { data.payroll = payroll; changed = true; }
+    if (data.certTemplate !== certTemplate) { data.certTemplate = certTemplate; changed = true; }
+    
+    if (changed && window.savePapaData) {
+      window.savePapaData();
+    }
+  }, [attendance, penaltyMode, lateCounter, lateLogs, approvals, payroll, certTemplate]);
+
   const [showLeaveForm, setShowLeaveForm] = React.useState(false);
   const [showLunchForm, setShowLunchForm] = React.useState(false);
   const [toast, setToast] = React.useState(null);
