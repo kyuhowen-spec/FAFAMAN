@@ -274,8 +274,18 @@ a { color: inherit; text-decoration: none; }
 
 /* Print: show only the document */
 @media print {
-  body { background: white !important; }
+  body { background: white !important; margin: 0 !important; padding: 0 !important; }
   body * { visibility: hidden !important; }
+  
+  /* Destroy grids/flex that cause wide intrinsic widths */
+  html, body, .app, .main-col, .content {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
   
   .print-overlay {
     position: absolute !important;
@@ -292,6 +302,13 @@ a { color: inherit; text-decoration: none; }
   
   .print-overlay * { visibility: visible !important; }
   
+  .print-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
   .print-area {
     position: relative !important;
     box-shadow: none !important;
@@ -306,7 +323,8 @@ a { color: inherit; text-decoration: none; }
     max-width: 100% !important;
     margin: 0 !important;
     box-shadow: none !important;
+    box-sizing: border-box !important;
   }
   
-  @page { size: A4; margin: 15mm; }
+  @page { size: A4; margin: 10mm; }
 }
