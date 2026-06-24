@@ -18,6 +18,10 @@ const savePhoto = (empId, dataUrl) => {
   if (emp) emp.photo = dataUrl || null;
   // Trigger any listeners
   window.dispatchEvent(new CustomEvent('papa:photo-updated', { detail: { empId } }));
+  // Immediately sync to Firestore so other users see it right away
+  if (window.savePapaData) {
+    window.savePapaData();
+  }
 };
 // Hydrate photos from localStorage on first load
 (function hydrate() {
