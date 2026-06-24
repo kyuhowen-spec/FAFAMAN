@@ -406,18 +406,6 @@ const App = () => {
     window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { currentUserId: id } }, '*');
   };
 
-  // Auth gate — must log in as yourself
-  if (!currentUserId || !me) {
-    return <LoginScreen onLogin={handleLogin} />;
-  }
-
-  // Visible approvals for sidebar badge
-  const inboxCount = approvals.filter(a => {
-    if (me.role === 'senior') return a.stage === 'pending_senior' && a.assignedSenior === currentUserId;
-    if (me.role === 'admin') return a.stage === 'pending_admin' || a.stage === 'pending_senior';
-    return false;
-  }).length;
-
   // Compute dynamic calendar events from approvals + static late events
   const calendarEvents = React.useMemo(() => {
     // Keep only late events from static data (or anything else not related to leaves)
@@ -452,6 +440,18 @@ const App = () => {
     
     return [...base, ...leaveEvents];
   }, [approvals]);
+
+  // Auth gate — must log in as yourself
+  if (!currentUserId || !me) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
+
+  // Visible approvals for sidebar badge
+  const inboxCount = approvals.filter(a => {
+    if (me.role === 'senior') return a.stage === 'pending_senior' && a.assignedSenior === currentUserId;
+    if (me.role === 'admin') return a.stage === 'pending_admin' || a.stage === 'pending_senior';
+    return false;
+  }).length;
 
   return (
     <div className="app" data-screen-label="Dashboard">
