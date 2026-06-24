@@ -13,6 +13,7 @@ const InboxPage = ({ role, currentUserId, approvals, onApprove, onReject, onSele
     if (filter === 'half') return a.type === '반차';
     if (filter === 'refresh') return a.type === '리프레시';
     if (filter === 'lunch') return a.isLunch;
+    if (filter === 'overtime') return a.isOvertime;
     return true;
   };
 
@@ -106,6 +107,7 @@ const InboxPage = ({ role, currentUserId, approvals, onApprove, onReject, onSele
           { key: 'half',    label: '반차' },
           { key: 'refresh', label: '리프레시' },
           { key: 'lunch',   label: '점심 1.5h' },
+          { key: 'overtime',label: '야근' },
         ].map(f => (
           <button
             key={f.key}
@@ -217,6 +219,7 @@ const TabBtn = ({ active, onClick, count, children, hot }) => (
 const ApprovalDocCard = ({ approval, selected, onClick }) => {
   const emp = getEmployee(approval.empId);
   const isLunch = approval.isLunch;
+  const isOvertime = approval.isOvertime;
   const stage = approval.stage;
 
   // type accent — color band on left
@@ -224,7 +227,8 @@ const ApprovalDocCard = ({ approval, selected, onClick }) => {
     approval.type === '연차'    ? '#3b82f6' :
     approval.type === '반차'    ? '#8b5cf6' :
     approval.type === '리프레시' ? '#f59e0b' :
-    isLunch                     ? '#ef8754' : '#64748b';
+    isLunch                     ? '#ef8754' :
+    isOvertime                  ? '#4c1d95' : '#64748b';
 
   const dateLabel = approval.start === approval.end
     ? approval.start.slice(5).replace('-', '/')
@@ -273,7 +277,9 @@ const ApprovalDocCard = ({ approval, selected, onClick }) => {
       }}>
         {isLunch
           ? (approval.lunchSlot === 'early' ? '12:00–13:30' : '12:30–14:00')
-          : `${approval.days}일 사용`}
+          : isOvertime
+            ? '10:00 PM 이후'
+            : `${approval.days}일 사용`}
       </div>
 
       {approval.reason && (
@@ -358,6 +364,7 @@ const EmptyState = ({ tab }) => (
 const ApprovalDetail = ({ approval, role, currentUserId, rejectMode, rejectMsg, setRejectMode, setRejectMsg, onApprove, onReject, onSelectMember }) => {
   const emp = getEmployee(approval.empId);
   const isLunch = approval.isLunch;
+  const isOvertime = approval.isOvertime;
   const dateLabel = approval.start === approval.end
     ? approval.start
     : `${approval.start} ~ ${approval.end}`;
@@ -366,7 +373,8 @@ const ApprovalDetail = ({ approval, role, currentUserId, rejectMode, rejectMsg, 
     approval.type === '연차'    ? '#3b82f6' :
     approval.type === '반차'    ? '#8b5cf6' :
     approval.type === '리프레시' ? '#f59e0b' :
-    isLunch                     ? '#ef8754' : '#64748b';
+    isLunch                     ? '#ef8754' :
+    isOvertime                  ? '#4c1d95' : '#64748b';
 
   const canAct = (role === 'senior' && approval.stage === 'pending_senior' && approval.assignedSenior === currentUserId)
               || (role === 'admin'  && approval.stage === 'pending_admin')
@@ -403,7 +411,7 @@ const ApprovalDetail = ({ approval, role, currentUserId, rejectMode, rejectMsg, 
           <StageBadge stage={approval.stage} />
         </div>
         <div style={{ marginTop: 10, fontSize: 28, fontWeight: 800, letterSpacing: '-.02em' }}>
-          {approval.type}{isLunch ? '' : ` ${approval.days}일`}
+          {approval.type}{(isLunch || isOvertime) ? '' : ` ${approval.days}일`}
         </div>
         <div style={{ fontSize: 13, opacity: .92, marginTop: 4, fontWeight: 600 }}>
           {isLunch ? `${dateLabel} · ${approval.lunchSlot === 'early' ? '12:00 – 13:30' : '12:30 – 14:00'}` : dateLabel}

@@ -351,4 +351,71 @@ const TweaksPanel = ({ show, currentUserId, onSetUser }) => {
   );
 };
 
-Object.assign(window, { LeaveRequestForm, LateReportForm, Toast, TweaksPanel, SeniorPicker });
+// Overtime request form modal
+const OvertimeRequestForm = ({ onClose, onSubmit, me }) => {
+  const [reason, setReason] = React.useState('');
+  const needsApprover = me.role !== 'admin';
+  const availableApprovers = window.PAPA_DATA.employees.filter(e => (e.role === 'senior' || e.role === 'admin') && e.id !== me.id);
+  const [assignedSenior, setAssignedSenior] = React.useState(availableApprovers[0]?.id || null);
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <div>
+            <div className="eyebrow">연장 근로 (10시 이후)</div>
+            <div className="h1" style={{ marginTop: 6 }}>야근 신청</div>
+          </div>
+          <button className="btn-icon" onClick={onClose} style={{ background: 'var(--bg)' }}>
+            <Icon name="x" size={16}/>
+          </button>
+        </div>
+
+        <div style={{ padding: '14px 16px', background: 'var(--accent-soft)', borderRadius: 12, marginBottom: 20 }}>
+          <div style={{ fontSize: 13, color: 'var(--accent-dark)', fontWeight: 600, lineHeight: 1.5 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="info" size={12}/> 안내사항
+            </span>
+            <ul style={{ marginTop: 8, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 4, fontWeight: 500 }}>
+              <li>밤 10시 이후의 근무만 야근으로 집계됩니다.</li>
+              <li>사전 결재 승인을 받아야 퇴근 시 야근 시간으로 인정됩니다.</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Approver selection */}
+        {needsApprover && (
+          <SeniorPicker
+            value={assignedSenior}
+            onChange={setAssignedSenior}
+            currentUserId={me.id}
+            label="결재권자 선택"
+            helper="선택한 결재권자에게 야근 승인 요청을 보냅니다"
+          />
+        )}
+
+        {/* Reason */}
+        <div style={{ marginBottom: 20 }}>
+          <div className="eyebrow" style={{ marginBottom: 8 }}>야근 사유 <span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--danger)', fontWeight: 500 }}>(필수)</span></div>
+          <textarea className="input" rows="3" placeholder="어떤 업무로 인해 야근이 필요한지 작성해주세요"
+            value={reason} onChange={e => setReason(e.target.value)}
+            style={{ resize: 'none', fontFamily: 'inherit' }}/>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-ghost btn-lg" onClick={onClose} style={{ flex: 1 }}>취소</button>
+          <button
+            className="btn btn-primary btn-lg"
+            onClick={() => onSubmit({ reason, assignedSenior: needsApprover ? assignedSenior : null })}
+            disabled={!reason.trim() || (needsApprover && !assignedSenior)}
+            style={{ flex: 2, opacity: (!reason.trim() || (needsApprover && !assignedSenior)) ? .4 : 1, cursor: (!reason.trim() || (needsApprover && !assignedSenior)) ? 'not-allowed' : 'pointer' }}
+          >
+            신청하기
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+Object.assign(window, { LeaveRequestForm, LateReportForm, Toast, TweaksPanel, SeniorPicker, OvertimeRequestForm });

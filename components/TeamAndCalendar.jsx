@@ -222,6 +222,14 @@ const MemberProfilePopup = ({ empId, currentUserId, onClose }) => {
               {emp.birthday.replace('-', '월 ')}일
             </div>
           </div>
+          {(isMe || window.PAPA_DATA.employees.find(e => e.id === currentUserId)?.role === 'senior' || window.PAPA_DATA.employees.find(e => e.id === currentUserId)?.role === 'admin') && (
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 6 }}>이번 달 누적 야근 시간</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent-dark)' }}>
+                {Math.floor((window.PAPA_DATA.monthlyOvertime?.[emp.id] || 0) / 60)}시간 {(window.PAPA_DATA.monthlyOvertime?.[emp.id] || 0) % 60}분
+              </div>
+            </div>
+          )}
 
         </div>
       </div>

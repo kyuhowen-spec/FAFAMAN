@@ -20,6 +20,7 @@ const App = () => {
   const [attendance, setAttendance] = React.useState(data.attendance);
   const [approvals, setApprovals] = React.useState(data.approvals);
   const [lateCounter, setLateCounter] = React.useState(data.lateCounter);
+  const [monthlyOvertime, setMonthlyOvertime] = React.useState(data.monthlyOvertime || {});
   const [lateLogs, setLateLogs] = React.useState(data.lateLogs);
   const [penaltyMode, setPenaltyMode] = React.useState(data.penaltyMode || {});
   const [payroll, setPayroll] = React.useState(data.payroll);
@@ -38,6 +39,7 @@ const App = () => {
     if (data.attendance !== attendance) { data.attendance = attendance; changed = true; }
     if (data.penaltyMode !== penaltyMode) { data.penaltyMode = penaltyMode; changed = true; }
     if (data.lateCounter !== lateCounter) { data.lateCounter = lateCounter; changed = true; }
+    if (data.monthlyOvertime !== monthlyOvertime) { data.monthlyOvertime = monthlyOvertime; changed = true; }
     if (data.lateLogs !== lateLogs) { data.lateLogs = lateLogs; changed = true; }
     if (data.approvals !== approvals) { data.approvals = approvals; changed = true; }
     if (data.payroll !== payroll) { data.payroll = payroll; changed = true; }
@@ -46,10 +48,11 @@ const App = () => {
     if (changed && window.savePapaData) {
       window.savePapaData();
     }
-  }, [attendance, penaltyMode, lateCounter, lateLogs, approvals, payroll, certTemplate]);
+  }, [attendance, penaltyMode, lateCounter, lateLogs, approvals, payroll, certTemplate, monthlyOvertime]);
 
   const [showLeaveForm, setShowLeaveForm] = React.useState(false);
   const [showLunchForm, setShowLunchForm] = React.useState(false);
+  const [showOvertimeForm, setShowOvertimeForm] = React.useState(false);
   const [toast, setToast] = React.useState(null);
   const [selectedMember, setSelectedMember] = React.useState(null);
   const [editMode, setEditMode] = React.useState(false);
@@ -195,6 +198,29 @@ const App = () => {
   };
 
   const confirmCheckOut = () => {
+    const now = new Date();
+    const kstTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (9 * 3600000));
+    const h = kstTime.getHours();
+    const m = kstTime.getMinutes();
+    
+    let overtimeMins = 0;
+    if (h >= 22) {
+      const today = window.PAPA_DATA.today.date;
+      const hasApprovedOt = approvals.some(a => 
+        a.isOvertime && a.empId === currentUserId && a.start === today && a.stage === 'approved'
+      );
+      if (hasApprovedOt) {
+        overtimeMins = (h - 22) * 60 + m;
+      }
+    }
+
+    if (overtimeMins > 0) {
+      setMonthlyOvertime(prev => ({
+        ...prev,
+        [currentUserId]: (prev[currentUserId] || 0) + overtimeMins,
+      }));
+    }
+
     setAttendance(prev => ({
       ...prev,
       [currentUserId]: {
@@ -202,11 +228,15 @@ const App = () => {
         status: 'checked_out',
         checkIn: null,
         plannedOut: null,
-        checkedOutAt: new Date().toISOString(),
+        checkedOutAt: now.toISOString(),
       },
     }));
     setShowCheckOutConfirm(false);
-    setToast({ text: '오늘 수고하셨어요 👋', icon: 'check' });
+    if (overtimeMins > 0) {
+      setToast({ text: `오늘 수고하셨어요 👋 (야근 ${Math.floor(overtimeMins / 60)}h ${overtimeMins % 60}m 적립)`, icon: 'moon' });
+    } else {
+      setToast({ text: '오늘 수고하셨어요 👋', icon: 'check' });
+    }
   };
 
   const handleChangeLunch = (mins) => {
@@ -259,11 +289,37 @@ const App = () => {
     }
   };
 
+  const handleSubmitOvertime = ({ reason, assignedSenior }) => {
+    const targetIsAdmin = assignedSenior && getEmployee(assignedSenior).role === 'admin';
+    const newAppr = {
+      id: `overtime${Date.now()}`,
+      empId: currentUserId,
+      type: '야근',
+      subtype: 'overtime',
+      start: window.PAPA_DATA.today.date,
+      end: window.PAPA_DATA.today.date,
+      days: 0,
+      reason: reason,
+      appliedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
+      stage: me.role === 'admin' ? 'approved' : (targetIsAdmin ? 'pending_admin' : 'pending_senior'),
+      isOvertime: true,
+      assignedSenior: assignedSenior || null,
+    };
+    setApprovals(prev => [newAppr, ...prev]);
+    setShowOvertimeForm(false);
+    if (me.role === 'admin') {
+      setToast({ text: '야근 자동 승인', icon: 'check' });
+    } else {
+      const seniorName = assignedSenior ? getEmployee(assignedSenior).name : '결재권자';
+      setToast({ text: `${seniorName}에게 야근 승인 요청 완료`, icon: 'moon' });
+    }
+  };
+
   const handleApprove = (id) => {
     setApprovals(prev => prev.map(a => {
       if (a.id !== id) return a;
       const meEmp = getEmployee(currentUserId);
-      // Lunch requests only need senior approval (not a full two-stage flow)
+      // Lunch & Overtime requests only need senior approval (not a full two-stage flow)
       if (a.isLunch) {
         setAttendance(prevAtt => ({
           ...prevAtt,
@@ -271,8 +327,11 @@ const App = () => {
         }));
         return { ...a, stage: 'approved' };
       }
+      if (a.isOvertime) {
+        return { ...a, stage: 'approved' };
+      }
       if (meEmp.role === 'senior' && a.stage === 'pending_senior') return { ...a, stage: 'pending_admin' };
-      if (meEmp.role === 'admin') return { ...a, stage: 'approved' };
+      if (meEmp.role === 'admin') return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId };
       return a;
     }));
     setToast({ text: '결재 승인 완료', icon: 'check' });
@@ -393,6 +452,7 @@ const App = () => {
               onApprove={handleApprove}
               onReject={handleReject}
               onShowLeaveForm={() => setShowLeaveForm(true)}
+              onShowOvertimeForm={() => setShowOvertimeForm(true)}
               onSelectMember={setSelectedMember}
             />
           )}
@@ -462,6 +522,13 @@ const App = () => {
           me={me}
           onClose={() => setShowLunchForm(false)}
           onSubmit={handleSubmitLunch}
+        />
+      )}
+      {showOvertimeForm && (
+        <OvertimeRequestForm
+          me={me}
+          onClose={() => setShowOvertimeForm(false)}
+          onSubmit={handleSubmitOvertime}
         />
       )}
 
@@ -585,7 +652,7 @@ const PlaceholderPage = ({ tabKey }) => {
 
 // Dashboard page layout
 const DashboardPage = ({ me, myRole, attendance, approvals, lateCounter, lateLogs, penaltyMode, clockSecs,
-  onCheckIn, onCheckOut, onChangeLunch, onApprove, onReject, onShowLeaveForm, onSelectMember }) => {
+  onCheckIn, onCheckOut, onChangeLunch, onApprove, onReject, onShowLeaveForm, onShowOvertimeForm, onSelectMember }) => {
   const data = window.PAPA_DATA;
   const isSeniorOrAdmin = myRole === 'senior' || myRole === 'admin';
   const emp = getEmployee(me);
@@ -630,6 +697,7 @@ const DashboardPage = ({ me, myRole, attendance, approvals, lateCounter, lateLog
           onCheckOut={onCheckOut}
           onChangeLunch={onChangeLunch}
           onShowLeaveForm={onShowLeaveForm}
+          onShowOvertimeForm={onShowOvertimeForm}
         />
         <div style={{ gridColumn: 'span 4', display: 'flex', flexDirection: 'column', gap: 20 }}>
           <LateCounter

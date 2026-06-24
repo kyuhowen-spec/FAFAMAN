@@ -143,7 +143,7 @@ const PrintDocOverlay = ({ onClose, title, children }) => {
 
   return (
     <div className="modal-backdrop print-overlay" onClick={onClose} style={{ alignItems: 'flex-start', overflow: 'auto', padding: '32px 0' }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: 'fit-content', margin: '0 auto' }}>
+      <div className="print-wrapper" onClick={e => e.stopPropagation()} style={{ width: 'fit-content', margin: '0 auto' }}>
         {/* Toolbar (hidden on print) */}
         <div className="no-print" style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',

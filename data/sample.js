@@ -58,6 +58,11 @@ const defaultData = {
     kh: 0, sy: 0, mj: 1, yj: 1, jh: 5, hy: 1, dh: 1,
   },
 
+  // Monthly overtime counter per employee (in minutes)
+  monthlyOvertime: {
+    kh: 0, sy: 0, mj: 0, yj: 0, jh: 0, hy: 0, dh: 0, jg: 0,
+  },
+
   // Penalty mode: 5회 누적 시 다음 날부터 7일간 10시 출근 고정
   penaltyMode: {
     jh: { startDate: '2026-04-22', endDate: '2026-04-28', reason: '지각 5회 누적' },
