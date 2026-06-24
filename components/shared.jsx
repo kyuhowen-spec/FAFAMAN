@@ -1,7 +1,8 @@
 // Shared utilities
-const getEmployee = (id) => window.PAPA_DATA.employees.find(e => e.id === id)
-  || (window.PAPA_DATA.externalUsers || []).find(e => e.id === id);
-
+const getEmployee = (id) => {
+  const found = window.PAPA_DATA.employees.find(e => e.id === id) || (window.PAPA_DATA.externalUsers || []).find(e => e.id === id);
+  return found || { id, name: '(알 수 없음)', en: 'Unknown', role: 'member', title: '', team: '', initials: '?', color: 'av-0' };
+};
 // Photo override store (localStorage-backed) — keyed by empId
 const PHOTO_KEY = 'papa.profilePhotos';
 const loadPhotos = () => {

@@ -118,15 +118,12 @@ const LoginScreen = ({ onLogin }) => {
             color: 'rgba(255,255,255,.06)', letterSpacing: '-.06em', pointerEvents: 'none',
           }}>P</div>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: 12, background: 'white',
-              color: 'var(--accent)', display: 'grid', placeItems: 'center',
-              fontWeight: 800, fontSize: 17,
-            }}>P</div>
             <div>
-              <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-.02em' }}>PAPA</div>
-              <div style={{ fontSize: 11, opacity: .8, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 600 }}>
-                found / Founded
+              <div style={{ fontSize: 24, letterSpacing: '-.03em', fontFamily: "'Montserrat', 'Pretendard', sans-serif" }}>
+                <span style={{ fontWeight: 500 }}>found/</span><span style={{ fontWeight: 800 }}>Founded</span>
+              </div>
+              <div style={{ fontSize: 11, opacity: .8, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 600, marginTop: 4 }}>
+                PAPA Workspace
               </div>
             </div>
           </div>
@@ -203,15 +200,12 @@ const LoginScreen = ({ onLogin }) => {
           color: 'rgba(255,255,255,.06)', letterSpacing: '-.06em', pointerEvents: 'none',
         }}>P</div>
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: 12, background: 'white',
-            color: 'var(--accent)', display: 'grid', placeItems: 'center',
-            fontWeight: 800, fontSize: 17,
-          }}>P</div>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-.02em' }}>PAPA</div>
-            <div style={{ fontSize: 11, opacity: .8, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 600 }}>
-              found / Founded
+            <div style={{ fontSize: 24, letterSpacing: '-.03em', fontFamily: "'Montserrat', 'Pretendard', sans-serif" }}>
+              <span style={{ fontWeight: 500 }}>found/</span><span style={{ fontWeight: 800 }}>Founded</span>
+            </div>
+            <div style={{ fontSize: 11, opacity: .8, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 600, marginTop: 4 }}>
+              PAPA Workspace
             </div>
           </div>
         </div>

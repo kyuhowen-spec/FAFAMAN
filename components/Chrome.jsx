@@ -23,16 +23,12 @@ const Sidebar = ({ role, currentUserId, active, onNav, inboxCount, onLogout }) =
     }}>
       {/* Logo */}
       <div style={{ padding: '8px 12px 28px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{
-          width: 32, height: 32, borderRadius: 10,
-          background: 'var(--ink)', color: 'white',
-          display: 'grid', placeItems: 'center',
-          fontWeight: 800, fontSize: 13, letterSpacing: '-.02em',
-        }}>P</div>
         <div>
-          <div style={{ fontSize: 16, fontWeight: 800, letterSpacing: '-.03em' }}>PAPA</div>
-          <div style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 600 }}>
-            Found Founded
+          <div style={{ fontSize: 20, letterSpacing: '-.03em', fontFamily: "'Montserrat', 'Pretendard', sans-serif" }}>
+            <span style={{ fontWeight: 500 }}>found/</span><span style={{ fontWeight: 800 }}>Founded</span>
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 600, marginTop: 4 }}>
+            PAPA Workspace
           </div>
         </div>
       </div>
