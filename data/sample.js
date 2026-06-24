@@ -281,6 +281,23 @@ window.initPapaData = async () => {
   const db = window.firebaseDb;
   const { doc, getDoc, setDoc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
   
+  const getSeoulDateInfo = () => {
+    const now = new Date();
+    const kstTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (9 * 3600000));
+    const yyyy = kstTime.getFullYear();
+    const mm = String(kstTime.getMonth() + 1).padStart(2, '0');
+    const dd = String(kstTime.getDate()).padStart(2, '0');
+    const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+    const weekday = days[kstTime.getDay()];
+    
+    return {
+      date: `${yyyy}-${mm}-${dd}`,
+      weekday: weekday,
+      label: `${kstTime.getMonth() + 1}월 ${kstTime.getDate()}일`,
+      monthKr: `${kstTime.getMonth() + 1}월`
+    };
+  };
+
   const docRef = doc(db, 'workspaces', 'main');
   const snapshot = await getDoc(docRef);
   
@@ -291,9 +308,11 @@ window.initPapaData = async () => {
       dataObj = JSON.parse(rawStr.replace(/foundfounded\.kr/g, 'foundfounded.com'));
       await setDoc(docRef, dataObj);
     }
+    dataObj.today = getSeoulDateInfo();
     window.PAPA_DATA = dataObj;
   } else {
     window.PAPA_DATA = defaultData;
+    window.PAPA_DATA.today = getSeoulDateInfo();
     await setDoc(docRef, window.PAPA_DATA);
   }
 
@@ -302,6 +321,7 @@ window.initPapaData = async () => {
     if (docSnap.metadata.hasPendingWrites) return; // ignore local changes
     if (docSnap.exists()) {
       window.PAPA_DATA = docSnap.data();
+      window.PAPA_DATA.today = getSeoulDateInfo();
       // Dispatch event to trigger React re-render
       window.dispatchEvent(new Event('papa-data-updated'));
     }

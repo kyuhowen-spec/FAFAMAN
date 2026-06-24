@@ -106,27 +106,17 @@ const App = () => {
     }
     const computeSecs = () => {
       const [h, m] = myAtt.checkIn.split(':').map(Number);
-      // use a fake "now" tied to wall clock progression from checkIn
-      // Start at checkIn + artificial offset
       const baseSecs = h * 3600 + m * 60;
-      // Simulate "now" as 11:15 + elapsed real seconds since mount for feel
       const now = new Date();
-      // Use actual local wall clock offset from midnight modulo — but clamp so we don't show negative
-      // Simpler: show elapsed time since checkIn, using "now" of 11:15 + real ticks
-      const simulatedNow = 11 * 3600 + 15 * 60 + Math.floor((Date.now() - mountTime) / 1000);
-      const diff = simulatedNow - baseSecs;
-      return Math.max(0, diff);
+      // Calculate KST time
+      const kstTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (9 * 3600000));
+      const currentSecs = kstTime.getHours() * 3600 + kstTime.getMinutes() * 60 + kstTime.getSeconds();
+      return Math.max(0, currentSecs - baseSecs);
     };
-    const mountTime = Date.now();
+    
     setClockSecs(computeSecs());
     const id = setInterval(() => {
-      const secs = (() => {
-        const [h, m] = myAtt.checkIn.split(':').map(Number);
-        const baseSecs = h * 3600 + m * 60;
-        const simulatedNow = 11 * 3600 + 15 * 60 + Math.floor((Date.now() - mountTime) / 1000);
-        return Math.max(0, simulatedNow - baseSecs);
-      })();
-      setClockSecs(secs);
+      setClockSecs(computeSecs());
     }, 1000);
     return () => clearInterval(id);
   }, [myAtt?.checkIn, myAtt?.status, currentUserId]);
@@ -140,17 +130,19 @@ const App = () => {
   };
 
   const handleCheckIn = () => {
-    // Simulate "now" = 11:15 (matches the clock simulation baseline)
-    const simH = 11;
-    const simM = 15;
-    const checkIn = `${String(simH).padStart(2,'0')}:${String(simM).padStart(2,'0')}`;
-    const outH = (simH + 9) % 24;
-    const plannedOut = `${String(outH).padStart(2,'0')}:${String(simM).padStart(2,'0')}`;
+    const now = new Date();
+    const kstTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (9 * 3600000));
+    const h = kstTime.getHours();
+    const m = kstTime.getMinutes();
+    
+    const checkIn = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    const outH = (h + 9) % 24;
+    const plannedOut = `${String(outH).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
 
     // Deadline: 11:00 normally, 10:00 when penalty is active
     const inPenalty = isPenaltyActiveToday(currentUserId);
     const deadlineMins = (inPenalty ? 10 : 11) * 60;
-    const checkInMins = simH * 60 + simM;
+    const checkInMins = h * 60 + m;
     const lateMins = Math.max(0, checkInMins - deadlineMins);
     const wasLate = lateMins > 0;
 
