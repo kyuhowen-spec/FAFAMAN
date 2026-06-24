@@ -70,7 +70,7 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
         {/* Top row: greeting + status */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
           <div>
-            <div className="eyebrow">오늘 · 4월 21일 화요일</div>
+            <div className="eyebrow">오늘 · {window.PAPA_DATA.today.label} {window.PAPA_DATA.today.weekday}</div>
             <div style={{ marginTop: 6, fontSize: 26, fontWeight: 800, letterSpacing: '-.03em', color: 'white' }}>
               안녕하세요, {emp.name}님
             </div>
