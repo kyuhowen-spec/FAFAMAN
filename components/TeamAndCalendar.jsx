@@ -172,9 +172,6 @@ const MemberProfilePopup = ({ empId, currentUserId, onClose }) => {
           </div>
           <div style={{ marginTop: 14, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <RolePill role={emp.role}/>
-            <span className="pill" style={{ background: 'rgba(255,255,255,.22)', color: 'white' }}>
-              {tenureYears}년차
-            </span>
           </div>
         </div>
 
