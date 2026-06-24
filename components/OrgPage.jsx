@@ -237,6 +237,7 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
           onSave={handleSave}
           titleOrder={titleOrder}
           teams={teams}
+          onResetPw={editingEmp ? () => handleResetPassword(editingEmp.id) : null}
         />
       )}
 
@@ -350,7 +351,7 @@ const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete, onResetPw }) => {
   );
 };
 
-const OrgEditForm = ({ emp, onClose, onSave, titleOrder, teams }) => {
+const OrgEditForm = ({ emp, onClose, onSave, titleOrder, teams, onResetPw }) => {
   const [form, setForm] = React.useState(emp ? { ...emp } : {
     name: '', en: '', email: '', phone: '',
     title: '디자이너', team: 'ID', role: 'member',
@@ -426,14 +427,24 @@ const OrgEditForm = ({ emp, onClose, onSave, titleOrder, teams }) => {
         <div style={{
           padding: '18px 28px',
           borderTop: '1px solid var(--line-soft)',
-          display: 'flex', justifyContent: 'flex-end', gap: 8,
+          display: 'flex', justifyContent: 'space-between', gap: 8,
           background: 'var(--bg)',
         }}>
-          <button type="button" className="btn" onClick={onClose}>취소</button>
-          <button type="submit" className="btn btn-primary">
-            <Icon name="check" size={14} strokeWidth={2.5} />
-            {emp ? '저장' : '등록'}
-          </button>
+          <div>
+            {emp && onResetPw && (
+              <button type="button" className="btn btn-ghost" onClick={() => { onResetPw(); onClose(); }} style={{ color: '#b56b00', borderColor: 'rgba(245,166,35,.4)', background: 'rgba(245,166,35,.08)' }}>
+                <Icon name="key" size={14} />
+                비밀번호 초기화 (0000)
+              </button>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="button" className="btn" onClick={onClose}>취소</button>
+            <button type="submit" className="btn btn-primary">
+              <Icon name="check" size={14} strokeWidth={2.5} />
+              {emp ? '저장' : '등록'}
+            </button>
+          </div>
         </div>
       </form>
     </div>
