@@ -89,12 +89,20 @@ const CertificateDocument = ({ empId, template, purpose, issueDate }) => {
           <span style={{ position: 'relative', fontSize: 18 }}>
             {template.issuerTitle} {template.ceo}
             <span style={{
-              position: 'absolute', right: -42, top: '50%', transform: 'translateY(-50%)',
-              width: 52, height: 52, borderRadius: '50%',
-              border: '2px solid #d23b4e', color: '#d23b4e',
-              display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 800,
-              opacity: .85, lineHeight: 1.1, textAlign: 'center', letterSpacing: 0,
-            }}>{template.ceo.slice(-2)}<br/>印</span>
+              position: 'absolute', right: -48, top: '50%', transform: 'translateY(-50%)',
+              width: 52, height: 52,
+            }}>
+              {template.stampImage ? (
+                <img src={template.stampImage} alt="seal" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              ) : (
+                <div style={{
+                  width: '100%', height: '100%', borderRadius: '50%',
+                  border: '2px solid #d23b4e', color: '#d23b4e',
+                  display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 800,
+                  opacity: .85, lineHeight: 1.1, textAlign: 'center', letterSpacing: 0,
+                }}>{template.ceo.slice(-2)}<br/>印</div>
+              )}
+            </span>
           </span>
         </div>
       </div>
@@ -216,6 +224,31 @@ const AdminCertificate = ({ template, onUpdateTemplate, onToast }) => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <CertField label="대표자명" value={draft.ceo} onChange={v => set('ceo', v)} />
             <CertField label="직인 직위" value={draft.issuerTitle} onChange={v => set('issuerTitle', v)} />
+          </div>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', marginBottom: 6 }}>직인 이미지 <span style={{ fontWeight: 500 }}>(선택)</span></div>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              {draft.stampImage ? (
+                <img src={draft.stampImage} alt="stamp" style={{ width: 44, height: 44, border: '1px solid var(--line)', borderRadius: 6, objectFit: 'contain' }} />
+              ) : (
+                <div style={{ width: 44, height: 44, border: '1px dashed var(--ink-mute)', borderRadius: 6, display: 'grid', placeItems: 'center', fontSize: 10, color: 'var(--ink-mute)' }}>미등록</div>
+              )}
+              <label className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 12, cursor: 'pointer' }}>
+                이미지 등록
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (file.size > 2 * 1024 * 1024) { alert('2MB 이하 이미지만 가능합니다.'); return; }
+                  const reader = new FileReader();
+                  reader.onload = () => set('stampImage', reader.result);
+                  reader.readAsDataURL(file);
+                  e.target.value = '';
+                }} />
+              </label>
+              {draft.stampImage && (
+                <button className="btn btn-ghost" onClick={() => set('stampImage', null)} style={{ padding: '6px 12px', fontSize: 12, color: 'var(--danger)' }}>삭제</button>
+              )}
+            </div>
           </div>
           <CertField label="사업자등록번호" value={draft.bizNo} onChange={v => set('bizNo', v)} />
           <CertField label="회사 주소" value={draft.address} onChange={v => set('address', v)} />
