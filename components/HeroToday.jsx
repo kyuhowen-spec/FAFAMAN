@@ -2,11 +2,12 @@
 const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChangeLunch, onShowLeaveForm, clockSecs }) => {
   const emp = getEmployee(me);
   const att = attendance[me] || {};
-  const isWorking = att.status === 'working';
-  const isVacation = att.status === 'vacation';
-  const isHalfday = att.status === 'halfday';
-  const isCheckedOut = att.status === 'checked_out';
-  const notIn = att.status === 'not_checked_in';
+  const status = att.status || 'not_checked_in';
+  const isWorking = status === 'working';
+  const isVacation = status === 'vacation';
+  const isHalfday = status === 'halfday';
+  const isCheckedOut = status === 'checked_out';
+  const notIn = status === 'not_checked_in';
 
   // 퇴근 후 다음날 9시까지 출근 차단
   const canCheckIn = (() => {
