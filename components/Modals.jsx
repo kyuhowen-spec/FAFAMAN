@@ -363,7 +363,7 @@ const OvertimeRequestForm = ({ onClose, onSubmit, me }) => {
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <div className="eyebrow">연장 근로 (10시 이후)</div>
+            <div className="eyebrow" style={{ color: '#8b5cf6' }}>🌙 OVERTIME (10 PM)</div>
             <div className="h1" style={{ marginTop: 6 }}>야근 신청</div>
           </div>
           <button className="btn-icon" onClick={onClose} style={{ background: 'var(--bg)' }}>
