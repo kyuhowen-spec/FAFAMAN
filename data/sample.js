@@ -1,15 +1,15 @@
 // Sample data for PAPA HR system
 const defaultData = {
   employees: [
-    { id: 'kh', name: '김규호', en: 'Kyuho',   role: 'admin',  title: '대표이사',     team: 'ID', joined: '2016-03-15', initials: 'KH', color: 'av-0', birthday: '05-22', email: 'kyuho@foundfounded.kr',   phone: '010-2214-3391' },
-    { id: 'sy', name: '이서연', en: 'Seoyeon', role: 'senior', title: '디렉터',       team: 'ID', joined: '2017-06-01', initials: 'SY', color: 'av-4', birthday: '09-14', email: 'seoyeon@foundfounded.kr', phone: '010-8841-2207' },
-    { id: 'mj', name: '박민준', en: 'Minjun',  role: 'senior', title: '디렉터',       team: 'VD', joined: '2019-02-11', initials: 'MJ', color: 'av-6', birthday: '03-30', email: 'minjun@foundfounded.kr',  phone: '010-3376-5108' },
-    { id: 'yj', name: '최유진', en: 'Yujin',   role: 'member', title: '시니어디자이너', team: 'ID', joined: '2021-09-06', initials: 'YJ', color: 'av-1', birthday: '11-08', email: 'yujin@foundfounded.kr',   phone: '010-5572-9183' },
-    { id: 'jh', name: '정지훈', en: 'Jihoon',  role: 'member', title: '디자이너',     team: 'VD', joined: '2023-03-20', initials: 'JH', color: 'av-2', birthday: '04-21', email: 'jihoon@foundfounded.kr',  phone: '010-9914-4062' },
-    { id: 'hy', name: '강하윤', en: 'Hayoon',  role: 'member', title: '디자이너',     team: 'ID', joined: '2022-11-14', initials: 'HY', color: 'av-3', birthday: '07-02', email: 'hayoon@foundfounded.kr',  phone: '010-6603-7751' },
-    { id: 'dh', name: '한도현', en: 'Dohyun',  role: 'member', title: '디자이너',     team: 'VD', joined: '2024-01-08', initials: 'DH', color: 'av-5', birthday: '12-19', email: 'dohyun@foundfounded.kr',  phone: '010-4418-2205' },
-    { id: 'ns', name: '남소은', en: 'Soeun',   role: 'member', title: '인턴',         team: 'ID', joined: '2026-01-13', initials: 'NS', color: 'av-2', birthday: '08-11', email: 'soeun@foundfounded.kr',   phone: '010-7720-1845' },
-    { id: 'rt', name: '류태경', en: 'Taegyeong', role: 'member', title: '인턴',       team: 'VD', joined: '2026-03-02', initials: 'RT', color: 'av-7', birthday: '02-04', email: 'taegyeong@foundfounded.kr', phone: '010-5587-6620' },
+    { id: 'kh', name: '김규호', en: 'Kyuho',   role: 'admin',  title: '대표이사',     team: 'ID', joined: '2016-03-15', initials: 'KH', color: 'av-0', birthday: '05-22', email: 'kyuho@foundfounded.com',   phone: '010-2214-3391' },
+    { id: 'sy', name: '이서연', en: 'Seoyeon', role: 'senior', title: '디렉터',       team: 'ID', joined: '2017-06-01', initials: 'SY', color: 'av-4', birthday: '09-14', email: 'seoyeon@foundfounded.com', phone: '010-8841-2207' },
+    { id: 'mj', name: '박민준', en: 'Minjun',  role: 'senior', title: '디렉터',       team: 'VD', joined: '2019-02-11', initials: 'MJ', color: 'av-6', birthday: '03-30', email: 'minjun@foundfounded.com',  phone: '010-3376-5108' },
+    { id: 'yj', name: '최유진', en: 'Yujin',   role: 'member', title: '시니어디자이너', team: 'ID', joined: '2021-09-06', initials: 'YJ', color: 'av-1', birthday: '11-08', email: 'yujin@foundfounded.com',   phone: '010-5572-9183' },
+    { id: 'jh', name: '정지훈', en: 'Jihoon',  role: 'member', title: '디자이너',     team: 'VD', joined: '2023-03-20', initials: 'JH', color: 'av-2', birthday: '04-21', email: 'jihoon@foundfounded.com',  phone: '010-9914-4062' },
+    { id: 'hy', name: '강하윤', en: 'Hayoon',  role: 'member', title: '디자이너',     team: 'ID', joined: '2022-11-14', initials: 'HY', color: 'av-3', birthday: '07-02', email: 'hayoon@foundfounded.com',  phone: '010-6603-7751' },
+    { id: 'dh', name: '한도현', en: 'Dohyun',  role: 'member', title: '디자이너',     team: 'VD', joined: '2024-01-08', initials: 'DH', color: 'av-5', birthday: '12-19', email: 'dohyun@foundfounded.com',  phone: '010-4418-2205' },
+    { id: 'ns', name: '남소은', en: 'Soeun',   role: 'member', title: '인턴',         team: 'ID', joined: '2026-01-13', initials: 'NS', color: 'av-2', birthday: '08-11', email: 'soeun@foundfounded.com',   phone: '010-7720-1845' },
+    { id: 'rt', name: '류태경', en: 'Taegyeong', role: 'member', title: '인턴',       team: 'VD', joined: '2026-03-02', initials: 'RT', color: 'av-7', birthday: '02-04', email: 'taegyeong@foundfounded.com', phone: '010-5587-6620' },
     { id: 'jg', name: '정구',   en: 'Jungu',     role: 'member', title: '신규입사자', team: 'VD', joined: '2026-04-21', initials: 'JG', color: 'av-3', birthday: '01-01', email: 'jungu@foundfounded.com',  phone: '010-0000-0000' },
   ],
 
@@ -186,24 +186,24 @@ const defaultData = {
 
   // Login accounts — email → { pw, userId }
   accounts: {
-    'kyuho@foundfounded.kr':     { pw: 'papa1234', userId: 'kh' },
-    'seoyeon@foundfounded.kr':   { pw: 'papa1234', userId: 'sy' },
-    'minjun@foundfounded.kr':    { pw: 'papa1234', userId: 'mj' },
-    'yujin@foundfounded.kr':     { pw: 'papa1234', userId: 'yj' },
-    'jihoon@foundfounded.kr':    { pw: 'papa1234', userId: 'jh' },
-    'hayoon@foundfounded.kr':    { pw: 'papa1234', userId: 'hy' },
-    'dohyun@foundfounded.kr':    { pw: 'papa1234', userId: 'dh' },
-    'soeun@foundfounded.kr':     { pw: 'papa1234', userId: 'ns' },
-    'taegyeong@foundfounded.kr': { pw: 'papa1234', userId: 'rt' },
+    'kyuho@foundfounded.com':     { pw: 'papa1234', userId: 'kh' },
+    'seoyeon@foundfounded.com':   { pw: 'papa1234', userId: 'sy' },
+    'minjun@foundfounded.com':    { pw: 'papa1234', userId: 'mj' },
+    'yujin@foundfounded.com':     { pw: 'papa1234', userId: 'yj' },
+    'jihoon@foundfounded.com':    { pw: 'papa1234', userId: 'jh' },
+    'hayoon@foundfounded.com':    { pw: 'papa1234', userId: 'hy' },
+    'dohyun@foundfounded.com':    { pw: 'papa1234', userId: 'dh' },
+    'soeun@foundfounded.com':     { pw: 'papa1234', userId: 'ns' },
+    'taegyeong@foundfounded.com': { pw: 'papa1234', userId: 'rt' },
     'jungu@foundfounded.com':    { pw: '0000',     userId: 'jg', isInitial: true },
     'jm@serim-tax.kr':           { pw: 'tax1234',  userId: 'acc' },
   },
 
   // Demo login hints shown on login screen
   loginHints: [
-    { loginId: 'kyuho@foundfounded.kr',  pw: 'papa1234', label: '관리자 · 김규호 대표이사' },
-    { loginId: 'minjun@foundfounded.kr', pw: 'papa1234', label: '시니어 · 박민준 디렉터' },
-    { loginId: 'jihoon@foundfounded.kr', pw: 'papa1234', label: '멤버 · 정지훈 디자이너' },
+    { loginId: 'kyuho@foundfounded.com',  pw: 'papa1234', label: '관리자 · 김규호 대표이사' },
+    { loginId: 'minjun@foundfounded.com', pw: 'papa1234', label: '시니어 · 박민준 디렉터' },
+    { loginId: 'jihoon@foundfounded.com', pw: 'papa1234', label: '멤버 · 정지훈 디자이너' },
     { loginId: 'jm@serim-tax.kr',       pw: 'tax1234',  label: '회계법인 · 세림세무회계' },
   ],
 
@@ -279,13 +279,19 @@ window.initPapaData = async () => {
     await new Promise(r => setTimeout(r, 50));
   }
   const db = window.firebaseDb;
-  const { doc, getDoc, setDoc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
+  const { doc, getDoc, setDoc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
   
   const docRef = doc(db, 'workspaces', 'main');
   const snapshot = await getDoc(docRef);
   
   if (snapshot.exists()) {
-    window.PAPA_DATA = snapshot.data();
+    let dataObj = snapshot.data();
+    const rawStr = JSON.stringify(dataObj);
+    if (rawStr.includes('foundfounded.kr')) {
+      dataObj = JSON.parse(rawStr.replace(/foundfounded\.kr/g, 'foundfounded.com'));
+      await setDoc(docRef, dataObj);
+    }
+    window.PAPA_DATA = dataObj;
   } else {
     window.PAPA_DATA = defaultData;
     await setDoc(docRef, window.PAPA_DATA);
@@ -304,7 +310,7 @@ window.initPapaData = async () => {
 window.savePapaData = async () => {
   if (!window.PAPA_DATA || !window.firebaseDb) return;
   const db = window.firebaseDb;
-  const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
+  const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
   try {
     await setDoc(doc(db, 'workspaces', 'main'), window.PAPA_DATA);
   } catch (e) {

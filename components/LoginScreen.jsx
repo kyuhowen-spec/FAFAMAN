@@ -306,7 +306,7 @@ const LoginScreen = ({ onLogin }) => {
               <input
                 className="input" value={loginId} autoFocus autoComplete="username"
                 onChange={e => setLoginId(e.target.value)}
-                placeholder="예: name@foundfounded.kr"
+                placeholder="예: name@foundfounded.com"
                 style={{ fontSize: 15 }}
               />
             </div>
