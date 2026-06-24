@@ -123,7 +123,7 @@ const LoginScreen = ({ onLogin }) => {
                 <span style={{ fontWeight: 500 }}>found/</span><span style={{ fontWeight: 800 }}>Founded</span>
               </div>
               <div style={{ fontSize: 11, opacity: .8, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 600, marginTop: 4 }}>
-                PAPA Workspace
+                FAFA Workspace
               </div>
             </div>
           </div>
@@ -205,7 +205,7 @@ const LoginScreen = ({ onLogin }) => {
               <span style={{ fontWeight: 500 }}>found/</span><span style={{ fontWeight: 800 }}>Founded</span>
             </div>
             <div style={{ fontSize: 11, opacity: .8, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 600, marginTop: 4 }}>
-              PAPA Workspace
+              FAFA Workspace
             </div>
           </div>
         </div>

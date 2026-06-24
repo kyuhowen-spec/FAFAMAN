@@ -28,7 +28,7 @@ const Sidebar = ({ role, currentUserId, active, onNav, inboxCount, onLogout }) =
             <span style={{ fontWeight: 500 }}>found/</span><span style={{ fontWeight: 800 }}>Founded</span>
           </div>
           <div style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 600, marginTop: 4 }}>
-            PAPA Workspace
+            FAFA Workspace
           </div>
         </div>
       </div>
