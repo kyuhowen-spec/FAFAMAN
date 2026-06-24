@@ -131,8 +131,13 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
         <div>
           <div className="eyebrow">조직도</div>
           <h1 style={{
-            fontSize: 32, fontWeight: 800, marginTop: 8, letterSpacing: '-.02em',
-          }}>Found Founded · {employees.length}명</h1>
+            fontSize: 32, marginTop: 8, letterSpacing: '-.02em', display: 'flex', alignItems: 'center', gap: 10
+          }}>
+            <div style={{ fontFamily: "'Montserrat', 'Pretendard', sans-serif" }}>
+              <span style={{ fontWeight: 500 }}>found/</span><span style={{ fontWeight: 800 }}>Founded</span>
+            </div>
+            <span style={{ fontWeight: 800 }}>· {employees.length}명</span>
+          </h1>
           <div style={{ marginTop: 8, color: 'var(--ink-mute)', fontSize: 14, fontWeight: 500 }}>
             ID 팀 {employees.filter(e => e.team === 'ID').length}명 · VD 팀 {employees.filter(e => e.team === 'VD').length}명
           </div>
