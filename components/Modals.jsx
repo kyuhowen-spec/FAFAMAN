@@ -1,6 +1,6 @@
-// Senior selection card grid — used by Leave & Lunch forms
-const SeniorPicker = ({ value, onChange, currentUserId, label = '결재 받을 시니어 선택', helper }) => {
-  const seniors = window.PAPA_DATA.employees.filter(e => e.role === 'senior' && e.id !== currentUserId);
+// Approver selection card grid — used by Leave & Lunch forms
+const SeniorPicker = ({ value, onChange, currentUserId, label = '결재권자 선택', helper }) => {
+  const seniors = window.PAPA_DATA.employees.filter(e => (e.role === 'senior' || e.role === 'admin') && e.id !== currentUserId);
   return (
     <div style={{ marginBottom: 16 }}>
       <div className="eyebrow" style={{ marginBottom: 8 }}>{label}</div>
@@ -61,12 +61,12 @@ const SeniorPicker = ({ value, onChange, currentUserId, label = '결재 받을 �
 const LeaveRequestForm = ({ onClose, onSubmit, me }) => {
   const [type, setType] = React.useState('연차');
   const [subtype, setSubtype] = React.useState('full');
-  const [start, setStart] = React.useState('2026-04-30');
-  const [end, setEnd] = React.useState('2026-04-30');
+  const [start, setStart] = React.useState(window.PAPA_DATA.today.date);
+  const [end, setEnd] = React.useState(window.PAPA_DATA.today.date);
   const [reason, setReason] = React.useState('');
-  const needsSenior = me.role === 'member';
-  const availableSeniors = window.PAPA_DATA.employees.filter(e => e.role === 'senior' && e.id !== me.id);
-  const [assignedSenior, setAssignedSenior] = React.useState(availableSeniors[0]?.id || null);
+  const needsApprover = me.role !== 'admin';
+  const availableApprovers = window.PAPA_DATA.employees.filter(e => (e.role === 'senior' || e.role === 'admin') && e.id !== me.id);
+  const [assignedSenior, setAssignedSenior] = React.useState(availableApprovers[0]?.id || null);
 
   // Count working days between two dates, excluding Sat(6) and Sun(0)
   const countWorkingDays = (startStr, endStr) => {
@@ -154,14 +154,14 @@ const LeaveRequestForm = ({ onClose, onSubmit, me }) => {
           </div>
         </div>
 
-        {/* Senior selection (members only) */}
-        {needsSenior && (
+        {/* Approver selection */}
+        {needsApprover && (
           <SeniorPicker
             value={assignedSenior}
             onChange={setAssignedSenior}
             currentUserId={me.id}
-            label="1차 결재 시니어 선택"
-            helper="시니어 결재 후 관리자 최종 승인으로 진행됩니다"
+            label="결재권자 선택"
+            helper="선택한 결재권자에게 승인 요청을 보냅니다"
           />
         )}
 
@@ -201,12 +201,12 @@ const LeaveRequestForm = ({ onClose, onSubmit, me }) => {
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: 11, color: 'var(--accent-dark)', fontWeight: 600 }}>결재 경로</div>
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
-              {needsSenior ? (
+              {needsApprover ? (
                 <React.Fragment>
                   {assignedSenior && <Avatar empId={assignedSenior} size="xxs" />}
-                  <span>{assignedSenior ? `${getEmployee(assignedSenior).name.replace(/^./, '')} → 관리자` : '시니어 미선택'}</span>
+                  <span>{assignedSenior ? `${getEmployee(assignedSenior).name.replace(/^./, '')} 승인` : '결재자 미선택'}</span>
                 </React.Fragment>
-              ) : '관리자 직행'}
+              ) : '자동 승인 (관리자)'}
             </div>
           </div>
         </div>
@@ -215,9 +215,9 @@ const LeaveRequestForm = ({ onClose, onSubmit, me }) => {
           <button className="btn btn-ghost btn-lg" onClick={onClose} style={{ flex: 1 }}>취소</button>
           <button
             className="btn btn-primary btn-lg"
-            onClick={() => onSubmit({ type, subtype, start, end, days, reason, assignedSenior: needsSenior ? assignedSenior : null })}
-            disabled={days === 0 || (needsSenior && !assignedSenior)}
-            style={{ flex: 2, opacity: (days === 0 || (needsSenior && !assignedSenior)) ? .4 : 1, cursor: (days === 0 || (needsSenior && !assignedSenior)) ? 'not-allowed' : 'pointer' }}
+            onClick={() => onSubmit({ type, subtype, start, end, days, reason, assignedSenior: needsApprover ? assignedSenior : null })}
+            disabled={days === 0 || (needsApprover && !assignedSenior)}
+            style={{ flex: 2, opacity: (days === 0 || (needsApprover && !assignedSenior)) ? .4 : 1, cursor: (days === 0 || (needsApprover && !assignedSenior)) ? 'not-allowed' : 'pointer' }}
           >
             신청하기
           </button>

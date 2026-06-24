@@ -229,31 +229,32 @@ const App = () => {
       [currentUserId]: { ...prev[currentUserId], lunch: 90, lunchSlot: slot, lunchStatus: 'pending', lunchNote: note },
     }));
     // Add approval record
+    const targetIsAdmin = assignedSenior && getEmployee(assignedSenior).role === 'admin';
     const newAppr = {
       id: `lunch${Date.now()}`,
       empId: currentUserId,
       type: '점심 1.5h',
       subtype: slot,
-      start: '2026-04-30',
-      end: '2026-04-30',
+      start: window.PAPA_DATA.today.date,
+      end: window.PAPA_DATA.today.date,
       days: 0,
       reason: note || (slot === 'early' ? '12:00–13:30 희망' : '12:30–14:00 희망'),
       appliedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
-      stage: me.role === 'senior' ? 'approved' : 'pending_senior',
+      stage: me.role === 'admin' ? 'approved' : (targetIsAdmin ? 'pending_admin' : 'pending_senior'),
       isLunch: true,
       lunchSlot: slot,
       assignedSenior: assignedSenior || null,
     };
     setApprovals(prev => [newAppr, ...prev]);
     setShowLunchForm(false);
-    if (me.role === 'senior') {
+    if (me.role === 'admin') {
       setAttendance(prev => ({
         ...prev,
         [currentUserId]: { ...prev[currentUserId], lunchStatus: 'approved' },
       }));
       setToast({ text: '점심 1.5h 자동 승인', icon: 'check' });
     } else {
-      const seniorName = assignedSenior ? getEmployee(assignedSenior).name : '시니어';
+      const seniorName = assignedSenior ? getEmployee(assignedSenior).name : '결재권자';
       setToast({ text: `${seniorName}에게 점심 1.5h 신청 완료`, icon: 'coffee' });
     }
   };
@@ -291,6 +292,7 @@ const App = () => {
   };
 
   const handleSubmitLeave = (payload) => {
+    const targetIsAdmin = payload.assignedSenior && getEmployee(payload.assignedSenior).role === 'admin';
     const newAppr = {
       id: `a${Date.now()}`,
       empId: currentUserId,
@@ -301,7 +303,7 @@ const App = () => {
       days: payload.days,
       reason: payload.reason || '—',
       appliedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
-      stage: me.role === 'senior' ? 'pending_admin' : 'pending_senior',
+      stage: me.role === 'admin' ? 'approved' : (targetIsAdmin ? 'pending_admin' : 'pending_senior'),
       assignedSenior: payload.assignedSenior || null,
     };
     setApprovals(prev => [newAppr, ...prev]);
