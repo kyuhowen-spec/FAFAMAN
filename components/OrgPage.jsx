@@ -51,6 +51,9 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
         id: newId,
         initials: form.initials || initials,
         color: `av-${colorIdx}`,
+        birthday: form.birthday || '',
+        email: form.email ? form.email.trim().toLowerCase() : '',
+        phone: form.phone ? form.phone.trim() : '',
       };
       setEmployees(prev => [...prev, newEmp]);
 

@@ -313,7 +313,9 @@ window.savePapaData = async () => {
   const db = window.firebaseDb;
   const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
   try {
-    await setDoc(doc(db, 'workspaces', 'main'), window.PAPA_DATA);
+    // Firestore throws error on undefined values. JSON stringify safely strips them out.
+    const cleanData = JSON.parse(JSON.stringify(window.PAPA_DATA));
+    await setDoc(doc(db, 'workspaces', 'main'), cleanData);
   } catch (e) {
     console.error("Failed to save PAPA_DATA to Firestore:", e);
   }
