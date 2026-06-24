@@ -94,6 +94,7 @@ const LateCounter = ({ empId, counter, onReport, penalty }) => {
 };
 
 const LeaveBalance = ({ balance }) => {
+  if (!balance) return null;
   const { total, used, refresh, refreshUsed, tenure } = balance;
   const remaining = total - used;
   const pct = Math.min(100, Math.round((used / total) * 100));

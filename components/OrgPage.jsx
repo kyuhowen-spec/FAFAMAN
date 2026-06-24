@@ -63,6 +63,12 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
           isInitial: true
         };
       }
+
+      // Initialize leaveBalance
+      if (!data.leaveBalance) data.leaveBalance = {};
+      data.leaveBalance[newId] = {
+        total: 15, used: 0, refresh: 0, refreshUsed: 0, tenure: 1
+      };
     }
 
     // Save to localStorage
