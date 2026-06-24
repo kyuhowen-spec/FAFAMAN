@@ -225,14 +225,7 @@ const MemberProfilePopup = ({ empId, currentUserId, onClose }) => {
               {emp.birthday.replace('-', '월 ')}일
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <a href={`mailto:${emp.email}`} className="btn btn-primary" style={{ flex: 1 }}>
-              <Icon name="message" size={14}/> 메일 보내기
-            </a>
-            <a href={`tel:${emp.phone}`} className="btn btn-ghost" style={{ flex: 1 }}>
-              전화 걸기
-            </a>
-          </div>
+
         </div>
       </div>
       {cropSrc && (
