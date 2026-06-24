@@ -711,7 +711,7 @@ const DashboardPage = ({ me, myRole, attendance, approvals, lateCounter, lateLog
 
       {/* Second row: Team status (2/3) + Approval queue (1/3) OR calendar */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 20, marginBottom: 20 }}>
-        <div style={{ gridColumn: 'span 8' }}>
+        <div style={{ gridColumn: isSeniorOrAdmin ? 'span 8' : 'span 12' }}>
           <TeamStatus
             attendance={attendance}
             employees={data.employees}
@@ -719,15 +719,17 @@ const DashboardPage = ({ me, myRole, attendance, approvals, lateCounter, lateLog
             onSelectMember={onSelectMember}
           />
         </div>
-        <div style={{ gridColumn: 'span 4', display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <ApprovalPending
-            role={myRole}
-            approvals={approvals}
-            currentUserId={me}
-            onApprove={onApprove}
-            onReject={onReject}
-          />
-        </div>
+        {isSeniorOrAdmin && (
+          <div style={{ gridColumn: 'span 4', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <ApprovalPending
+              role={myRole}
+              approvals={approvals}
+              currentUserId={me}
+              onApprove={onApprove}
+              onReject={onReject}
+            />
+          </div>
+        )}
       </div>
 
       {/* Third row: Late log feed (senior/admin) or policy-focused empty (member) */}

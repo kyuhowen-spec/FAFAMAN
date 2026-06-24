@@ -273,9 +273,9 @@ const ApprovalCard = ({ approval, role, onApprove, onReject }) => {
             onClick={() => onApprove(approval.id)}>
             <Icon name="check" size={14} /> 승인
           </button>
-          <button className="btn btn-ghost" style={{ padding: '8px 12px', fontSize: 13 }}
+          <button className="btn" style={{ flex: 1, padding: '8px 12px', fontSize: 13, background: 'var(--danger-soft)', color: 'var(--danger)', border: '1px solid transparent' }}
             onClick={() => onReject(approval.id)}>
-            <Icon name="x" size={14} />
+            <Icon name="x" size={14} /> 반려
           </button>
         </div>
       )}

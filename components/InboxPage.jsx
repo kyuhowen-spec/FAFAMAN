@@ -527,7 +527,7 @@ const ApprovalDetail = ({ approval, role, currentUserId, rejectMode, rejectMsg, 
               <button
                 onClick={() => setRejectMode(true)}
                 className="btn"
-                style={{ flex: 1, color: 'var(--danger, #ef4444)', fontWeight: 700 }}>
+                style={{ flex: 1, color: 'var(--danger)', background: 'var(--danger-soft)', border: '1px solid transparent', fontWeight: 700 }}>
                 <Icon name="x" size={14} strokeWidth={2.5} />
                 반려
               </button>
