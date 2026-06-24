@@ -132,30 +132,40 @@ const PayslipDocument = ({ empId, month, payroll, schema }) => {
 };
 
 // ===== Print overlay =====
-const PrintDocOverlay = ({ onClose, title, children }) => (
-  <div className="modal-backdrop print-overlay" onClick={onClose} style={{ alignItems: 'flex-start', overflow: 'auto', padding: '32px 0' }}>
-    <div onClick={e => e.stopPropagation()} style={{ width: 'fit-content', margin: '0 auto' }}>
-      {/* Toolbar (hidden on print) */}
-      <div className="no-print" style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        width: 720, margin: '0 auto 16px', color: 'white',
-      }}>
-        <div style={{ fontSize: 15, fontWeight: 700 }}>{title}</div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn" onClick={() => window.print()} style={{ background: 'white', color: 'var(--ink)', fontWeight: 700 }}>
-            <Icon name="book" size={14}/> PDF로 저장 (인쇄)
-          </button>
-          <button className="btn" onClick={onClose} style={{ background: 'rgba(255,255,255,.18)', color: 'white' }}>
-            <Icon name="x" size={14}/> 닫기
-          </button>
+const PrintDocOverlay = ({ onClose, title, children }) => {
+  React.useEffect(() => {
+    const originalTitle = document.title;
+    document.title = title;
+    return () => {
+      document.title = originalTitle;
+    };
+  }, [title]);
+
+  return (
+    <div className="modal-backdrop print-overlay" onClick={onClose} style={{ alignItems: 'flex-start', overflow: 'auto', padding: '32px 0' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: 'fit-content', margin: '0 auto' }}>
+        {/* Toolbar (hidden on print) */}
+        <div className="no-print" style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          width: 720, margin: '0 auto 16px', color: 'white',
+        }}>
+          <div style={{ fontSize: 15, fontWeight: 700 }}>{title}</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn" onClick={() => window.print()} style={{ background: 'white', color: 'var(--ink)', fontWeight: 700 }}>
+              <Icon name="book" size={14}/> PDF로 저장 (인쇄)
+            </button>
+            <button className="btn" onClick={onClose} style={{ background: 'rgba(255,255,255,.18)', color: 'white' }}>
+              <Icon name="x" size={14}/> 닫기
+            </button>
+          </div>
+        </div>
+        <div className="print-area" style={{ boxShadow: '0 20px 60px rgba(0,0,0,.3)' }}>
+          {children}
         </div>
       </div>
-      <div className="print-area" style={{ boxShadow: '0 20px 60px rgba(0,0,0,.3)' }}>
-        {children}
-      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ===== Employee payslip view =====
 const EmployeePayslip = ({ currentUserId, payroll, schema, month, setMonth, months }) => {
@@ -198,7 +208,7 @@ const EmployeePayslip = ({ currentUserId, payroll, schema, month, setMonth, mont
       )}
 
       {printing && (
-        <PrintDocOverlay title={`${monthLabel(month)} 급여명세서`} onClose={() => setPrinting(false)}>
+        <PrintDocOverlay title={`${monthLabel(month)} 급여명세서_${window.getEmployee(currentUserId).name}`} onClose={() => setPrinting(false)}>
           <PayslipDocument empId={currentUserId} month={month} payroll={payroll} schema={schema} />
         </PrintDocOverlay>
       )}

@@ -169,7 +169,7 @@ const EmployeeCertificate = ({ currentUserId, template }) => {
       </div>
 
       {printing && (
-        <PrintDocOverlay title="재직증명서" onClose={() => setPrinting(false)}>
+        <PrintDocOverlay title={`재직증명서_${window.getEmployee(currentUserId).name}`} onClose={() => setPrinting(false)}>
           <CertificateDocument empId={currentUserId} template={template} purpose={effectivePurpose} issueDate={TODAY} />
         </PrintDocOverlay>
       )}
