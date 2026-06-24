@@ -521,13 +521,28 @@ const LateLogFeed = ({ lateLogs, employees }) => {
 };
 
 const MiniCalendar = ({ events }) => {
-  const [month, setMonth] = React.useState(3); // 0=Jan, 3=Apr
-  const year = 2026;
+  const initDate = React.useMemo(() => window.PAPA_DATA?.today?.date ? new Date(window.PAPA_DATA.today.date) : new Date(), []);
+  const [month, setMonth] = React.useState(initDate.getMonth()); // 0-11
+  const [year, setYear] = React.useState(initDate.getFullYear());
+
+  // Handle month navigation
+  const handlePrevMonth = () => {
+    setMonth(m => {
+      if (m === 0) { setYear(y => y - 1); return 11; }
+      return m - 1;
+    });
+  };
+  const handleNextMonth = () => {
+    setMonth(m => {
+      if (m === 11) { setYear(y => y + 1); return 0; }
+      return m + 1;
+    });
+  };
 
   // days in month + first weekday
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDayOfMonth = new Date(year, month, 1).getDay();
-  const today = month === 3 ? 21 : -1;
+  const today = (year === initDate.getFullYear() && month === initDate.getMonth()) ? initDate.getDate() : -1;
   const monthName = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'][month];
 
   // Derive birthday events for this month from employee roster
@@ -593,13 +608,13 @@ const MiniCalendar = ({ events }) => {
           <div className="h2" style={{ marginTop: 6 }}>{monthName} {year}</div>
         </div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <button className="btn-icon" style={{ background: 'var(--bg)' }} onClick={() => setMonth(m => Math.max(0, m - 1))}>
+          <button className="btn-icon" style={{ background: 'var(--bg)' }} onClick={handlePrevMonth}>
             <Icon name="chevron-right" size={14} strokeWidth={2.5} style={{ transform: 'rotate(180deg)' }}/>
           </button>
           <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-mute)', minWidth: 50, textAlign: 'center' }}>
             {monthName}
           </div>
-          <button className="btn-icon" style={{ background: 'var(--bg)' }} onClick={() => setMonth(m => Math.min(11, m + 1))}>
+          <button className="btn-icon" style={{ background: 'var(--bg)' }} onClick={handleNextMonth}>
             <Icon name="chevron-right" size={14} strokeWidth={2.5}/>
           </button>
         </div>

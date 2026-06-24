@@ -423,16 +423,15 @@ const App = () => {
     // Keep only late events from static data (or anything else not related to leaves)
     const base = window.PAPA_DATA.events.filter(e => e.type === 'late' || e.type === 'birthday');
     
-    // Generate events for all leaves (pending & approved)
+    // Generate events for all approved leaves
     const leaveEvents = [];
     approvals.forEach(a => {
-      if (a.isLunch || a.isOvertime || a.stage === 'rejected') return;
+      if (a.isLunch || a.isOvertime || a.stage !== 'approved') return;
       const emp = window.PAPA_DATA.employees.find(e => e.id === a.empId);
       if (!emp) return;
       
       const s = new Date(a.start);
       const e = new Date(a.end);
-      const statusSuffix = a.stage === 'approved' ? '' : '(대기)';
       const typeStr = a.type;
       const evType = a.type === '반차' ? 'halfday' : 'vacation';
       
@@ -444,7 +443,7 @@ const App = () => {
             date: cur.toISOString().slice(0, 10),
             type: evType,
             empId: a.empId,
-            label: `${emp.name} ${typeStr}${statusSuffix}`,
+            label: `${emp.name} ${typeStr}`,
           });
         }
         cur.setDate(cur.getDate() + 1);
