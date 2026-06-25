@@ -139,7 +139,7 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
             <span style={{ fontWeight: 800 }}>· {employees.length}명</span>
           </h1>
           <div style={{ marginTop: 8, color: 'var(--ink-mute)', fontSize: 14, fontWeight: 500 }}>
-            ID 팀 {employees.filter(e => e.team === 'ID').length}명 · VD 팀 {employees.filter(e => e.team === 'VD').length}명
+            ID 팀 {employees.filter(e => e.team === 'ID').length}명 · VD 팀 {employees.filter(e => e.team === 'VD').length}명 · AI 팀 {employees.filter(e => e.team === 'AI').length}명
           </div>
         </div>
         {isAdmin ? (
@@ -160,8 +160,8 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
         )}
       </div>
 
-      {/* Two-column team layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 }}>
+      {/* Team layout */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
         {grouped.map(({ team, byTitle, count }) => (
           <div key={team.key} className="card" style={{ padding: 0, overflow: 'hidden' }}>
             {/* Team header */}
@@ -169,7 +169,9 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
               padding: '24px 28px',
               background: team.key === 'ID'
                 ? 'linear-gradient(135deg, #2548d6 0%, #4d6aff 100%)'
-                : 'linear-gradient(135deg, #6db82c 0%, #b5e54f 100%)',
+                : team.key === 'VD'
+                ? 'linear-gradient(135deg, #6db82c 0%, #b5e54f 100%)'
+                : 'linear-gradient(135deg, #F5A623 0%, #F7B84D 100%)', // Orange for AI team
               color: 'white',
               position: 'relative', overflow: 'hidden',
             }}>
