@@ -3,18 +3,50 @@ const AttendanceReviewPage = () => {
   const data = window.PAPA_DATA;
   const employees = data.employees;
   
-  // Available months (mocked for now)
-  const availableMonths = ['2026-04', '2026-03'];
-  const [selectedMonth, setSelectedMonth] = React.useState('2026-04');
+  const currentMonthStr = data.today?.date?.slice(0, 7) || '2026-04';
+  
+  const availableMonths = React.useMemo(() => {
+    let months = Object.keys(data.attendanceHistory || {});
+    if (!months.includes(currentMonthStr)) {
+      months.push(currentMonthStr);
+    }
+    return months.sort().reverse();
+  }, [data.attendanceHistory, currentMonthStr]);
+
+  const [selectedMonth, setSelectedMonth] = React.useState(availableMonths[0]);
   const [selectedEmp, setSelectedEmp] = React.useState(null);
   
-  const history = data.attendanceHistory?.[selectedMonth] || {};
+  const getLiveRecord = (empId) => {
+    const history = data.attendanceHistory?.[selectedMonth] || {};
+    const record = history[empId] ? { ...history[empId] } : { days: 0, hours: 0, overtime: 0, daily: [] };
+    
+    if (selectedMonth === currentMonthStr) {
+      const att = data.attendance?.[empId];
+      if (att && att.status !== 'not_checked_in') {
+        let hrs = 0;
+        if (att.accumulatedSecs) {
+          hrs = att.accumulatedSecs / 3600;
+        } else if (att.checkIn) {
+          const [h, m] = att.checkIn.split(':').map(Number);
+          const now = new Date();
+          const kst = new Date(now.getTime() + now.getTimezoneOffset()*60000 + 9*3600000);
+          hrs = Math.max(0, (kst.getHours()*3600 + kst.getMinutes()*60 + kst.getSeconds()) - (h*3600 + m*60)) / 3600;
+        }
+        hrs = parseFloat(hrs.toFixed(1));
+        if (hrs > 0) {
+          record.days += 1;
+          record.hours = parseFloat((record.hours + hrs).toFixed(1));
+        }
+      }
+    }
+    return record;
+  };
 
   const handleDownloadExcel = () => {
     // Generate CSV content
     const headers = ['이름', '부서', '근무 일수', '총 근무 시간 (시간)', '총 야근/연장 시간 (분)'];
     const rows = employees.map(emp => {
-      const record = history[emp.id] || { days: 0, hours: 0, overtime: 0 };
+      const record = getLiveRecord(emp.id);
       return [
         emp.name,
         (emp.team || (emp.department === 'EX' ? '디렉터' : emp.department)),
@@ -82,7 +114,7 @@ const AttendanceReviewPage = () => {
           </thead>
           <tbody>
             {employees.map((emp, i) => {
-              const record = history[emp.id] || { days: 0, hours: 0, overtime: 0 };
+              const record = getLiveRecord(emp.id);
               return (
                 <tr 
                   key={emp.id} 
@@ -128,7 +160,7 @@ const AttendanceReviewPage = () => {
         <MemberAttendanceModal 
           empId={selectedEmp} 
           monthStr={selectedMonth} 
-          record={history[selectedEmp] || { days: 0, hours: 0, overtime: 0, daily: [] }}
+          record={getLiveRecord(selectedEmp)}
           onClose={() => setSelectedEmp(null)} 
         />
       )}

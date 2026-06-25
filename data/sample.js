@@ -384,8 +384,40 @@ window.initPapaData = async () => {
       }
     });
 
+    const archiveAttendance = (d, oldDateStr) => {
+      if (!d.attendance || !oldDateStr) return;
+      const monthStr = oldDateStr.slice(0, 7);
+      if (!d.attendanceHistory) d.attendanceHistory = {};
+      if (!d.attendanceHistory[monthStr]) d.attendanceHistory[monthStr] = {};
+      const historyMonth = d.attendanceHistory[monthStr];
+      Object.entries(d.attendance).forEach(([empId, att]) => {
+        if (!att || (att.status === 'not_checked_in' && !att.accumulatedSecs)) return;
+        let hrs = 0;
+        if (att.accumulatedSecs) hrs = att.accumulatedSecs / 3600;
+        else if (att.checkIn) {
+          const [h, m] = att.checkIn.split(':').map(Number);
+          hrs = Math.max(0, 24 - (h + m/60));
+        }
+        hrs = parseFloat(hrs.toFixed(1));
+        if (hrs > 0) {
+          if (!historyMonth[empId]) historyMonth[empId] = { days: 0, hours: 0, overtime: 0, daily: [] };
+          historyMonth[empId].days += 1;
+          historyMonth[empId].hours = parseFloat((historyMonth[empId].hours + hrs).toFixed(1));
+          historyMonth[empId].daily.push({
+            date: oldDateStr,
+            in: att.firstCheckIn || att.checkIn,
+            out: att.checkedOutAt ? new Date(att.checkedOutAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) : null,
+            hours: hrs
+          });
+        }
+      });
+    };
+
     const seoulToday = getSeoulDateInfo();
     if (!dataObj.lastClearedDate || dataObj.lastClearedDate !== seoulToday.date) {
+      if (dataObj.lastClearedDate) {
+        archiveAttendance(dataObj, dataObj.lastClearedDate);
+      }
       dataObj.today = seoulToday;
       dataObj.lastClearedDate = seoulToday.date;
       dataObj.attendance = {}; // Clear attendance for the new day
@@ -413,6 +445,9 @@ window.initPapaData = async () => {
       const seoulToday = getSeoulDateInfo();
       
       if (!docData.lastClearedDate || docData.lastClearedDate !== seoulToday.date) {
+        if (docData.lastClearedDate) {
+          archiveAttendance(docData, docData.lastClearedDate);
+        }
         docData.today = seoulToday;
         docData.lastClearedDate = seoulToday.date;
         docData.attendance = {};
