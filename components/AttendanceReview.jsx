@@ -6,6 +6,7 @@ const AttendanceReviewPage = () => {
   // Available months (mocked for now)
   const availableMonths = ['2026-04', '2026-03'];
   const [selectedMonth, setSelectedMonth] = React.useState('2026-04');
+  const [selectedEmp, setSelectedEmp] = React.useState(null);
   
   const history = data.attendanceHistory?.[selectedMonth] || {};
 
@@ -83,8 +84,23 @@ const AttendanceReviewPage = () => {
             {employees.map((emp, i) => {
               const record = history[emp.id] || { days: 0, hours: 0, overtime: 0 };
               return (
-                <tr key={emp.id} style={{ borderBottom: i === employees.length - 1 ? 'none' : '1px solid var(--line)' }}>
-                  <td style={{ padding: '16px 20px', fontWeight: 600 }}>{emp.name}</td>
+                <tr 
+                  key={emp.id} 
+                  style={{ 
+                    borderBottom: i === employees.length - 1 ? 'none' : '1px solid var(--line)',
+                    cursor: 'pointer',
+                    transition: 'background .15s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--bg)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  onClick={() => setSelectedEmp(emp.id)}
+                >
+                  <td style={{ padding: '16px 20px', fontWeight: 600 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <Avatar empId={emp.id} size="sm" />
+                      {emp.name}
+                    </div>
+                  </td>
                   <td style={{ padding: '16px 20px', color: 'var(--ink-soft)' }}>{emp.team} · {emp.title}</td>
                   <td style={{ padding: '16px 20px' }}>
                     <span style={{ fontWeight: 600, color: 'var(--accent)' }}>{record.days}</span>일
@@ -106,6 +122,116 @@ const AttendanceReviewPage = () => {
             })}
           </tbody>
         </table>
+      </div>
+
+      {selectedEmp && (
+        <MemberAttendanceModal 
+          empId={selectedEmp} 
+          monthStr={selectedMonth} 
+          record={history[selectedEmp] || { days: 0, hours: 0, overtime: 0, daily: [] }}
+          onClose={() => setSelectedEmp(null)} 
+        />
+      )}
+    </div>
+  );
+};
+
+const MemberAttendanceModal = ({ empId, monthStr, record, onClose }) => {
+  const emp = window.getEmployee(empId);
+  const [year, month] = monthStr.split('-').map(Number);
+  
+  // Calculate calendar
+  const daysInMonth = new Date(year, month, 0).getDate(); // month is 1-indexed here, so 0 gets last day of previous month = current month
+  const firstDay = new Date(year, month - 1, 1).getDay(); // 0 (Sun) to 6 (Sat)
+  
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let i = 1; i <= daysInMonth; i++) cells.push(i);
+
+  // Map daily records by date
+  const dailyMap = {};
+  (record.daily || []).forEach(d => {
+    const day = parseInt(d.date.slice(8), 10);
+    dailyMap[day] = d;
+  });
+
+  return (
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, background: 'rgba(20,22,32,.55)',
+      backdropFilter: 'blur(6px)', zIndex: 110,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 24,
+    }}>
+      <div onClick={e => e.stopPropagation()} className="fade-in" style={{
+        background: 'var(--surface)', borderRadius: 20,
+        width: 800, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto',
+        boxShadow: '0 24px 64px rgba(0,0,0,.15), 0 0 0 1px var(--line)',
+      }}>
+        <div style={{ padding: '32px 32px 24px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <Avatar empId={emp.id} size="xl" />
+            <div>
+              <div className="eyebrow">{monthStr.replace('-', '년 ')}월 상세 근태</div>
+              <h2 style={{ fontSize: 24, fontWeight: 800, marginTop: 4 }}>
+                {emp.name} <span style={{ color: 'var(--ink-mute)', fontWeight: 600, fontSize: 16 }}>{emp.title} · {emp.team}</span>
+              </h2>
+              <div style={{ display: 'flex', gap: 16, marginTop: 12, fontSize: 13, fontWeight: 600, color: 'var(--ink-soft)' }}>
+                <div>근무 <span style={{ color: 'var(--ink)' }}>{record.days}일</span></div>
+                <div>총 <span style={{ color: 'var(--ink)' }}>{record.hours}시간</span></div>
+                <div>연장 <span style={{ color: 'var(--danger)' }}>{Math.floor(record.overtime / 60)}시간 {record.overtime % 60}분</span></div>
+              </div>
+            </div>
+          </div>
+          <button className="btn btn-ghost" onClick={onClose} style={{ padding: 8, margin: -8 }}><Icon name="x" size={20}/></button>
+        </div>
+        
+        <div style={{ padding: 32, background: 'var(--bg)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, marginBottom: 8, textAlign: 'center', fontSize: 12, fontWeight: 700, color: 'var(--ink-mute)' }}>
+            <div style={{ color: 'var(--danger)' }}>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div style={{ color: 'var(--accent)' }}>토</div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
+            {cells.map((day, idx) => {
+              if (!day) return <div key={`empty-${idx}`} style={{ minHeight: 100, background: 'rgba(0,0,0,.02)', borderRadius: 12 }} />;
+              const isWeekend = idx % 7 === 0 || idx % 7 === 6;
+              const log = dailyMap[day];
+              
+              return (
+                <div key={day} style={{
+                  minHeight: 100, padding: 10, borderRadius: 12,
+                  background: log ? 'var(--surface)' : (isWeekend ? 'rgba(0,0,0,.02)' : 'var(--surface)'),
+                  border: log ? '1px solid var(--accent)' : '1px solid var(--line)',
+                  boxShadow: log ? '0 4px 12px rgba(61, 207, 166, 0.1)' : 'none',
+                  display: 'flex', flexDirection: 'column'
+                }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: idx % 7 === 0 ? 'var(--danger)' : idx % 7 === 6 ? 'var(--accent)' : 'var(--ink)' }}>
+                    {day}
+                  </div>
+                  <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {log ? (
+                      <>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)' }}>
+                          <span>출근</span>
+                          <span style={{ color: 'var(--ink)' }}>{log.in}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)' }}>
+                          <span>퇴근</span>
+                          <span style={{ color: 'var(--ink)' }}>{log.out}</span>
+                        </div>
+                        <div style={{ marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--line-soft)', textAlign: 'right', fontSize: 10, fontWeight: 700, color: 'var(--accent)' }}>
+                          {log.hours}h
+                        </div>
+                      </>
+                    ) : (
+                      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-mute)', textAlign: 'center', marginTop: 12 }}>
+                        {isWeekend ? '휴무' : '-'}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
