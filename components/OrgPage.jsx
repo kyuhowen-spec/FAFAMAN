@@ -249,6 +249,7 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
       {showForm && isAdmin && (
         <OrgEditForm
           emp={editingEmp}
+          employees={employees}
           onClose={() => { setShowForm(false); setEditTarget(null); }}
           onSave={handleSave}
           titleOrder={titleOrder}
@@ -294,7 +295,7 @@ const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete, onResetPw }) => {
       <Avatar empId={emp.id} size="md" />
       <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-          {emp.name}
+          {emp.name} <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-mute)', letterSpacing: 0 }}>{emp.empNo}</span>
           {emp.role === 'admin' && (
             <span style={{
               fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
@@ -367,15 +368,31 @@ const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete, onResetPw }) => {
   );
 };
 
-const OrgEditForm = ({ emp, onClose, onSave, titleOrder, teams, onResetPw }) => {
-  const [form, setForm] = React.useState(emp ? { ...emp } : {
-    name: '', en: '', email: '', phone: '',
-    title: '디자이너', team: 'ID', role: 'member',
-    joined: new Date().toISOString().slice(0, 10),
-    birthday: '01-01',
+const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, teams, onResetPw }) => {
+  const [form, setForm] = React.useState(emp || {
+    id: '', empNo: '', name: '', en: '', email: '', phone: '', joined: '', team: teams[0]?.key, title: titleOrder[0], role: 'member', birthday: ''
   });
 
-  const update = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
+  const generateEmpNo = (dateStr) => {
+    if (!dateStr || dateStr.length < 4) return '';
+    const year = dateStr.substring(2, 4);
+    const sameYear = employees.filter(e => e.empNo && e.empNo.startsWith(year));
+    const maxSeq = sameYear.reduce((max, e) => {
+      const seq = parseInt(e.empNo.substring(2), 10);
+      return isNaN(seq) ? max : (seq > max ? seq : max);
+    }, 0);
+    return `${year}${String(maxSeq + 1).padStart(3, '0')}`;
+  };
+
+  const update = (key, val) => {
+    setForm(prev => {
+      const next = { ...prev, [key]: val };
+      if (key === 'joined' && !emp && !prev.empNo) {
+        next.empNo = generateEmpNo(val);
+      }
+      return next;
+    });
+  };
 
   const submit = (e) => {
     e.preventDefault();
@@ -425,6 +442,7 @@ const OrgEditForm = ({ emp, onClose, onSave, titleOrder, teams, onResetPw }) => 
           </div>
           <FormField label="휴대폰" value={form.phone} onChange={v => update('phone', v)} placeholder="010-0000-0000" />
           <FormField label="입사일" value={form.joined} onChange={v => update('joined', v)} type="date" />
+          <FormField label="사번 *" value={form.empNo} onChange={v => update('empNo', v)} placeholder="22001" />
 
           <FormSelect label="소속 팀" value={form.team} onChange={v => update('team', v)}
             options={teams.map(t => ({ value: t.key, label: `${t.label} · ${t.full}` }))} />

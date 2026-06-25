@@ -341,6 +341,27 @@ window.initPapaData = async () => {
       dataObj.teams = defaultData.teams;
       migrated = true;
     }
+    
+    // Migration: ensure all employees have empNo
+    const yearCounts = {};
+    dataObj.employees.forEach(emp => {
+      if (!emp.empNo && emp.joined) {
+        const year = emp.joined.substring(2, 4);
+        if (!yearCounts[year]) {
+          // find max existing seq for this year
+          const sameYear = dataObj.employees.filter(e => e.empNo && e.empNo.startsWith(year));
+          const maxSeq = sameYear.reduce((max, e) => {
+            const seq = parseInt(e.empNo.substring(2), 10);
+            return isNaN(seq) ? max : (seq > max ? seq : max);
+          }, 0);
+          yearCounts[year] = maxSeq;
+        }
+        yearCounts[year]++;
+        emp.empNo = `${year}${String(yearCounts[year]).padStart(3, '0')}`;
+        migrated = true;
+      }
+    });
+
     if (migrated) {
       await setDoc(docRef, dataObj);
     }
