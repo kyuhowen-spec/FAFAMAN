@@ -385,8 +385,9 @@ window.initPapaData = async () => {
     });
 
     const seoulToday = getSeoulDateInfo();
-    if (!dataObj.today || dataObj.today.date !== seoulToday.date) {
+    if (!dataObj.lastClearedDate || dataObj.lastClearedDate !== seoulToday.date) {
       dataObj.today = seoulToday;
+      dataObj.lastClearedDate = seoulToday.date;
       dataObj.attendance = {}; // Clear attendance for the new day
       migrated = true;
     } else {
@@ -411,8 +412,9 @@ window.initPapaData = async () => {
       const docData = docSnap.data();
       const seoulToday = getSeoulDateInfo();
       
-      if (!docData.today || docData.today.date !== seoulToday.date) {
+      if (!docData.lastClearedDate || docData.lastClearedDate !== seoulToday.date) {
         docData.today = seoulToday;
+        docData.lastClearedDate = seoulToday.date;
         docData.attendance = {};
         window.PAPA_DATA = docData;
         window.savePapaData();
