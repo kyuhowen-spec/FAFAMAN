@@ -338,7 +338,7 @@ const OrgRow = ({ emp, isAdmin, currentUserId, onView, onEdit, onDelete, onReset
       case '랩장': return { background: 'var(--accent-soft)', color: 'var(--accent-dark)', border: 'none' };
       case '시니어디자이너':
       case '시니어 디자이너': return { background: 'rgba(61,207,166,.18)', color: 'var(--ok-ink, #1d7a5a)', border: '1px solid rgba(61,207,166,.45)' };
-      case '디자이너': return { background: 'var(--bg-deeper)', color: 'var(--ink-soft)', border: '1px solid #d1d8e5' };
+      case '디자이너': return { background: 'rgba(139,195,74,.15)', color: '#4a8212', border: '1px solid rgba(139,195,74,.4)' };
       case '인턴': return { background: 'rgba(245,166,35,.18)', color: 'var(--warn-ink, #b56b00)', border: '1px solid rgba(245,166,35,.4)' };
       default: return { background: 'var(--line)', color: 'var(--ink-mute)', border: 'none' };
     }
