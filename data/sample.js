@@ -1,24 +1,31 @@
 // Sample data for PAPA HR system
 const defaultData = {
   employees: [
-    { id: 'kh', name: '김규호', en: 'Kyuho',   role: 'admin',  title: '대표이사',     team: 'ID', joined: '2016-03-15', initials: 'KH', color: 'av-0', birthday: '05-22', email: 'kyuho@foundfounded.com',   phone: '010-2214-3391' },
-    { id: 'sy', name: '이서연', en: 'Seoyeon', role: 'senior', title: '디렉터',       team: 'ID', joined: '2017-06-01', initials: 'SY', color: 'av-4', birthday: '09-14', email: 'seoyeon@foundfounded.com', phone: '010-8841-2207' },
-    { id: 'mj', name: '박민준', en: 'Minjun',  role: 'senior', title: '디렉터',       team: 'VD', joined: '2019-02-11', initials: 'MJ', color: 'av-6', birthday: '03-30', email: 'minjun@foundfounded.com',  phone: '010-3376-5108' },
-    { id: 'yj', name: '최유진', en: 'Yujin',   role: 'member', title: '시니어디자이너', team: 'ID', joined: '2021-09-06', initials: 'YJ', color: 'av-1', birthday: '11-08', email: 'yujin@foundfounded.com',   phone: '010-5572-9183' },
-    { id: 'jh', name: '정지훈', en: 'Jihoon',  role: 'member', title: '디자이너',     team: 'VD', joined: '2023-03-20', initials: 'JH', color: 'av-2', birthday: '04-21', email: 'jihoon@foundfounded.com',  phone: '010-9914-4062' },
-    { id: 'hy', name: '강하윤', en: 'Hayoon',  role: 'member', title: '디자이너',     team: 'ID', joined: '2022-11-14', initials: 'HY', color: 'av-3', birthday: '07-02', email: 'hayoon@foundfounded.com',  phone: '010-6603-7751' },
-    { id: 'dh', name: '한도현', en: 'Dohyun',  role: 'member', title: '디자이너',     team: 'VD', joined: '2024-01-08', initials: 'DH', color: 'av-5', birthday: '12-19', email: 'dohyun@foundfounded.com',  phone: '010-4418-2205' },
-    { id: 'ns', name: '남소은', en: 'Soeun',   role: 'member', title: '인턴',         team: 'ID', joined: '2026-01-13', initials: 'NS', color: 'av-2', birthday: '08-11', email: 'soeun@foundfounded.com',   phone: '010-7720-1845' },
-    { id: 'rt', name: '류태경', en: 'Taegyeong', role: 'member', title: '인턴',       team: 'VD', joined: '2026-03-02', initials: 'RT', color: 'av-7', birthday: '02-04', email: 'taegyeong@foundfounded.com', phone: '010-5587-6620' },
-    { id: 'jg', name: '정구',   en: 'Jungu',     role: 'member', title: '신규입사자', team: 'VD', joined: '2026-04-21', initials: 'JG', color: 'av-3', birthday: '01-01', email: 'jungu@foundfounded.com',  phone: '010-0000-0000' },
+    { id: 'kh', name: '김규호', en: 'Kyuho',   role: 'admin',  title: '대표이사',     department: 'EX', team: '', joined: '2016-03-15', initials: 'KH', color: 'av-0', birthday: '05-22', email: 'kyuho@foundfounded.com',   phone: '010-2214-3391' },
+    { id: 'sy', name: '이서연', en: 'Seoyeon', role: 'senior', title: '디렉터',       department: 'ID', team: '', joined: '2017-06-01', initials: 'SY', color: 'av-4', birthday: '09-14', email: 'seoyeon@foundfounded.com', phone: '010-8841-2207' },
+    { id: 'mj', name: '박민준', en: 'Minjun',  role: 'senior', title: '디렉터',       department: 'VD', team: '', joined: '2019-02-11', initials: 'MJ', color: 'av-6', birthday: '03-30', email: 'minjun@foundfounded.com',  phone: '010-3376-5108' },
+    { id: 'yj', name: '최유진', en: 'Yujin',   role: 'member', title: '시니어디자이너', department: 'ID', team: 'ID 1팀', joined: '2021-09-06', initials: 'YJ', color: 'av-1', birthday: '11-08', email: 'yujin@foundfounded.com',   phone: '010-5572-9183' },
+    { id: 'jh', name: '정지훈', en: 'Jihoon',  role: 'member', title: '디자이너',     department: 'VD', team: 'VD팀', joined: '2023-03-20', initials: 'JH', color: 'av-2', birthday: '04-21', email: 'jihoon@foundfounded.com',  phone: '010-9914-4062' },
+    { id: 'hy', name: '강하윤', en: 'Hayoon',  role: 'member', title: '디자이너',     department: 'ID', team: 'ID 2팀', joined: '2022-11-14', initials: 'HY', color: 'av-3', birthday: '07-02', email: 'hayoon@foundfounded.com',  phone: '010-6603-7751' },
+    { id: 'dh', name: '한도현', en: 'Dohyun',  role: 'member', title: '디자이너',     department: 'VD', team: 'VD팀', joined: '2024-01-08', initials: 'DH', color: 'av-5', birthday: '12-19', email: 'dohyun@foundfounded.com',  phone: '010-4418-2205' },
+    { id: 'ns', name: '남소은', en: 'Soeun',   role: 'member', title: '인턴',         department: 'ID', team: 'ID 1팀', joined: '2026-01-13', initials: 'NS', color: 'av-2', birthday: '08-11', email: 'soeun@foundfounded.com',   phone: '010-7720-1845' },
+    { id: 'rt', name: '류태경', en: 'Taegyeong', role: 'member', title: '인턴',       department: 'VD', team: 'VD팀', joined: '2026-03-02', initials: 'RT', color: 'av-7', birthday: '02-04', email: 'taegyeong@foundfounded.com', phone: '010-5587-6620' },
+    { id: 'jg', name: '정구',   en: 'Jungu',     role: 'member', title: '신규입사자', department: 'VD', team: 'VD팀', joined: '2026-04-21', initials: 'JG', color: 'av-3', birthday: '01-01', email: 'jungu@foundfounded.com',  phone: '010-0000-0000' },
   ],
 
   // Title rank order for org chart grouping
   titleOrder: ['대표이사', '디렉터', '팀장', '시니어디자이너', '디자이너', '인턴'],
-  teams: [
+  departments: [
+    { key: 'EX', label: '임원진', full: 'Executive', desc: '경영 및 총괄' },
     { key: 'ID', label: 'ID', full: 'Industrial Design', desc: '제품 · 산업 디자인' },
     { key: 'VD', label: 'VD', full: 'Visual Design',     desc: '디지털 · UX 비주얼' },
     { key: 'AI', label: 'AI', full: 'AI Lab',            desc: '인공지능 연구 및 개발' },
+  ],
+  teams: [
+    { key: 'ID 1팀', dept: 'ID' },
+    { key: 'ID 2팀', dept: 'ID' },
+    { key: 'VD팀', dept: 'VD' },
+    { key: 'AI LAB', dept: 'AI' }
   ],
 
   // Today is Tuesday, Apr 21 2026
@@ -337,8 +344,24 @@ window.initPapaData = async () => {
       dataObj.titleOrder = defaultData.titleOrder;
       migrated = true;
     }
-    if (!dataObj.teams || !dataObj.teams.find(t => t.key === 'AI')) {
+    // Migration: ensure department and team split
+    if (!dataObj.departments) {
+      dataObj.departments = defaultData.departments;
       dataObj.teams = defaultData.teams;
+      
+      dataObj.employees.forEach(emp => {
+        if (!emp.department) {
+          emp.department = emp.team || 'ID';
+          if (['대표이사', '디렉터'].includes(emp.title)) {
+            if (emp.title === '대표이사') emp.department = 'EX';
+            emp.team = '';
+          } else {
+            if (emp.department === 'ID') emp.team = 'ID 1팀';
+            else if (emp.department === 'VD') emp.team = 'VD팀';
+            else if (emp.department === 'AI') emp.team = 'AI LAB';
+          }
+        }
+      });
       migrated = true;
     }
     

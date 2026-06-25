@@ -70,7 +70,7 @@ const PayslipDocument = ({ empId, month, payroll, schema }) => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, marginTop: 20, border: '1px solid #eaeff7', borderRadius: 8, overflow: 'hidden' }}>
         {[
           ['성명', emp.name], ['사번', emp.id.toUpperCase()],
-          ['소속', emp.team + ' 팀'], ['직위', emp.title],
+          ['소속', (emp.team || (emp.department === 'EX' ? '임원진' : emp.department))], ['직위', emp.title],
         ].map(([k, v], i) => (
           <div key={i} style={{ display: 'flex', borderRight: i % 2 === 0 ? 'none' : 'none' }}>
             <div style={{ background: '#f5f8fc', padding: '10px 12px', fontSize: 12, fontWeight: 700, color: '#5a6784', width: 56, flexShrink: 0 }}>{k}</div>
@@ -332,9 +332,9 @@ const AccountantPayroll = ({ payroll, schema, month, setMonth, months, onUpdateC
                   textAlign: 'left', cursor: 'pointer',
                 }}>
                   <Avatar empId={e.id} size="sm" />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: active ? 'var(--accent-dark)' : 'var(--ink)' }}>{e.name}</div>
-                    <div style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 1 }}>{e.title} · {e.team}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ fontSize: 14, fontWeight: 700 }}>{e.name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 1 }}>{e.title} · {(e.team || (e.department === 'EX' ? '임원진' : e.department))}</div>
                   </div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: r ? 'var(--ink-soft)' : 'var(--ink-mute)', fontVariantNumeric: 'tabular-nums' }}>
                     {r ? fmtWonShort(n) : '미등록'}

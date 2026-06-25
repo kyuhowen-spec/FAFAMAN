@@ -11,18 +11,33 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
   // Sync back to global so other components reflect roster changes within session
   React.useEffect(() => { window.PAPA_DATA.employees = employees; }, [employees]);
 
-  const teams = data.teams;
-  const titleOrder = data.titleOrder;
+  const departments = data.departments || [];
+  const teams = data.teams || [];
+  const titleOrder = data.titleOrder || [];
 
-  // Group: team → title → members
-  const grouped = teams.map(t => {
-    const members = employees.filter(e => e.team === t.key);
-    const byTitle = titleOrder.map(title => ({
-      title,
-      members: members.filter(m => m.title === title),
-    })).filter(g => g.members.length > 0);
-    return { team: t, byTitle, count: members.length };
-  });
+  // Group: department → team → title → members
+  const grouped = departments.map(d => {
+    const deptMembers = employees.filter(e => e.department === d.key);
+    const deptTeams = (d.key === 'EX') ? [] : teams.filter(t => t.dept === d.key);
+    
+    const teamsGrouped = deptTeams.map(t => {
+      const tMembers = deptMembers.filter(e => e.team === t.key);
+      const byTitle = titleOrder.map(title => ({
+        title, members: tMembers.filter(m => m.title === title)
+      })).filter(g => g.members.length > 0);
+      return { team: t, byTitle, count: tMembers.length };
+    }).filter(tg => tg.count > 0);
+
+    const noTeamMembers = deptMembers.filter(e => !e.team || !deptTeams.find(t => t.key === e.team));
+    if (noTeamMembers.length > 0) {
+      const byTitle = titleOrder.map(title => ({
+        title, members: noTeamMembers.filter(m => m.title === title)
+      })).filter(g => g.members.length > 0);
+      teamsGrouped.unshift({ team: { key: '소속 없음', label: '소속 없음' }, byTitle, count: noTeamMembers.length });
+    }
+
+    return { department: d, teamsGrouped, count: deptMembers.length };
+  }).filter(g => g.count > 0);
 
   const handleSave = (form) => {
     if (form.id && employees.find(e => e.id === form.id && form.id !== editTarget)) {
@@ -139,7 +154,7 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
             <span style={{ fontWeight: 800 }}>· {employees.length}명</span>
           </h1>
           <div style={{ marginTop: 8, color: 'var(--ink-mute)', fontSize: 14, fontWeight: 500 }}>
-            ID 팀 {employees.filter(e => e.team === 'ID').length}명 · VD 팀 {employees.filter(e => e.team === 'VD').length}명 · AI 팀 {employees.filter(e => e.team === 'AI').length}명
+            총 {employees.length}명
           </div>
         </div>
         {isAdmin ? (
@@ -160,16 +175,18 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
         )}
       </div>
 
-      {/* Team layout */}
+      {/* Department layout */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
-        {grouped.map(({ team, byTitle, count }) => (
-          <div key={team.key} className="card" style={{ padding: 0, overflow: 'hidden' }}>
-            {/* Team header */}
+        {grouped.map(({ department, teamsGrouped, count }) => (
+          <div key={department.key} className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            {/* Department header */}
             <div style={{
               padding: '24px 28px',
-              background: team.key === 'ID'
+              background: department.key === 'EX'
+                ? 'var(--ink)'
+                : department.key === 'ID'
                 ? 'linear-gradient(135deg, #2548d6 0%, #4d6aff 100%)'
-                : team.key === 'VD'
+                : department.key === 'VD'
                 ? 'linear-gradient(135deg, #6db82c 0%, #b5e54f 100%)'
                 : 'linear-gradient(135deg, #F5A623 0%, #F7B84D 100%)', // Orange for AI team
               color: 'white',
@@ -179,16 +196,16 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
                 position: 'absolute', right: -20, top: -20,
                 fontSize: 120, fontWeight: 900, opacity: .14, letterSpacing: '-.05em',
                 lineHeight: 1, fontFamily: 'var(--font-display, inherit)',
-              }}>{team.key}</div>
+              }}>{department.key}</div>
               <div style={{ position: 'relative' }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.12em', opacity: .8 }}>
-                  {team.full.toUpperCase()}
+                  {department.full.toUpperCase()}
                 </div>
                 <div style={{
                   fontSize: 28, fontWeight: 800, marginTop: 4, letterSpacing: '-.02em',
                   display: 'flex', alignItems: 'baseline', gap: 10,
                 }}>
-                  {team.label} 팀
+                  {department.label}
                   <span style={{ fontSize: 14, fontWeight: 600, opacity: .85 }}>
                     {count}명
                   </span>
@@ -196,27 +213,35 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
               </div>
             </div>
 
-            {/* Title groups */}
-            <div style={{ padding: 18 }}>
-              {byTitle.length === 0 ? (
+            {/* Teams inside department */}
+            <div style={{ padding: '10px 18px 18px' }}>
+              {teamsGrouped.length === 0 ? (
                 <div style={{
                   padding: '28px 16px', textAlign: 'center',
                   color: 'var(--ink-mute)', fontSize: 13, fontWeight: 500,
                 }}>아직 구성원이 없습니다</div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {byTitle.flatMap(({ members }) => members).map(emp => (
-                    <OrgRow
-                      key={emp.id}
-                      emp={emp}
-                      isAdmin={isAdmin}
-                      onView={() => onSelectMember && onSelectMember(emp.id)}
-                      onEdit={() => { setEditTarget(emp.id); setShowForm(true); }}
-                      onDelete={() => setConfirmDelete(emp.id)}
-                      onResetPw={() => handleResetPassword(emp.id)}
-                    />
-                  ))}
-                </div>
+                teamsGrouped.map((tg, idx) => (
+                  <div key={tg.team.key}>
+                    {idx > 0 && <div className="divider" style={{ margin: '16px 0' }}/>}
+                    {tg.team.key !== '소속 없음' && (
+                      <div className="h3" style={{ marginBottom: 12, marginTop: idx === 0 ? 8 : 0, color: 'var(--ink)' }}>{tg.team.key}</div>
+                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {tg.byTitle.flatMap(({ members }) => members).map(emp => (
+                        <OrgRow
+                          key={emp.id}
+                          emp={emp}
+                          isAdmin={isAdmin}
+                          onView={() => onSelectMember && onSelectMember(emp.id)}
+                          onEdit={() => { setEditTarget(emp.id); setShowForm(true); }}
+                          onDelete={() => setConfirmDelete(emp.id)}
+                          onResetPw={() => handleResetPassword(emp.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </div>
@@ -253,6 +278,7 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
           onClose={() => { setShowForm(false); setEditTarget(null); }}
           onSave={handleSave}
           titleOrder={titleOrder}
+          departments={departments}
           teams={teams}
           onResetPw={editingEmp ? () => handleResetPassword(editingEmp.id) : null}
         />
@@ -296,6 +322,7 @@ const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete, onResetPw }) => {
       <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           {emp.name} <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-mute)', letterSpacing: 0 }}>{emp.empNo}</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)' }}>{emp.team || emp.department}</span>
           {emp.role === 'admin' && (
             <span style={{
               fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
@@ -368,10 +395,12 @@ const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete, onResetPw }) => {
   );
 };
 
-const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, teams, onResetPw }) => {
+const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments, teams, onResetPw }) => {
   const [form, setForm] = React.useState(emp || {
-    id: '', empNo: '', name: '', en: '', email: '', phone: '', joined: '', team: teams[0]?.key, title: titleOrder[0], role: 'member', birthday: ''
+    id: '', empNo: '', name: '', en: '', email: '', phone: '', joined: '', department: departments[1]?.key || 'ID', team: teams[0]?.key || '', title: titleOrder[0], role: 'member', birthday: ''
   });
+
+  const isExecutive = ['대표이사', '디렉터'].includes(form.title);
 
   const generateEmpNo = (dateStr) => {
     if (!dateStr || dateStr.length < 4) return '';
@@ -389,6 +418,16 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, teams, onRes
       const next = { ...prev, [key]: val };
       if (key === 'joined' && !emp && !prev.empNo) {
         next.empNo = generateEmpNo(val);
+      }
+      if (key === 'title') {
+        if (['대표이사', '디렉터'].includes(val)) {
+          next.department = 'EX';
+          next.team = '';
+        }
+      }
+      if (key === 'department') {
+        const deptTeams = teams.filter(t => t.dept === val);
+        next.team = deptTeams.length > 0 ? deptTeams[0].key : '';
       }
       return next;
     });
@@ -444,8 +483,13 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, teams, onRes
           <FormField label="입사일" value={form.joined} onChange={v => update('joined', v)} type="date" />
           <FormField label="사번 *" value={form.empNo} onChange={v => update('empNo', v)} placeholder="22001" />
 
+          <FormSelect label="직무 (Department)" value={form.department} onChange={v => update('department', v)}
+            options={departments.map(d => ({ value: d.key, label: `${d.label} · ${d.full}` }))} />
+            
           <FormSelect label="소속 팀" value={form.team} onChange={v => update('team', v)}
-            options={teams.map(t => ({ value: t.key, label: `${t.label} · ${t.full}` }))} />
+            options={[{value: '', label: '소속 없음'}].concat(teams.filter(t => t.dept === form.department).map(t => ({ value: t.key, label: t.key })))} 
+            disabled={isExecutive} />
+
           <FormSelect label="직급" value={form.title} onChange={v => update('title', v)}
             options={titleOrder.map(t => ({ value: t, label: t }))} />
 

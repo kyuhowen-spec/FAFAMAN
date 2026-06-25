@@ -36,8 +36,8 @@ const SeniorPicker = ({ value, onChange, currentUserId, label = '결재권자 �
                 }}>
                   {s.name}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 2, fontWeight: 600 }}>
-                  {s.title} · {s.team}
+                <div style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 2 }}>
+                  {s.title} · {(s.team || (s.department === 'EX' ? '임원진' : s.department))}
                 </div>
               </div>
               {active && (
