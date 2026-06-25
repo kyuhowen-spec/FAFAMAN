@@ -303,6 +303,19 @@ const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete, onResetPw }) => {
   const acct = data.accounts[emailKey];
   const isInitialPending = acct && (acct.pw === '0000' || acct.isInitial);
 
+  const getTitleBadgeStyle = (title) => {
+    switch (title) {
+      case '대표이사': return { background: 'var(--ink)', color: 'white', border: 'none' };
+      case '디렉터': return { background: 'var(--accent)', color: 'white', border: 'none' };
+      case '팀장': return { background: 'var(--accent-soft)', color: 'var(--accent-dark)', border: 'none' };
+      case '시니어디자이너':
+      case '시니어 디자이너': return { background: 'rgba(61,207,166,.18)', color: 'var(--ok-ink, #1d7a5a)', border: '1px solid rgba(61,207,166,.45)' };
+      case '디자이너': return { background: 'var(--bg-deeper)', color: 'var(--ink-soft)', border: '1px solid #d1d8e5' };
+      case '인턴': return { background: 'rgba(245,166,35,.18)', color: 'var(--warn-ink, #b56b00)', border: '1px solid rgba(245,166,35,.4)' };
+      default: return { background: 'var(--line)', color: 'var(--ink-mute)', border: 'none' };
+    }
+  };
+
   return (
     <div
       onMouseEnter={() => setHover(true)}
@@ -323,34 +336,10 @@ const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete, onResetPw }) => {
         <div style={{ fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           {emp.name} <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-mute)', letterSpacing: 0 }}>{emp.empNo}</span>
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)' }}>{emp.team || emp.department}</span>
-          {emp.role === 'admin' && (
-            <span style={{
-              fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
-              background: 'var(--ink)', color: 'white', letterSpacing: '.05em',
-            }}>관리자</span>
-          )}
-          {emp.role === 'senior' && (
-            <span style={{
-              fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
-              background: 'var(--accent-soft)', color: 'var(--accent)', letterSpacing: '.05em',
-            }}>리더</span>
-          )}
-          {emp.role === 'member' && emp.title !== '인턴' && (
-            <span style={{
-              fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
-              background: 'rgba(61,207,166,.18)', color: 'var(--ok-ink, #1d7a5a)',
-              letterSpacing: '.05em',
-              border: '1px solid rgba(61,207,166,.45)',
-            }}>멤버</span>
-          )}
-          {emp.title === '인턴' && (
-            <span style={{
-              fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
-              background: 'rgba(245,166,35,.18)', color: 'var(--warn-ink, #b56b00)',
-              letterSpacing: '.05em',
-              border: '1px solid rgba(245,166,35,.4)',
-            }}>인턴</span>
-          )}
+          <span style={{
+            fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4, letterSpacing: 0,
+            ...getTitleBadgeStyle(emp.title)
+          }}>{emp.title === '시니어디자이너' ? '시니어 디자이너' : emp.title}</span>
           {isInitialPending && (
             <span style={{
               fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
