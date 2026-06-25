@@ -254,6 +254,7 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
                           key={emp.id}
                           emp={emp}
                           isAdmin={isAdmin}
+                          currentUserId={currentUserId}
                           onView={() => onSelectMember && onSelectMember(emp.id)}
                           onEdit={() => { setEditTarget(emp.id); setShowForm(true); }}
                           onDelete={() => setConfirmDelete(emp.id)}
@@ -292,7 +293,7 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
       </div>
 
       {/* Add/Edit form modal */}
-      {showForm && isAdmin && (
+      {showForm && (
         <OrgEditForm
           emp={editingEmp}
           employees={employees}
@@ -302,6 +303,8 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
           departments={departments}
           teams={teams}
           onResetPw={editingEmp ? () => handleResetPassword(editingEmp.id) : null}
+          isAdmin={isAdmin}
+          currentUserId={currentUserId}
         />
       )}
 
@@ -317,12 +320,15 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
   );
 };
 
-const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete, onResetPw }) => {
+const OrgRow = ({ emp, isAdmin, currentUserId, onView, onEdit, onDelete, onResetPw }) => {
   const [hover, setHover] = React.useState(false);
   const data = window.PAPA_DATA;
   const emailKey = emp.email ? emp.email.trim().toLowerCase() : '';
   const acct = data.accounts[emailKey];
   const isInitialPending = acct && (acct.pw === '0000' || acct.isInitial);
+  
+  const isSelf = emp.id === currentUserId;
+  const canEdit = isAdmin || isSelf;
 
   const getTitleBadgeStyle = (title) => {
     switch (title) {
@@ -375,15 +381,17 @@ const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete, onResetPw }) => {
           {emp.title} · {emp.email}
         </div>
       </div>
-      {isAdmin ? (
+      {canEdit ? (
         <div style={{ display: 'flex', gap: 4, opacity: hover ? 1 : 0, transition: 'opacity .15s' }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); onResetPw(); }}
-            className="btn-icon"
-            style={{ background: 'var(--bg)', width: 30, height: 30, color: '#b56b00' }}
-            title="비밀번호 초기화">
-            <Icon name="key" size={13} />
-          </button>
+          {isAdmin && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onResetPw(); }}
+              className="btn-icon"
+              style={{ background: 'var(--bg)', width: 30, height: 30, color: '#b56b00' }}
+              title="비밀번호 초기화">
+              <Icon name="key" size={13} />
+            </button>
+          )}
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
             className="btn-icon"
@@ -391,13 +399,15 @@ const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete, onResetPw }) => {
             title="수정">
             <Icon name="edit" size={13} />
           </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="btn-icon"
-            style={{ background: 'var(--bg)', width: 30, height: 30, color: 'var(--danger)' }}
-            title="삭제">
-            <Icon name="trash" size={13} />
-          </button>
+          {isAdmin && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              className="btn-icon"
+              style={{ background: 'var(--bg)', width: 30, height: 30, color: 'var(--danger)' }}
+              title="삭제">
+              <Icon name="trash" size={13} />
+            </button>
+          )}
         </div>
       ) : (
         <div style={{ width: 24 }}/>
@@ -406,10 +416,13 @@ const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete, onResetPw }) => {
   );
 };
 
-const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments, teams, onResetPw }) => {
+const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments, teams, onResetPw, isAdmin, currentUserId }) => {
   const [form, setForm] = React.useState(emp || {
     id: '', empNo: '', name: '', en: '', email: '', phone: '', joined: '', department: departments[1]?.key || 'ID', team: teams[0]?.key || '', title: titleOrder[0], role: 'member', birthday: ''
   });
+
+  const isSelf = emp && emp.id === currentUserId;
+  const canFullEdit = isAdmin;
 
   const isExecutive = ['대표이사', '디렉터'].includes(form.title);
 
@@ -485,31 +498,31 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
         </div>
 
         <div style={{ padding: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <FormField label="이름 *" value={form.name} onChange={v => update('name', v)} />
+          <FormField label="이름 *" value={form.name} onChange={v => update('name', v)} disabled={!canFullEdit} />
           <FormField label="영문 이름" value={form.en} onChange={v => update('en', v)} />
           <div style={{ gridColumn: 'span 2' }}>
-            <FormField label="이메일 *" value={form.email} onChange={v => update('email', v)} type="email" />
+            <FormField label="이메일 *" value={form.email} onChange={v => update('email', v)} type="email" disabled={!canFullEdit} />
           </div>
           <FormField label="휴대폰" value={form.phone} onChange={v => update('phone', v)} placeholder="010-0000-0000" />
-          <FormField label="입사일" value={form.joined} onChange={v => update('joined', v)} type="date" />
-          <FormField label="사번 *" value={form.empNo} onChange={v => update('empNo', v)} placeholder="22001" />
+          <FormField label="입사일" value={form.joined} onChange={v => update('joined', v)} type="date" disabled={!canFullEdit} />
+          <FormField label="사번 *" value={form.empNo} onChange={v => update('empNo', v)} placeholder="22001" disabled={!canFullEdit} />
 
           <FormSelect label="직무 (Department)" value={form.department} onChange={v => update('department', v)}
-            options={departments.map(d => ({ value: d.key, label: `${d.label} · ${d.full}` }))} />
+            options={departments.map(d => ({ value: d.key, label: `${d.label} · ${d.full}` }))} disabled={!canFullEdit} />
             
           <FormSelect label="소속 팀" value={form.team} onChange={v => update('team', v)}
             options={[{value: '', label: '소속 없음'}].concat(teams.filter(t => t.dept === form.department).map(t => ({ value: t.key, label: t.key })))} 
-            disabled={isExecutive} />
+            disabled={!canFullEdit || isExecutive} />
 
           <FormSelect label="직급" value={form.title} onChange={v => update('title', v)}
-            options={titleOrder.map(t => ({ value: t, label: t }))} />
+            options={titleOrder.map(t => ({ value: t, label: t }))} disabled={!canFullEdit} />
 
           <FormSelect label="권한" value={form.role} onChange={v => update('role', v)}
             options={[
               { value: 'admin', label: '관리자 (admin)' },
               { value: 'senior', label: '리더 (senior)' },
               { value: 'member', label: '멤버 (member)' },
-            ]} />
+            ]} disabled={!canFullEdit} />
           <FormField label="생일 (MM-DD)" value={form.birthday} onChange={v => update('birthday', v)} placeholder="04-21" />
         </div>
 
@@ -520,7 +533,7 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
           background: 'var(--bg)',
         }}>
           <div>
-            {emp && onResetPw && (
+            {emp && onResetPw && isAdmin && (
               <button type="button" className="btn btn-ghost" onClick={() => { onResetPw(); onClose(); }} style={{ color: '#b56b00', borderColor: 'rgba(245,166,35,.4)', background: 'rgba(245,166,35,.08)' }}>
                 <Icon name="key" size={14} />
                 비밀번호 초기화 (0000)
@@ -540,7 +553,7 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
   );
 };
 
-const FormField = ({ label, value, onChange, type = 'text', placeholder }) => (
+const FormField = ({ label, value, onChange, type = 'text', placeholder, disabled }) => (
   <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
     <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', letterSpacing: '.04em' }}>
       {label}
@@ -550,6 +563,7 @@ const FormField = ({ label, value, onChange, type = 'text', placeholder }) => (
       value={value || ''}
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
       style={{
         padding: '10px 12px',
         borderRadius: 8,
@@ -557,12 +571,14 @@ const FormField = ({ label, value, onChange, type = 'text', placeholder }) => (
         fontSize: 14, fontWeight: 500,
         outline: 'none',
         fontFamily: 'inherit',
+        background: disabled ? 'var(--bg-deeper)' : 'white',
+        color: disabled ? 'var(--ink-mute)' : 'inherit',
       }}
     />
   </label>
 );
 
-const FormSelect = ({ label, value, onChange, options }) => (
+const FormSelect = ({ label, value, onChange, options, disabled }) => (
   <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
     <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', letterSpacing: '.04em' }}>
       {label}
@@ -570,15 +586,17 @@ const FormSelect = ({ label, value, onChange, options }) => (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
       style={{
         padding: '10px 12px',
         borderRadius: 8,
         border: '1px solid var(--line)',
         fontSize: 14, fontWeight: 500,
         outline: 'none',
-        background: 'white',
+        background: disabled ? 'var(--bg-deeper)' : 'white',
+        color: disabled ? 'var(--ink-mute)' : 'inherit',
         fontFamily: 'inherit',
-        cursor: 'pointer',
+        cursor: disabled ? 'not-allowed' : 'pointer',
       }}>
       {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
