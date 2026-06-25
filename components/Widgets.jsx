@@ -189,7 +189,7 @@ const ApprovalPending = ({ role, approvals, currentUserId, onApprove, onReject }
 
 const MyApprovalCard = ({ approval }) => {
   const stageMap = {
-    pending_senior: { label: '시니어 결재 대기', color: 'pill-warn', step: 1 },
+    pending_senior: { label: '팀장 결재 대기', color: 'pill-warn', step: 1 },
     pending_admin:  { label: '관리자 결재 대기', color: 'pill-warn', step: 2 },
     approved:       { label: '승인 완료',        color: 'pill-ok',   step: 3 },
     rejected:       { label: '반려',             color: 'pill-danger', step: 0 },
@@ -231,7 +231,7 @@ const ApprovalCard = ({ approval, role, onApprove, onReject }) => {
     : approval.start === approval.end
       ? approval.start.slice(5).replace('-', '/')
       : `${approval.start.slice(5).replace('-', '/')} ~ ${approval.end.slice(5).replace('-', '/')}`;
-  const stageLabel = approval.stage === 'pending_senior' ? (isLunch ? '시니어 결재' : '1차 · 시니어') : '최종 · 관리자';
+  const stageLabel = approval.stage === 'pending_senior' ? (isLunch ? '팀장 결재' : '1차 · 팀장') : '최종 · 관리자';
   const canAct = (role === 'senior' && approval.stage === 'pending_senior')
               || (role === 'admin'  && approval.stage === 'pending_admin')
               || (role === 'admin'  && approval.stage === 'pending_senior' && emp.role === 'senior');

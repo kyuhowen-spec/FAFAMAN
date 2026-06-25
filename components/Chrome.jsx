@@ -152,9 +152,7 @@ const Topbar = ({ today, currentUserId, role, notifCount }) => {
         <Avatar empId={currentUserId} size="sm" />
         <div style={{ lineHeight: 1.2 }}>
           <div style={{ fontSize: 13, fontWeight: 700 }}>{me?.name}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-            <RolePill role={role} />
-          </div>
+          <div style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 2 }}>{me?.title}</div>
         </div>
       </div>
     </header>

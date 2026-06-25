@@ -432,7 +432,7 @@ const OrgEditForm = ({ emp, onClose, onSave, titleOrder, teams, onResetPw }) => 
           <FormSelect label="권한" value={form.role} onChange={v => update('role', v)}
             options={[
               { value: 'admin', label: '관리자 (admin)' },
-              { value: 'senior', label: '시니어 (senior)' },
+              { value: 'senior', label: '팀장 (senior)' },
               { value: 'member', label: '멤버 (member)' },
             ]} />
           <FormField label="생일 (MM-DD)" value={form.birthday} onChange={v => update('birthday', v)} placeholder="04-21" />

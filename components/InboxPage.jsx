@@ -76,7 +76,7 @@ const InboxPage = ({ role, currentUserId, approvals, onApprove, onReject, onSele
           </h1>
           <div style={{ marginTop: 8, color: 'var(--ink-mute)', fontSize: 14, fontWeight: 500 }}>
             {role === 'admin'
-              ? '시니어 신청은 직접 승인, 멤버 신청은 1차 통과 후 표시됩니다'
+              ? '팀장 신청은 직접 승인, 멤버 신청은 1차 통과 후 표시됩니다'
               : '팀원의 1차 결재 — 승인 시 관리자에게 자동 전달'}
           </div>
         </div>
@@ -319,7 +319,7 @@ const ApprovalDocCard = ({ approval, selected, onClick }) => {
 
 const StageBadge = ({ stage, small }) => {
   const map = {
-    pending_senior: { label: '시니어 대기', bg: 'rgba(245,166,35,.18)', fg: '#b56b00' },
+    pending_senior: { label: '팀장 대기', bg: 'rgba(245,166,35,.18)', fg: '#b56b00' },
     pending_admin:  { label: '관리자 대기', bg: 'rgba(75,108,255,.16)', fg: 'var(--accent)' },
     approved:       { label: '승인',         bg: 'rgba(61,207,166,.18)', fg: '#1d7a5a' },
     rejected:       { label: '반려',         bg: 'rgba(248,99,99,.16)',  fg: '#c33b3b' },
@@ -384,7 +384,7 @@ const ApprovalDetail = ({ approval, role, currentUserId, rejectMode, rejectMsg, 
   const seniorEmp = approval.assignedSenior ? getEmployee(approval.assignedSenior) : null;
   const steps = [
     { key: 'submit',  label: '신청',        ts: approval.appliedAt },
-    { key: 'senior',  label: seniorEmp ? `${seniorEmp.name} 시니어 결재` : '시니어 결재',  ts: approval.stage === 'pending_senior' ? null : approval.approvedAt || approval.rejectedAt },
+    { key: 'senior',  label: seniorEmp ? `${seniorEmp.name} 팀장 결재` : '팀장 결재',  ts: approval.stage === 'pending_senior' ? null : approval.approvedAt || approval.rejectedAt },
     { key: 'admin',   label: '관리자 최종 승인',    ts: approval.stage === 'approved' ? approval.approvedAt : null },
   ];
   const currentStep = approval.stage === 'pending_senior' ? 1

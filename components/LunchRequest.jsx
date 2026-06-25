@@ -87,7 +87,7 @@ const LunchRequestForm = ({ onClose, onSubmit, me }) => {
             value={assignedSenior}
             onChange={setAssignedSenior}
             currentUserId={me.id}
-            label="결재 시니어 선택"
+            label="결재 팀장 선택"
           />
         )}
 
@@ -99,8 +99,8 @@ const LunchRequestForm = ({ onClose, onSubmit, me }) => {
           <div style={{ fontSize: 12, color: 'var(--warn-ink)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Icon name="inbox" size={14}/>
             {needsSenior
-              ? (assignedSenior ? `${getEmployee(assignedSenior).name.replace(/^./, '')} 시니어에게 신청됩니다` : '결재 시니어를 선택해 주세요')
-              : '시니어 권한으로 자동 승인됩니다'} · 30분 연장 근무 상쇄
+              ? (assignedSenior ? `${getEmployee(assignedSenior).name.replace(/^./, '')} 팀장에게 신청됩니다` : '결재 팀장을 선택해 주세요')
+              : '팀장 권한으로 자동 승인됩니다'} · 30분 연장 근무 상쇄
           </div>
         </div>
 

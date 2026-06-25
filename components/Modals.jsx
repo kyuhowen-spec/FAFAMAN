@@ -310,7 +310,7 @@ const TweaksPanel = ({ show, currentUserId, onSetUser }) => {
   if (!show) return null;
   const roles = [
     { id: 'kh', label: '관리자 (김규호)', role: 'admin' },
-    { id: 'sy', label: '시니어 (이서연)', role: 'senior' },
+    { id: 'sy', label: '팀장 (이서연)', role: 'senior' },
     { id: 'jh', label: '멤버 (정지훈)', role: 'member' },
   ];
   return (

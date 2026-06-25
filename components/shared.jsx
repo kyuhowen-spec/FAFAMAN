@@ -61,14 +61,6 @@ const Avatar = ({ empId, size = 'md', className = '' }) => {
   );
 };
 
-const RolePill = ({ role }) => {
-  const labels = { admin: '관리자', senior: '시니어', member: '멤버', accountant: '회계법인' };
-  if (role === 'accountant') {
-    return <span className="pill" style={{ background: '#1f2a44', color: 'white' }}>회계법인</span>;
-  }
-  return <span className={`pill pill-${role}`}>{labels[role]}</span>;
-};
-
 const StatusChip = ({ status }) => {
   const map = {
     working:        { label: '근무중',   cls: 'status-in',       pill: 'pill-ok' },
@@ -109,4 +101,4 @@ const getTenureYears = (joinDate) => {
   return ((today - join) / (1000 * 60 * 60 * 24 * 365.25)).toFixed(1);
 };
 
-Object.assign(window, { getEmployee, Avatar, RolePill, StatusChip, fmtDuration, fmtClock, getTenureYears, savePhoto, loadPhotos });
+Object.assign(window, { getEmployee, Avatar, StatusChip, fmtDuration, fmtClock, getTenureYears, savePhoto, loadPhotos });

@@ -171,7 +171,7 @@ const MemberProfilePopup = ({ empId, currentUserId, onClose }) => {
             </div>
           </div>
           <div style={{ marginTop: 14, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <RolePill role={emp.role}/>
+            {isMe && <span className="pill pill-ok">나</span>}
           </div>
         </div>
 
@@ -470,7 +470,7 @@ const LateLogFeed = ({ lateLogs, employees }) => {
     <div className="card fade-in">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <div className="eyebrow" style={{ color: 'var(--danger)' }}>시니어 · 관리자 전용</div>
+          <div className="eyebrow" style={{ color: 'var(--danger)' }}>팀장 · 관리자 전용</div>
           <div className="h2" style={{ marginTop: 6 }}>지각 기록</div>
         </div>
         <span className="pill pill-mute">최근 {sorted.length}건</span>
