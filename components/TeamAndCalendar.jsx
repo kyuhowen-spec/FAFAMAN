@@ -76,35 +76,6 @@ const MemberProfilePopup = ({ empId, currentUserId, onClose }) => {
   if (!emp) return null;
   const tenureYears = getTenureYears(emp.joined);
   const isMe = empId === currentUserId;
-  const fileRef = React.useRef(null);
-  const [cropSrc, setCropSrc] = React.useState(null); // data URL of picked image awaiting crop
-  const [, force] = React.useReducer(x => x + 1, 0);
-
-  const handlePick = (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = ''; // allow re-pick same file
-    if (!file) return;
-    if (file.size > 8 * 1024 * 1024) {
-      alert('이미지는 8MB 이하로 업로드해주세요.');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => setCropSrc(reader.result);
-    reader.readAsDataURL(file);
-  };
-
-  const handleCropDone = (dataUrl) => {
-    savePhoto(empId, dataUrl);
-    setCropSrc(null);
-    force();
-  };
-
-  const handleRemove = () => {
-    if (!confirm('프로필 사진을 삭제하시겠습니까?')) return;
-    savePhoto(empId, null);
-    force();
-  };
-
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()} style={{ width: 420, padding: 0, overflow: 'hidden' }}>
@@ -119,7 +90,7 @@ const MemberProfilePopup = ({ empId, currentUserId, onClose }) => {
             <Icon name="x" size={16}/>
           </button>
 
-          {/* Avatar (photo or initials) with optional camera overlay */}
+          {/* Avatar (photo or initials) */}
           <div style={{ position: 'relative', width: 72, height: 72 }}>
             {emp.photo ? (
               <div style={{
@@ -137,31 +108,6 @@ const MemberProfilePopup = ({ empId, currentUserId, onClose }) => {
                 border: '3px solid rgba(255,255,255,.3)',
               }}>{emp.initials}</div>
             )}
-            {isMe && (
-              <button
-                onClick={() => fileRef.current?.click()}
-                title="사진 변경"
-                style={{
-                  position: 'absolute', right: -4, bottom: -4,
-                  width: 28, height: 28, borderRadius: '50%',
-                  background: 'white', color: 'var(--ink)',
-                  border: '2px solid white',
-                  boxShadow: '0 4px 10px rgba(0,0,0,.18)',
-                  display: 'grid', placeItems: 'center',
-                  cursor: 'pointer',
-                }}>
-                <Icon name="edit" size={12}/>
-              </button>
-            )}
-            {isMe && (
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                onChange={handlePick}
-                style={{ display: 'none' }}
-              />
-            )}
           </div>
 
           <div style={{ marginTop: 16 }}>
@@ -177,33 +123,6 @@ const MemberProfilePopup = ({ empId, currentUserId, onClose }) => {
 
         {/* Contact info */}
         <div style={{ padding: '24px 32px 28px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {isMe && (
-            <div style={{
-              padding: '10px 12px', borderRadius: 10,
-              background: 'var(--bg)',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-            }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)', whiteSpace: 'nowrap' }}>
-                <Icon name="info" size={11}/> 본인 프로필 — 사진을 변경할 수 있습니다
-              </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  className="btn"
-                  style={{ padding: '6px 10px', fontSize: 11 }}>
-                  <Icon name="edit" size={11}/> 사진 변경
-                </button>
-                {emp.photo && (
-                  <button
-                    onClick={handleRemove}
-                    className="btn"
-                    style={{ padding: '6px 10px', fontSize: 11, color: 'var(--danger)' }}>
-                    <Icon name="trash" size={11}/>
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
           <div>
             <div className="eyebrow" style={{ marginBottom: 6 }}>이메일</div>
             <div style={{ fontSize: 14, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>
@@ -233,13 +152,6 @@ const MemberProfilePopup = ({ empId, currentUserId, onClose }) => {
 
         </div>
       </div>
-      {cropSrc && (
-        <PhotoCropModal
-          src={cropSrc}
-          onCancel={() => setCropSrc(null)}
-          onSave={handleCropDone}
-        />
-      )}
     </div>
   );
 };
