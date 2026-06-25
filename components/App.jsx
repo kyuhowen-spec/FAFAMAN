@@ -123,13 +123,16 @@ const App = () => {
       return;
     }
     const computeSecs = () => {
-      const [h, m] = myAtt.checkIn.split(':').map(Number);
-      const baseSecs = h * 3600 + m * 60;
-      const now = new Date();
-      // Calculate KST time
-      const kstTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (9 * 3600000));
-      const currentSecs = kstTime.getHours() * 3600 + kstTime.getMinutes() * 60 + kstTime.getSeconds();
-      return Math.max(0, currentSecs - baseSecs);
+      let sessionSecs = 0;
+      if (myAtt.checkIn) {
+        const [h, m] = myAtt.checkIn.split(':').map(Number);
+        const baseSecs = h * 3600 + m * 60;
+        const now = new Date();
+        const kstTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (9 * 3600000));
+        const currentSecs = kstTime.getHours() * 3600 + kstTime.getMinutes() * 60 + kstTime.getSeconds();
+        sessionSecs = Math.max(0, currentSecs - baseSecs);
+      }
+      return (myAtt.accumulatedSecs || 0) + sessionSecs;
     };
     
     setClockSecs(computeSecs());
@@ -137,7 +140,36 @@ const App = () => {
       setClockSecs(computeSecs());
     }, 1000);
     return () => clearInterval(id);
-  }, [myAtt?.checkIn, myAtt?.status, currentUserId]);
+  }, [myAtt?.checkIn, myAtt?.status, myAtt?.accumulatedSecs, currentUserId]);
+
+  // Auto-checkout on browser close
+  React.useEffect(() => {
+    const handleBeforeUnload = () => {
+      const currentAtt = window.PAPA_DATA?.attendance?.[currentUserId];
+      if (currentAtt && (currentAtt.status === 'working' || currentAtt.status === 'halfday')) {
+        const now = new Date();
+        const kstTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (9 * 3600000));
+        const currentSecs = kstTime.getHours() * 3600 + kstTime.getMinutes() * 60 + kstTime.getSeconds();
+        
+        let sessionSecs = 0;
+        if (currentAtt.checkIn) {
+          const [h, m] = currentAtt.checkIn.split(':').map(Number);
+          sessionSecs = Math.max(0, currentSecs - (h * 3600 + m * 60));
+        }
+        
+        currentAtt.accumulatedSecs = (currentAtt.accumulatedSecs || 0) + sessionSecs;
+        currentAtt.status = 'checked_out';
+        currentAtt.checkIn = null;
+        currentAtt.checkedOutAt = now.toISOString();
+        
+        if (window.savePapaData) {
+          window.savePapaData();
+        }
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [currentUserId]);
 
   // Actions
   const isPenaltyActiveToday = (empId) => {
@@ -164,12 +196,26 @@ const App = () => {
     const lateMins = Math.max(0, checkInMins - deadlineMins);
     const wasLate = lateMins > 0;
 
-    setAttendance(prev => ({
-      ...prev,
-      [currentUserId]: { ...prev[currentUserId], status: 'working', checkIn, plannedOut, lunch: 60, wasLate, lateMins },
-    }));
+    setAttendance(prev => {
+      const prevAtt = prev[currentUserId] || {};
+      const isFirst = !prevAtt.firstCheckIn;
+      return {
+        ...prev,
+        [currentUserId]: {
+          ...prevAtt,
+          status: 'working',
+          checkIn,
+          firstCheckIn: prevAtt.firstCheckIn || checkIn,
+          plannedOut: prevAtt.plannedOut || plannedOut,
+          lunch: prevAtt.lunch || 60,
+          wasLate: isFirst ? wasLate : prevAtt.wasLate,
+          lateMins: isFirst ? lateMins : prevAtt.lateMins,
+        },
+      };
+    });
 
-    if (wasLate) {
+    const isFirstTimeCheckIn = !attendance[currentUserId]?.firstCheckIn;
+    if (wasLate && isFirstTimeCheckIn) {
       const today = window.PAPA_DATA.today.date;
       const reasonNote = inPenalty ? '(벌칙 근태 · 10시 마감 조과)' : '(자동 기록 · 체크인 시각 기준)';
       const newLog = {
@@ -236,16 +282,27 @@ const App = () => {
       }));
     }
 
-    setAttendance(prev => ({
-      ...prev,
-      [currentUserId]: {
-        ...prev[currentUserId],
-        status: 'checked_out',
-        checkIn: null,
-        plannedOut: null,
-        checkedOutAt: now.toISOString(),
-      },
-    }));
+    setAttendance(prev => {
+      const prevAtt = prev[currentUserId] || {};
+      let sessionSecs = 0;
+      if (prevAtt.checkIn) {
+        const [ch, cm] = prevAtt.checkIn.split(':').map(Number);
+        const baseSecs = ch * 3600 + cm * 60;
+        const currentSecs = h * 3600 + m * 60 + kstTime.getSeconds();
+        sessionSecs = Math.max(0, currentSecs - baseSecs);
+      }
+      
+      return {
+        ...prev,
+        [currentUserId]: {
+          ...prevAtt,
+          status: 'checked_out',
+          accumulatedSecs: (prevAtt.accumulatedSecs || 0) + sessionSecs,
+          checkIn: null,
+          checkedOutAt: now.toISOString(),
+        },
+      };
+    });
     setShowCheckOutConfirm(false);
     if (overtimeMins > 0) {
       setToast({ text: `오늘 수고하셨어요 👋 (야근 ${Math.floor(overtimeMins / 60)}h ${overtimeMins % 60}m 적립)`, icon: 'moon' });
@@ -601,11 +658,12 @@ const App = () => {
           }}>
             <div style={{
               width: 56, height: 56, borderRadius: 14,
-              background: 'var(--accent-soft)', color: 'var(--accent)',
+              background: 'var(--primary-soft, rgba(74,124,255,.14))',
+              color: 'var(--primary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 20px',
             }}>
-              <Icon name="log-out" size={24} />
+              <Icon name="heart" size={24} />
             </div>
             <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-.02em' }}>
               오늘도 수고하셨습니다.

@@ -9,17 +9,18 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
   const isCheckedOut = status === 'checked_out';
   const notIn = status === 'not_checked_in';
 
-  // 퇴근 후 다음날 9시까지 출근 차단
+  // 퇴근 후 다시 출근 가능 (오후 6시부터 다음날 오전 9시 전까지는 차단)
   const canCheckIn = (() => {
     if (!notIn && !isCheckedOut) return false; // 이미 근무중이면 출근 불가
-    if (isCheckedOut && att.checkedOutAt) {
-      const outTime = new Date(att.checkedOutAt);
-      const nextDay9AM = new Date(outTime);
-      nextDay9AM.setDate(nextDay9AM.getDate() + 1);
-      nextDay9AM.setHours(9, 0, 0, 0);
-      if (new Date() < nextDay9AM) return false;
+    if (isCheckedOut) {
+      const now = new Date();
+      const kstTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (9 * 3600000));
+      const h = kstTime.getHours();
+      if (h >= 18 || h < 9) {
+        return false; 
+      }
+      return true;
     }
-    if (isCheckedOut) return false; // checkedOutAt 없어도 차단
     return true;
   })();
 
@@ -191,7 +192,7 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
               disabled={!canCheckIn}
               style={{ opacity: canCheckIn ? 1 : .45, cursor: canCheckIn ? 'pointer' : 'not-allowed' }}>
               <Icon name="play" size={13} />
-              {isCheckedOut ? '퇴근 완료 · 내일 출근 가능' : '지금 출근하기'}
+              {isCheckedOut ? (canCheckIn ? '다시 출근하기' : '퇴근 완료 · 내일 출근 가능') : '지금 출근하기'}
             </button>
           )}
           {(isWorking || isHalfday) && (
