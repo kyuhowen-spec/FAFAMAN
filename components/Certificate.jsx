@@ -196,8 +196,8 @@ const AdminCertificate = ({ template, onUpdateTemplate, onToast }) => {
   const set = (k, v) => setDraft(d => ({ ...d, [k]: v }));
   const save = () => {
     const purposes = purposesText.split('\n').map(s => s.trim()).filter(Boolean);
+    sessionStorage.setItem('papa_pending_toast', '재직증명서 양식 저장됨');
     onUpdateTemplate({ ...draft, purposes });
-    onToast({ text: '재직증명서 양식 저장됨', icon: 'check' });
   };
 
   const previewEmp = window.PAPA_DATA.employees.find(e => e.role === 'member')?.id || window.PAPA_DATA.employees[0].id;

@@ -16,7 +16,15 @@ const App = () => {
   })();
 
   const [currentUserId, setCurrentUserId] = React.useState(initialUserId);
-  const [active, setActive] = React.useState(getEmployee(initialUserId)?.role === 'accountant' ? 'payroll' : 'dashboard');
+  const [active, setActive] = React.useState(() => {
+    const saved = sessionStorage.getItem('papa_active_tab');
+    if (saved) return saved;
+    return getEmployee(initialUserId)?.role === 'accountant' ? 'payroll' : 'dashboard';
+  });
+
+  React.useEffect(() => {
+    if (active) sessionStorage.setItem('papa_active_tab', active);
+  }, [active]);
   const [attendance, setAttendance] = React.useState(data.attendance);
   const [approvals, setApprovals] = React.useState(data.approvals);
   const [lateCounter, setLateCounter] = React.useState(data.lateCounter);
@@ -53,7 +61,14 @@ const App = () => {
   const [showLeaveForm, setShowLeaveForm] = React.useState(false);
   const [showLunchForm, setShowLunchForm] = React.useState(false);
   const [showOvertimeForm, setShowOvertimeForm] = React.useState(false);
-  const [toast, setToast] = React.useState(null);
+  const [toast, setToast] = React.useState(() => {
+    const pt = sessionStorage.getItem('papa_pending_toast');
+    if (pt) {
+      sessionStorage.removeItem('papa_pending_toast');
+      return { text: pt, icon: 'check' };
+    }
+    return null;
+  });
   const [selectedMember, setSelectedMember] = React.useState(null);
   const [editMode, setEditMode] = React.useState(false);
 

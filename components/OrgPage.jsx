@@ -89,8 +89,9 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
       };
     }
 
-    // Save to localStorage
+    // Save to localStorage/Firestore
     if (window.savePapaData) {
+      sessionStorage.setItem('papa_pending_toast', '구성원 정보가 저장되었습니다.');
       setTimeout(() => {
         window.savePapaData();
       }, 50);
@@ -110,6 +111,7 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
 
     // Save to Firestore
     if (window.savePapaData) {
+      sessionStorage.setItem('papa_pending_toast', '구성원이 삭제되었습니다.');
       setTimeout(() => {
         window.savePapaData();
       }, 50);
@@ -132,6 +134,7 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
       setEmployees([...employees]);
       
       if (window.savePapaData) {
+        sessionStorage.setItem('papa_pending_toast', '비밀번호가 초기화되었습니다.');
         window.savePapaData();
       }
     }
