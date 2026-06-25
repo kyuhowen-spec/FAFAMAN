@@ -384,11 +384,19 @@ window.initPapaData = async () => {
       }
     });
 
+    const seoulToday = getSeoulDateInfo();
+    if (!dataObj.today || dataObj.today.date !== seoulToday.date) {
+      dataObj.today = seoulToday;
+      dataObj.attendance = {}; // Clear attendance for the new day
+      migrated = true;
+    } else {
+      dataObj.today = seoulToday;
+    }
+
     if (migrated) {
       await setDoc(docRef, dataObj);
     }
 
-    dataObj.today = getSeoulDateInfo();
     window.PAPA_DATA = dataObj;
   } else {
     window.PAPA_DATA = defaultData;
@@ -400,8 +408,19 @@ window.initPapaData = async () => {
   onSnapshot(docRef, { includeMetadataChanges: true }, (docSnap) => {
     if (docSnap.metadata.hasPendingWrites) return; // ignore local changes
     if (docSnap.exists()) {
-      window.PAPA_DATA = docSnap.data();
-      window.PAPA_DATA.today = getSeoulDateInfo();
+      const docData = docSnap.data();
+      const seoulToday = getSeoulDateInfo();
+      
+      if (!docData.today || docData.today.date !== seoulToday.date) {
+        docData.today = seoulToday;
+        docData.attendance = {};
+        window.PAPA_DATA = docData;
+        window.savePapaData();
+      } else {
+        docData.today = seoulToday;
+        window.PAPA_DATA = docData;
+      }
+      
       // Dispatch event to trigger React re-render
       window.dispatchEvent(new Event('papa-data-updated'));
     }
