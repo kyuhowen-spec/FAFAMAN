@@ -307,7 +307,8 @@ const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete, onResetPw }) => {
     switch (title) {
       case '대표이사': return { background: 'var(--ink)', color: 'white', border: 'none' };
       case '디렉터': return { background: 'var(--accent)', color: 'white', border: 'none' };
-      case '팀장': return { background: 'var(--accent-soft)', color: 'var(--accent-dark)', border: 'none' };
+      case '팀장':
+      case '랩장': return { background: 'var(--accent-soft)', color: 'var(--accent-dark)', border: 'none' };
       case '시니어디자이너':
       case '시니어 디자이너': return { background: 'rgba(61,207,166,.18)', color: 'var(--ok-ink, #1d7a5a)', border: '1px solid rgba(61,207,166,.45)' };
       case '디자이너': return { background: 'var(--bg-deeper)', color: 'var(--ink-soft)', border: '1px solid #d1d8e5' };

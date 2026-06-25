@@ -14,7 +14,7 @@ const defaultData = {
   ],
 
   // Title rank order for org chart grouping
-  titleOrder: ['대표이사', '디렉터', '팀장', '시니어디자이너', '디자이너', '인턴'],
+  titleOrder: ['대표이사', '디렉터', '팀장', '랩장', '시니어디자이너', '디자이너', '인턴'],
   departments: [
     { key: 'EX', label: '디렉터', full: 'Director', desc: '경영 및 총괄' },
     { key: 'ID', label: 'ID', full: 'Industrial Design', desc: '제품 · 산업 디자인' },
@@ -337,10 +337,9 @@ window.initPapaData = async () => {
       dataObj = JSON.parse(rawStr.replace(/foundfounded\.kr/g, 'foundfounded.com'));
       await setDoc(docRef, dataObj);
     }
-    
-    // Migration: ensure '팀장' is in titleOrder and 'AI' is in teams
+    // Migration: ensure '팀장', '랩장' are in titleOrder
     let migrated = false;
-    if (!dataObj.titleOrder || !dataObj.titleOrder.includes('팀장')) {
+    if (!dataObj.titleOrder || !dataObj.titleOrder.includes('팀장') || !dataObj.titleOrder.includes('랩장')) {
       dataObj.titleOrder = defaultData.titleOrder;
       migrated = true;
     }
