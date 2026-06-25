@@ -17,19 +17,30 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
     const deptMembers = employees.filter(e => e.department === d.key);
     const deptTeams = (d.key === 'EX') ? [] : teams.filter(t => t.dept === d.key);
     
+    const groupMembersByTitle = (members) => {
+      const byTitle = titleOrder.map(title => ({
+        title, members: members.filter(m => m.title === title)
+      })).filter(g => g.members.length > 0);
+      
+      const otherMembers = members.filter(m => !titleOrder.includes(m.title));
+      if (otherMembers.length > 0) {
+        const uniqueOtherTitles = [...new Set(otherMembers.map(m => m.title))];
+        uniqueOtherTitles.forEach(t => {
+          byTitle.push({ title: t || '미지정', members: otherMembers.filter(m => m.title === t) });
+        });
+      }
+      return byTitle;
+    };
+    
     const teamsGrouped = deptTeams.map(t => {
       const tMembers = deptMembers.filter(e => e.team === t.key);
-      const byTitle = titleOrder.map(title => ({
-        title, members: tMembers.filter(m => m.title === title)
-      })).filter(g => g.members.length > 0);
+      const byTitle = groupMembersByTitle(tMembers);
       return { team: t, byTitle, count: tMembers.length };
     }).filter(tg => tg.count > 0);
 
     const noTeamMembers = deptMembers.filter(e => !e.team || !deptTeams.find(t => t.key === e.team));
     if (noTeamMembers.length > 0) {
-      const byTitle = titleOrder.map(title => ({
-        title, members: noTeamMembers.filter(m => m.title === title)
-      })).filter(g => g.members.length > 0);
+      const byTitle = groupMembersByTitle(noTeamMembers);
       teamsGrouped.unshift({ team: { key: '소속 없음', label: '소속 없음' }, byTitle, count: noTeamMembers.length });
     }
 
