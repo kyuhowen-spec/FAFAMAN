@@ -16,7 +16,7 @@ const defaultData = {
   // Title rank order for org chart grouping
   titleOrder: ['대표이사', '디렉터', '팀장', '시니어디자이너', '디자이너', '인턴'],
   departments: [
-    { key: 'EX', label: '임원진', full: 'Executive', desc: '경영 및 총괄' },
+    { key: 'EX', label: '디렉터', full: 'Director', desc: '경영 및 총괄' },
     { key: 'ID', label: 'ID', full: 'Industrial Design', desc: '제품 · 산업 디자인' },
     { key: 'VD', label: 'VD', full: 'Visual Design',     desc: '디지털 · UX 비주얼' },
     { key: 'AI', label: 'AI', full: 'AI Lab',            desc: '인공지능 연구 및 개발' },

@@ -17,7 +17,7 @@ const AttendanceReviewPage = () => {
       const record = history[emp.id] || { days: 0, hours: 0, overtime: 0 };
       return [
         emp.name,
-        (emp.team || (emp.department === 'EX' ? '임원진' : emp.department)),
+        (emp.team || (emp.department === 'EX' ? '디렉터' : emp.department)),
         record.days,
         record.hours,
         record.overtime
@@ -101,7 +101,7 @@ const AttendanceReviewPage = () => {
                       {emp.name}
                     </div>
                   </td>
-                  <td style={{ padding: '16px 20px', color: 'var(--ink-soft)' }}>{(emp.team || (emp.department === 'EX' ? '임원진' : emp.department))} · {emp.title}</td>
+                  <td style={{ padding: '16px 20px', color: 'var(--ink-soft)' }}>{(emp.team || (emp.department === 'EX' ? '디렉터' : emp.department))} · {emp.title}</td>
                   <td style={{ padding: '16px 20px' }}>
                     <span style={{ fontWeight: 600, color: 'var(--accent)' }}>{record.days}</span>일
                   </td>
@@ -173,7 +173,7 @@ const MemberAttendanceModal = ({ empId, monthStr, record, onClose }) => {
             <div>
               <div className="eyebrow">{monthStr.replace('-', '년 ')}월 상세 근태</div>
               <h2 style={{ fontSize: 24, fontWeight: 800, marginTop: 4 }}>
-                {emp.name} <span style={{ color: 'var(--ink-mute)', fontWeight: 600, fontSize: 16 }}>{emp.title} · {(emp.team || (emp.department === 'EX' ? '임원진' : emp.department))}</span>
+                {emp.name} <span style={{ color: 'var(--ink-mute)', fontWeight: 600, fontSize: 16 }}>{emp.title} · {(emp.team || (emp.department === 'EX' ? '디렉터' : emp.department))}</span>
               </h2>
               <div style={{ display: 'flex', gap: 16, marginTop: 12, fontSize: 13, fontWeight: 600, color: 'var(--ink-soft)' }}>
                 <div>근무 <span style={{ color: 'var(--ink)' }}>{record.days}일</span></div>

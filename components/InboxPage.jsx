@@ -303,7 +303,7 @@ const ApprovalDocCard = ({ approval, selected, onClick }) => {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 12, fontWeight: 700 }}>{emp.name}</div>
           <div style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 2 }}>
-            {emp.title} · {(emp.team || (emp.department === 'EX' ? '임원진' : emp.department))}
+            {emp.title} · {(emp.team || (emp.department === 'EX' ? '디렉터' : emp.department))}
           </div>
         </div>
         <div style={{
@@ -432,7 +432,7 @@ const ApprovalDetail = ({ approval, role, currentUserId, rejectMode, rejectMsg, 
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 14, fontWeight: 700 }}>{emp.name}</div>
             <div style={{ fontSize: 12, color: 'var(--ink-mute)' }}>
-              {emp.title} · {(emp.team || (emp.department === 'EX' ? '임원진' : emp.department))} · {emp.email}
+              {emp.title} · {(emp.team || (emp.department === 'EX' ? '디렉터' : emp.department))} · {emp.email}
             </div>
           </div>
           <Icon name="chevron-right" size={14} />

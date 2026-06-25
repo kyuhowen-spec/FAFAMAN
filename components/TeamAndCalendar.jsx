@@ -52,7 +52,7 @@ const TeamStatus = ({ attendance, employees, lateCounter, onSelectMember }) => {
                   )}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 2 }}>
-                  {emp.title} · {(emp.team || (emp.department === 'EX' ? '임원진' : emp.department))}
+                  {emp.title} · {(emp.team || (emp.department === 'EX' ? '디렉터' : emp.department))}
                 </div>
               </div>
               <div style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
@@ -167,7 +167,7 @@ const MemberProfilePopup = ({ empId, currentUserId, onClose }) => {
           <div style={{ marginTop: 16 }}>
             <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-.02em' }}>{emp.name}</div>
             <div style={{ fontSize: 13, fontWeight: 500, opacity: .85, marginTop: 4 }}>
-              {emp.title} · {(emp.team || (emp.department === 'EX' ? '임원진' : emp.department))}
+              {emp.title} · {(emp.team || (emp.department === 'EX' ? '디렉터' : emp.department))}
             </div>
           </div>
           <div style={{ marginTop: 14, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
