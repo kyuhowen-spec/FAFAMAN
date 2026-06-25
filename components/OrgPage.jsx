@@ -8,8 +8,6 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
   const [editTarget, setEditTarget] = React.useState(null); // emp id or null (for new)
   const [confirmDelete, setConfirmDelete] = React.useState(null);
 
-  const [confirmDelete, setConfirmDelete] = React.useState(null);
-
   const departments = data.departments || [];
   const teams = data.teams || [];
   const titleOrder = data.titleOrder || [];
