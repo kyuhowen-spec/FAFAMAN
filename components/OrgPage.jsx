@@ -327,13 +327,13 @@ const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete, onResetPw }) => {
             <span style={{
               fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
               background: 'var(--ink)', color: 'white', letterSpacing: '.05em',
-            }}>ADMIN</span>
+            }}>관리자</span>
           )}
           {emp.role === 'senior' && (
             <span style={{
               fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
               background: 'var(--accent-soft)', color: 'var(--accent)', letterSpacing: '.05em',
-            }}>SENIOR</span>
+            }}>리더</span>
           )}
           {emp.role === 'member' && emp.title !== '인턴' && (
             <span style={{
@@ -341,7 +341,7 @@ const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete, onResetPw }) => {
               background: 'rgba(61,207,166,.18)', color: 'var(--ok-ink, #1d7a5a)',
               letterSpacing: '.05em',
               border: '1px solid rgba(61,207,166,.45)',
-            }}>MEMBER</span>
+            }}>멤버</span>
           )}
           {emp.title === '인턴' && (
             <span style={{
@@ -349,7 +349,7 @@ const OrgRow = ({ emp, isAdmin, onView, onEdit, onDelete, onResetPw }) => {
               background: 'rgba(245,166,35,.18)', color: 'var(--warn-ink, #b56b00)',
               letterSpacing: '.05em',
               border: '1px solid rgba(245,166,35,.4)',
-            }}>INTERN</span>
+            }}>인턴</span>
           )}
           {isInitialPending && (
             <span style={{
@@ -496,7 +496,7 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
           <FormSelect label="권한" value={form.role} onChange={v => update('role', v)}
             options={[
               { value: 'admin', label: '관리자 (admin)' },
-              { value: 'senior', label: '팀장 (senior)' },
+              { value: 'senior', label: '리더 (senior)' },
               { value: 'member', label: '멤버 (member)' },
             ]} />
           <FormField label="생일 (MM-DD)" value={form.birthday} onChange={v => update('birthday', v)} placeholder="04-21" />
