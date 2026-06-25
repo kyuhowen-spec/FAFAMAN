@@ -41,6 +41,22 @@ const defaultData = {
     jg: { status: 'not_checked_in', checkIn: null, plannedOut: null, lunch: 60 },
   },
 
+  // Attendance history for the month (Mock data for Attendance Review)
+  attendanceHistory: {
+    '2026-04': {
+      kh: { days: 15, hours: 120, overtime: 0, daily: [{ date: '2026-04-01', in: '10:00', out: '19:00', hours: 8 }] },
+      sy: { days: 15, hours: 120, overtime: 120, daily: [{ date: '2026-04-01', in: '09:50', out: '19:10', hours: 8.3 }] },
+      mj: { days: 15, hours: 120, overtime: 240, daily: [{ date: '2026-04-01', in: '09:55', out: '19:30', hours: 8.5 }] },
+      yj: { days: 14, hours: 112, overtime: 320, daily: [{ date: '2026-04-01', in: '09:50', out: '19:40', hours: 8.8 }] },
+      jh: { days: 14, hours: 110, overtime: 280, daily: [{ date: '2026-04-01', in: '10:05', out: '19:50', hours: 8.7 }] },
+      hy: { days: 15, hours: 118, overtime: 150, daily: [{ date: '2026-04-01', in: '09:58', out: '19:15', hours: 8.2 }] },
+      dh: { days: 13, hours: 104, overtime: 200, daily: [{ date: '2026-04-01', in: '09:55', out: '19:20', hours: 8.4 }] },
+      ns: { days: 15, hours: 120, overtime: 0, daily: [{ date: '2026-04-01', in: '10:00', out: '19:00', hours: 8 }] },
+      rt: { days: 15, hours: 120, overtime: 90, daily: [{ date: '2026-04-01', in: '09:50', out: '19:05', hours: 8.1 }] },
+      jg: { days: 1, hours: 8, overtime: 0, daily: [{ date: '2026-04-21', in: '10:00', out: '19:00', hours: 8 }] },
+    }
+  },
+
   // Late logs — only seniors & admin can view full feed
   lateLogs: [
     { id: 'l1', empId: 'jh', date: '2026-04-21', time: '10:47', plannedAt: '10:00', delta: 47, reason: '지하철 지연 — 2호선' },

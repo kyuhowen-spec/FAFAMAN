@@ -2,6 +2,7 @@
 const navItems = [
   { key: 'dashboard', label: '대시보드',    icon: 'home',       roles: ['admin','senior','member'] },
   { key: 'inbox',     label: '결재함',       icon: 'inbox',      roles: ['admin','senior'] },
+  { key: 'attendance',label: '근태리뷰',     icon: 'clock',      roles: ['admin'] },
   { key: 'calendar',  label: '캘린더',       icon: 'calendar',   roles: ['admin','senior','member'] },
   { key: 'org',       label: '조직도',       icon: 'users',      roles: ['admin','senior','member'] },
   { key: 'payroll',   label: '급여',         icon: 'wallet',     roles: ['admin','senior','member','accountant'] },

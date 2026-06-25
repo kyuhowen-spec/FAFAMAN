@@ -536,7 +536,10 @@ const App = () => {
           {active === 'settings' && me.role === 'admin' && (
             <SettingsPage onToast={setToast} />
           )}
-          {active !== 'dashboard' && active !== 'calendar' && active !== 'policy' && active !== 'org' && active !== 'inbox' && active !== 'payroll' && active !== 'cert' && active !== 'settings' && (
+          {active === 'attendance' && me.role === 'admin' && (
+            <AttendanceReviewPage />
+          )}
+          {active !== 'dashboard' && active !== 'calendar' && active !== 'policy' && active !== 'org' && active !== 'inbox' && active !== 'payroll' && active !== 'cert' && active !== 'settings' && active !== 'attendance' && (
             <PlaceholderPage tabKey={active} />
           )}
         </div>
