@@ -8,8 +8,7 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
   const [editTarget, setEditTarget] = React.useState(null); // emp id or null (for new)
   const [confirmDelete, setConfirmDelete] = React.useState(null);
 
-  // Sync back to global so other components reflect roster changes within session
-  React.useEffect(() => { window.PAPA_DATA.employees = employees; }, [employees]);
+  const [confirmDelete, setConfirmDelete] = React.useState(null);
 
   const departments = data.departments || [];
   const teams = data.teams || [];
@@ -56,7 +55,10 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
           delete data.accounts[oldEmailKey];
         }
       }
-      setEmployees(prev => prev.map(e => e.id === editTarget ? { ...e, ...form } : e));
+      
+      const newEmployees = employees.map(e => e.id === editTarget ? { ...e, ...form } : e);
+      setEmployees(newEmployees);
+      window.PAPA_DATA.employees = newEmployees;
     } else {
       const newId = form.id || `e${Date.now().toString(36).slice(-4)}`;
       const initials = form.name ? form.name.slice(-2).toUpperCase() : 'NN';
@@ -70,7 +72,10 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
         email: form.email ? form.email.trim().toLowerCase() : '',
         phone: form.phone ? form.phone.trim() : '',
       };
-      setEmployees(prev => [...prev, newEmp]);
+      
+      const newEmployees = [...employees, newEmp];
+      setEmployees(newEmployees);
+      window.PAPA_DATA.employees = newEmployees;
 
       // Create login account with password '0000' and email as key
       const emailKey = form.email.trim().toLowerCase();
@@ -106,7 +111,11 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
     if (emp && emp.email) {
       delete data.accounts[emp.email.trim().toLowerCase()];
     }
-    setEmployees(prev => prev.filter(e => e.id !== empId));
+    
+    const newEmployees = employees.filter(e => e.id !== empId);
+    setEmployees(newEmployees);
+    window.PAPA_DATA.employees = newEmployees;
+    
     setConfirmDelete(null);
 
     // Save to Firestore
