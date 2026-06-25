@@ -18,6 +18,7 @@ const defaultData = {
   teams: [
     { key: 'ID', label: 'ID', full: 'Industrial Design', desc: '제품 · 산업 디자인' },
     { key: 'VD', label: 'VD', full: 'Visual Design',     desc: '디지털 · UX 비주얼' },
+    { key: 'AI', label: 'AI', full: 'AI Lab',            desc: '인공지능 연구 및 개발' },
   ],
 
   // Today is Tuesday, Apr 21 2026
@@ -329,6 +330,21 @@ window.initPapaData = async () => {
       dataObj = JSON.parse(rawStr.replace(/foundfounded\.kr/g, 'foundfounded.com'));
       await setDoc(docRef, dataObj);
     }
+    
+    // Migration: ensure '팀장' is in titleOrder and 'AI' is in teams
+    let migrated = false;
+    if (!dataObj.titleOrder || !dataObj.titleOrder.includes('팀장')) {
+      dataObj.titleOrder = defaultData.titleOrder;
+      migrated = true;
+    }
+    if (!dataObj.teams || !dataObj.teams.find(t => t.key === 'AI')) {
+      dataObj.teams = defaultData.teams;
+      migrated = true;
+    }
+    if (migrated) {
+      await setDoc(docRef, dataObj);
+    }
+
     dataObj.today = getSeoulDateInfo();
     window.PAPA_DATA = dataObj;
   } else {
