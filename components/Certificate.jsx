@@ -204,7 +204,6 @@ const AdminCertificate = ({ template, onUpdateTemplate, onToast }) => {
 
   return (
     <div className="fade-in">
-    <div className="fade-in">
       <div className="no-print">
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 24 }}>
           <div>
@@ -267,9 +266,6 @@ const AdminCertificate = ({ template, onUpdateTemplate, onToast }) => {
               <textarea className="input" rows="5" value={purposesText}
                 onChange={e => setPurposesText(e.target.value)} style={{ resize: 'vertical', fontFamily: 'inherit' }}/>
             </div>
-            <button className="btn btn-primary btn-lg" style={{ width: '100%' }} onClick={() => setPrinting(true)}>
-              <Icon name="book" size={14}/> PDF 다운로드 (인쇄) 테스트
-            </button>
           </div>
 
           {/* Live preview */}
