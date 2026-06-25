@@ -3,57 +3,31 @@ const getEmployee = (id) => {
   const found = window.PAPA_DATA.employees.find(e => e.id === id) || (window.PAPA_DATA.externalUsers || []).find(e => e.id === id);
   return found || { id, name: '(알 수 없음)', en: 'Unknown', role: 'member', title: '', team: '', initials: '?', color: 'av-0' };
 };
-// Photo override store (localStorage-backed) — keyed by empId
-const PHOTO_KEY = 'papa.profilePhotos';
-const loadPhotos = () => {
-  try { return JSON.parse(localStorage.getItem(PHOTO_KEY) || '{}'); }
-  catch { return {}; }
-};
-const savePhoto = (empId, dataUrl) => {
-  const all = loadPhotos();
-  if (dataUrl) all[empId] = dataUrl; else delete all[empId];
-  try { localStorage.setItem(PHOTO_KEY, JSON.stringify(all)); } catch {}
-  // Apply to runtime data so re-renders pick up the change
-  const emp = window.PAPA_DATA.employees.find(e => e.id === empId);
-  if (emp) emp.photo = dataUrl || null;
-  // Trigger any listeners
-  window.dispatchEvent(new CustomEvent('papa:photo-updated', { detail: { empId } }));
-  // Immediately sync to Firestore so other users see it right away
-  if (window.savePapaData) {
-    window.savePapaData();
+// Cleanup old photo data if any exists
+(function cleanupOldPhotos() {
+  try {
+    localStorage.removeItem('papa.profilePhotos');
+  } catch {}
+  
+  if (window.PAPA_DATA && window.PAPA_DATA.employees) {
+    let cleaned = false;
+    window.PAPA_DATA.employees.forEach(e => {
+      if (e.photo) {
+        delete e.photo;
+        cleaned = true;
+      }
+    });
+    if (cleaned && window.savePapaData) {
+      // Trigger a save to clear out the photo strings from Firestore and free space
+      window.savePapaData();
+    }
   }
-};
-// Hydrate photos from localStorage on first load
-(function hydrate() {
-  const all = loadPhotos();
-  if (!window.PAPA_DATA) return;
-  window.PAPA_DATA.employees.forEach(e => { if (all[e.id]) e.photo = all[e.id]; });
 })();
 
 const Avatar = ({ empId, size = 'md', className = '' }) => {
   const emp = getEmployee(empId);
-  // Re-render trigger when photo changes elsewhere
-  const [, force] = React.useReducer(x => x + 1, 0);
-  React.useEffect(() => {
-    const handler = (e) => { if (e.detail?.empId === empId) force(); };
-    window.addEventListener('papa:photo-updated', handler);
-    return () => window.removeEventListener('papa:photo-updated', handler);
-  }, [empId]);
   if (!emp) return null;
-  if (emp.photo) {
-    return (
-      <div
-        className={`avatar avatar-${size} ${className}`}
-        style={{
-          backgroundImage: `url(${emp.photo})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          color: 'transparent',
-        }}
-        aria-label={emp.name}
-      />
-    );
-  }
+
   return (
     <div className={`avatar avatar-${size} ${emp.color} ${className}`}>
       {emp.initials}
@@ -101,4 +75,4 @@ const getTenureYears = (joinDate) => {
   return ((today - join) / (1000 * 60 * 60 * 24 * 365.25)).toFixed(1);
 };
 
-Object.assign(window, { getEmployee, Avatar, StatusChip, fmtDuration, fmtClock, getTenureYears, savePhoto, loadPhotos });
+Object.assign(window, { getEmployee, Avatar, StatusChip, fmtDuration, fmtClock, getTenureYears });

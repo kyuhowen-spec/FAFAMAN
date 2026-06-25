@@ -90,24 +90,15 @@ const MemberProfilePopup = ({ empId, currentUserId, onClose }) => {
             <Icon name="x" size={16}/>
           </button>
 
-          {/* Avatar (photo or initials) */}
+          {/* Avatar (initials) */}
           <div style={{ position: 'relative', width: 72, height: 72 }}>
-            {emp.photo ? (
-              <div style={{
-                width: 72, height: 72, borderRadius: '50%',
-                backgroundImage: `url(${emp.photo})`,
-                backgroundSize: 'cover', backgroundPosition: 'center',
-                border: '3px solid rgba(255,255,255,.45)',
-              }}/>
-            ) : (
-              <div style={{
-                width: 72, height: 72, borderRadius: '50%',
-                background: 'rgba(255,255,255,.2)',
-                display: 'grid', placeItems: 'center',
-                fontSize: 26, fontWeight: 800, letterSpacing: '-.02em',
-                border: '3px solid rgba(255,255,255,.3)',
-              }}>{emp.initials}</div>
-            )}
+            <div style={{
+              width: 72, height: 72, borderRadius: '50%',
+              background: 'rgba(255,255,255,.2)',
+              display: 'grid', placeItems: 'center',
+              fontSize: 26, fontWeight: 800, letterSpacing: '-.02em',
+              border: '3px solid rgba(255,255,255,.3)',
+            }}>{emp.initials}</div>
           </div>
 
           <div style={{ marginTop: 16 }}>
