@@ -345,7 +345,7 @@ window.initPapaData = async () => {
       migrated = true;
     }
     // Migration: ensure department and team split
-    if (!dataObj.departments) {
+    if (!dataObj.departments || dataObj.departments[0].label !== '디렉터') {
       dataObj.departments = defaultData.departments;
       dataObj.teams = defaultData.teams;
       
