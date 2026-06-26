@@ -2,15 +2,6 @@
 const defaultData = {
   employees: [
     { id: 'kh', name: '김규호', en: 'Kyuho',   role: 'admin',  title: '대표이사',     department: 'EX', team: '', joined: '2016-03-15', initials: 'KH', color: 'av-0', birthday: '05-22', email: 'kyuho@foundfounded.com',   phone: '010-2214-3391' },
-    { id: 'sy', name: '이서연', en: 'Seoyeon', role: 'senior', title: '디렉터',       department: 'ID', team: '', joined: '2017-06-01', initials: 'SY', color: 'av-4', birthday: '09-14', email: 'seoyeon@foundfounded.com', phone: '010-8841-2207' },
-    { id: 'mj', name: '박민준', en: 'Minjun',  role: 'senior', title: '디렉터',       department: 'VD', team: '', joined: '2019-02-11', initials: 'MJ', color: 'av-6', birthday: '03-30', email: 'minjun@foundfounded.com',  phone: '010-3376-5108' },
-    { id: 'yj', name: '최유진', en: 'Yujin',   role: 'member', title: '시니어디자이너', department: 'ID', team: 'ID 1팀', joined: '2021-09-06', initials: 'YJ', color: 'av-1', birthday: '11-08', email: 'yujin@foundfounded.com',   phone: '010-5572-9183' },
-    { id: 'jh', name: '정지훈', en: 'Jihoon',  role: 'member', title: '디자이너',     department: 'VD', team: 'VD팀', joined: '2023-03-20', initials: 'JH', color: 'av-2', birthday: '04-21', email: 'jihoon@foundfounded.com',  phone: '010-9914-4062' },
-    { id: 'hy', name: '강하윤', en: 'Hayoon',  role: 'member', title: '디자이너',     department: 'ID', team: 'ID 2팀', joined: '2022-11-14', initials: 'HY', color: 'av-3', birthday: '07-02', email: 'hayoon@foundfounded.com',  phone: '010-6603-7751' },
-    { id: 'dh', name: '한도현', en: 'Dohyun',  role: 'member', title: '디자이너',     department: 'VD', team: 'VD팀', joined: '2024-01-08', initials: 'DH', color: 'av-5', birthday: '12-19', email: 'dohyun@foundfounded.com',  phone: '010-4418-2205' },
-    { id: 'ns', name: '남소은', en: 'Soeun',   role: 'member', title: '인턴',         department: 'ID', team: 'ID 1팀', joined: '2026-01-13', initials: 'NS', color: 'av-2', birthday: '08-11', email: 'soeun@foundfounded.com',   phone: '010-7720-1845' },
-    { id: 'rt', name: '류태경', en: 'Taegyeong', role: 'member', title: '인턴',       department: 'VD', team: 'VD팀', joined: '2026-03-02', initials: 'RT', color: 'av-7', birthday: '02-04', email: 'taegyeong@foundfounded.com', phone: '010-5587-6620' },
-    { id: 'jg', name: '정구',   en: 'Jungu',     role: 'member', title: '신규입사자', department: 'VD', team: 'VD팀', joined: '2026-04-21', initials: 'JG', color: 'av-3', birthday: '01-01', email: 'jungu@foundfounded.com',  phone: '010-0000-0000' },
   ],
 
   // Title rank order for org chart grouping
@@ -38,82 +29,30 @@ const defaultData = {
 
   // Attendance for today, per employee
   // status: 'working' | 'not_checked_in' | 'vacation' | 'halfday'
-  attendance: {
-    kh: { status: 'working',  checkIn: '10:12', plannedOut: '19:12', lunch: 60 },
-    sy: { status: 'working',  checkIn: '09:58', plannedOut: '18:58', lunch: 90 },
-    mj: { status: 'working',  checkIn: '10:24', plannedOut: '19:24', lunch: 60 },
-    yj: { status: 'not_checked_in', checkIn: null, plannedOut: null, lunch: 60 },
-    jh: { status: 'working',  checkIn: '10:47', plannedOut: '19:47', lunch: 60, wasLate: true },
-    hy: { status: 'halfday',  checkIn: '10:05', plannedOut: '14:05', lunch: 60 },
-    dh: { status: 'vacation', checkIn: null, plannedOut: null, lunch: null },
-    jg: { status: 'not_checked_in', checkIn: null, plannedOut: null, lunch: 60 },
-  },
+  attendance: {},
 
   // Attendance history for the month (Mock data for Attendance Review)
-  attendanceHistory: {
-    '2026-04': {
-      kh: { days: 15, hours: 120, overtime: 0, daily: [{ date: '2026-04-01', in: '10:00', out: '19:00', hours: 8 }] },
-      sy: { days: 15, hours: 120, overtime: 120, daily: [{ date: '2026-04-01', in: '09:50', out: '19:10', hours: 8.3 }] },
-      mj: { days: 15, hours: 120, overtime: 240, daily: [{ date: '2026-04-01', in: '09:55', out: '19:30', hours: 8.5 }] },
-      yj: { days: 14, hours: 112, overtime: 320, daily: [{ date: '2026-04-01', in: '09:50', out: '19:40', hours: 8.8 }] },
-      jh: { days: 14, hours: 110, overtime: 280, daily: [{ date: '2026-04-01', in: '10:05', out: '19:50', hours: 8.7 }] },
-      hy: { days: 15, hours: 118, overtime: 150, daily: [{ date: '2026-04-01', in: '09:58', out: '19:15', hours: 8.2 }] },
-      dh: { days: 13, hours: 104, overtime: 200, daily: [{ date: '2026-04-01', in: '09:55', out: '19:20', hours: 8.4 }] },
-      ns: { days: 15, hours: 120, overtime: 0, daily: [{ date: '2026-04-01', in: '10:00', out: '19:00', hours: 8 }] },
-      rt: { days: 15, hours: 120, overtime: 90, daily: [{ date: '2026-04-01', in: '09:50', out: '19:05', hours: 8.1 }] },
-      jg: { days: 1, hours: 8, overtime: 0, daily: [{ date: '2026-04-21', in: '10:00', out: '19:00', hours: 8 }] },
-    }
-  },
+  attendanceHistory: {},
 
   // Late logs — only seniors & admin can view full feed
-  lateLogs: [
-    { id: 'l1', empId: 'jh', date: '2026-04-21', time: '10:47', plannedAt: '10:00', delta: 47, reason: '지하철 지연 — 2호선' },
-    { id: 'l2', empId: 'jh', date: '2026-04-15', time: '11:12', plannedAt: '11:00', delta: 12, reason: '알람 못 들음' },
-    { id: 'l3', empId: 'jh', date: '2026-04-08', time: '11:23', plannedAt: '11:00', delta: 23, reason: '택시 잡기 어려움' },
-    { id: 'l4', empId: 'hy', date: '2026-04-17', time: '10:18', plannedAt: '10:00', delta: 18, reason: '아침 병원 방문' },
-    { id: 'l5', empId: 'yj', date: '2026-04-14', time: '09:36', plannedAt: '09:00', delta: 36, reason: '늦잠' },
-    { id: 'l6', empId: 'mj', date: '2026-04-10', time: '10:32', plannedAt: '10:00', delta: 32, reason: '등원 도와주고 옴' },
-    { id: 'l7', empId: 'jh', date: '2026-04-03', time: '10:14', plannedAt: '10:00', delta: 14, reason: '지하철 놓침' },
-    { id: 'l8', empId: 'dh', date: '2026-03-27', time: '11:09', plannedAt: '11:00', delta: 9, reason: '알람 지연' },
-  ],
+  lateLogs: [],
 
   // Late counter per employee (0-5)
-  lateCounter: {
-    kh: 0, sy: 0, mj: 1, yj: 1, jh: 5, hy: 1, dh: 1,
-  },
+  lateCounter: {},
 
   // Monthly overtime counter per employee (in minutes)
-  monthlyOvertime: {
-    kh: 0, sy: 0, mj: 0, yj: 0, jh: 0, hy: 0, dh: 0, jg: 0,
-  },
+  monthlyOvertime: {},
 
   // Penalty mode: 5회 누적 시 다음 날부터 7일간 10시 출근 고정
-  penaltyMode: {
-    jh: { startDate: '2026-04-22', endDate: '2026-04-28', reason: '지각 5회 누적' },
-  },
+  penaltyMode: {},
 
   // Leave balance per employee
   leaveBalance: {
-    kh: { total: 15, used: 3,  refresh: 0, refreshUsed: 0, tenure: 10 },
-    sy: { total: 18, used: 5,  refresh: 5, refreshUsed: 2, tenure: 9 },
-    mj: { total: 15, used: 2,  refresh: 0, refreshUsed: 0, tenure: 7 },
-    yj: { total: 17, used: 4,  refresh: 0, refreshUsed: 0, tenure: 5 },
-    jh: { total: 15, used: 6,  refresh: 0, refreshUsed: 0, tenure: 3 },
-    hy: { total: 16, used: 7,  refresh: 0, refreshUsed: 0, tenure: 4 },
-    dh: { total: 11, used: 1,  refresh: 0, refreshUsed: 0, tenure: 2 },
+    kh: { total: 15, used: 2,  refresh: 5, refreshUsed: 0, tenure: 10 },
   },
 
   // Pending approvals
-  approvals: [
-    { id: 'a1', empId: 'yj', type: '연차', subtype: 'full', start: '2026-04-29', end: '2026-04-30', days: 2, reason: '가족 여행', appliedAt: '2026-04-20 14:22', stage: 'pending_senior', assignedSenior: 'sy' },
-    { id: 'a2', empId: 'jh', type: '반차', subtype: 'half-pm', start: '2026-04-24', end: '2026-04-24', days: 0.5, reason: '병원 진료', appliedAt: '2026-04-21 09:14', stage: 'pending_senior', assignedSenior: 'mj' },
-    { id: 'a3', empId: 'hy', type: '연차', subtype: 'full', start: '2026-05-04', end: '2026-05-06', days: 3, reason: '개인 사유', appliedAt: '2026-04-19 17:40', stage: 'pending_admin', assignedSenior: 'sy' },
-    { id: 'a4', empId: 'sy', type: '리프레시', subtype: 'full', start: '2026-05-11', end: '2026-05-15', days: 5, reason: '연속 근무 2년 소진 · 재충전을 위한 휴식', appliedAt: '2026-04-18 10:05', stage: 'pending_admin' },
-    { id: 'a5', empId: 'dh', type: '연차', subtype: 'full', start: '2026-04-21', end: '2026-04-21', days: 1, reason: '컨디션 난조', appliedAt: '2026-04-20 22:18', stage: 'approved', approvedAt: '2026-04-21 08:42', approvedBy: 'mj' },
-    { id: 'a6', empId: 'jh', type: '반차', subtype: 'half-am', start: '2026-04-15', end: '2026-04-15', days: 0.5, reason: '치과 진료', appliedAt: '2026-04-14 11:02', stage: 'approved', approvedAt: '2026-04-14 13:30', approvedBy: 'mj' },
-    { id: 'a7', empId: 'ns', type: '연차', subtype: 'full', start: '2026-04-10', end: '2026-04-10', days: 1, reason: '인턴 면접 일정', appliedAt: '2026-04-08 19:50', stage: 'rejected', rejectedAt: '2026-04-09 09:12', rejectedBy: 'sy', rejectReason: '프로젝트 마감 직전이라 1주 후 다시 신청 부탁드려요' },
-    { id: 'a8', empId: 'rt', type: '점심 1.5h', subtype: 'lunch', start: '2026-04-21', end: '2026-04-21', days: 0, reason: '병원 동행', appliedAt: '2026-04-21 11:08', stage: 'pending_senior', isLunch: true, lunchSlot: 'late', assignedSenior: 'mj' },
-  ],
+  approvals: [],
 
   // Upcoming events (this + next week) for mini calendar
   events: [
@@ -208,45 +147,20 @@ const defaultData = {
     { key: 'holiday', title: '휴일 근무',     body: '반일 80,000원 · 종일 160,000원' },
   ],
 
-  // External users (not part of org chart) — e.g. outside accounting firm
-  externalUsers: [
-    { id: 'acc', name: '이정민', en: 'Jeongmin', role: 'accountant', title: '담당 회계사', team: '세림세무회계', initials: 'JM', color: 'av-6', email: 'jm@serim-tax.kr', phone: '010-3380-7742' },
-  ],
+  // External users (not part of org chart)
+  externalUsers: [],
 
   // Login accounts — email → { pw, userId }
   accounts: {
     'kyuho@foundfounded.com':     { pw: 'papa1234', userId: 'kh' },
-    'seoyeon@foundfounded.com':   { pw: 'papa1234', userId: 'sy' },
-    'minjun@foundfounded.com':    { pw: 'papa1234', userId: 'mj' },
-    'yujin@foundfounded.com':     { pw: 'papa1234', userId: 'yj' },
-    'jihoon@foundfounded.com':    { pw: 'papa1234', userId: 'jh' },
-    'hayoon@foundfounded.com':    { pw: 'papa1234', userId: 'hy' },
-    'dohyun@foundfounded.com':    { pw: 'papa1234', userId: 'dh' },
-    'soeun@foundfounded.com':     { pw: 'papa1234', userId: 'ns' },
-    'taegyeong@foundfounded.com': { pw: 'papa1234', userId: 'rt' },
-    'jungu@foundfounded.com':    { pw: '0000',     userId: 'jg', isInitial: true },
-    'jm@serim-tax.kr':           { pw: 'tax1234',  userId: 'acc' },
   },
 
   // Demo login hints shown on login screen
-  loginHints: [
-    { loginId: 'kyuho@foundfounded.com',  pw: 'papa1234', label: '관리자 · 김규호 대표이사' },
-    { loginId: 'minjun@foundfounded.com', pw: 'papa1234', label: '팀장 · 박민준 디렉터' },
-    { loginId: 'jihoon@foundfounded.com', pw: 'papa1234', label: '멤버 · 정지훈 디자이너' },
-    { loginId: 'jm@serim-tax.kr',       pw: 'tax1234',  label: '회계법인 · 세림세무회계' },
-  ],
+  loginHints: [],
 
   // Personal profiles for certificates (주민번호 앞자리 등)
   profiles: {
     kh: { rrn: '790522-1', address: '서울특별시 용산구 한남대로 42, 301호' },
-    sy: { rrn: '880914-2', address: '서울특별시 마포구 월드컵북로 78, 1102호' },
-    mj: { rrn: '850330-1', address: '경기도 성남시 분당구 정자일로 95, 504호' },
-    yj: { rrn: '930608-2', address: '서울특별시 성동구 왕십리로 115, 802호' },
-    jh: { rrn: '960421-1', address: '서울특별시 동작구 사당로 230, 203호' },
-    hy: { rrn: '940702-2', address: '서울특별시 광진구 자양로 88, 1201호' },
-    dh: { rrn: '980219-1', address: '인천광역시 연수구 송도과학로 32, 705호' },
-    ns: { rrn: '010811-4', address: '서울특별시 은평구 통일로 920, 403호' },
-    rt: { rrn: '000204-3', address: '경기도 고양시 일산동구 중앙로 1234, 606호' },
   },
 
   // Payroll schema — earnings/deductions item names (accountant can add more)
@@ -328,10 +242,19 @@ window.initPapaData = async () => {
   };
 
   const docRef = doc(db, 'workspaces', 'main');
-  const snapshot = await getDoc(docRef);
+  const docSnap = await getDoc(docRef);
   
-  if (snapshot.exists()) {
-    let dataObj = snapshot.data();
+  if (docSnap.exists()) {
+    let dataObj = docSnap.data();
+    
+    // 1회성 강제 초기화 (더미 데이터가 1명 이상이면 덮어쓰기)
+    if (dataObj.employees && dataObj.employees.length > 1) {
+      window.PAPA_DATA = defaultData;
+      window.PAPA_DATA.today = getSeoulDateInfo();
+      await setDoc(docRef, window.PAPA_DATA);
+      console.warn("데이터베이스가 초기화(클린업) 되었습니다.");
+      dataObj = window.PAPA_DATA;
+    }
     const rawStr = JSON.stringify(dataObj);
     if (rawStr.includes('foundfounded.kr')) {
       dataObj = JSON.parse(rawStr.replace(/foundfounded\.kr/g, 'foundfounded.com'));

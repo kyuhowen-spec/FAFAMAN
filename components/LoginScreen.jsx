@@ -330,37 +330,7 @@ const LoginScreen = ({ onLogin }) => {
               {busy ? '로그인 중…' : '로그인'}
             </button>
 
-            {/* Demo hints */}
-            <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--line)' }}>
-              <button type="button" onClick={() => setShowHints(s => !s)} style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                fontSize: 12, fontWeight: 700, color: 'var(--ink-mute)', background: 'transparent', border: 'none', cursor: 'pointer'
-              }}>
-                <Icon name="info" size={13}/>
-                데모 계정 {showHints ? '숨기기' : '보기'}
-                <Icon name={showHints ? 'chevron-down' : 'chevron-right'} size={13}/>
-              </button>
-              {showHints && (
-                <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {data.loginHints.map(h => (
-                    <button type="button" key={h.loginId} onClick={() => quickFill(h)} style={{
-                      display: 'flex', alignItems: 'center', gap: 10,
-                      padding: '10px 12px', borderRadius: 10,
-                      background: 'var(--bg)', border: '1px solid var(--line)',
-                      textAlign: 'left', transition: 'all .12s', cursor: 'pointer'
-                    }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700 }}>{h.label}</div>
-                        <div className="mono" style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 2 }}>
-                          {h.loginId} / {h.pw}
-                        </div>
-                      </div>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)' }}>자동 입력</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Demo hints removed for production */}
           </form>
         )}
       </div>
