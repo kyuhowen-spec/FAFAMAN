@@ -32,6 +32,15 @@ const LoginScreen = ({ onLogin }) => {
       if (emp) {
         // accounts에서 해당 userId를 가진 계정 찾기
         acct = Object.values(data.accounts).find(a => a.userId === emp.id);
+        
+        // 계정이 누락된 경우 (이메일 추가 버그 등으로 인해) 자가 복구 (비밀번호 0000 입력 시)
+        if (!acct && pw === '0000') {
+          acct = { pw: '0000', userId: emp.id, isInitial: true };
+          data.accounts[input] = acct;
+          if (window.savePapaData) {
+            window.savePapaData();
+          }
+        }
       }
       // 이메일 키로 직접 등록된 계정도 확인 (관리자가 이메일로 등록한 경우)
       if (!acct) {

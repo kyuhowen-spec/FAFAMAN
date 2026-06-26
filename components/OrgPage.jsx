@@ -57,11 +57,21 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
       // Update account email if changed
       const oldEmp = employees.find(e => e.id === editTarget);
       if (oldEmp && oldEmp.email !== form.email) {
-        const oldEmailKey = oldEmp.email.trim().toLowerCase();
-        const newEmailKey = form.email.trim().toLowerCase();
-        if (data.accounts[oldEmailKey]) {
-          data.accounts[newEmailKey] = data.accounts[oldEmailKey];
+        const oldEmailKey = (oldEmp.email || '').trim().toLowerCase();
+        const newEmailKey = (form.email || '').trim().toLowerCase();
+        
+        if (oldEmailKey && data.accounts[oldEmailKey]) {
+          if (newEmailKey) {
+            data.accounts[newEmailKey] = data.accounts[oldEmailKey];
+          }
           delete data.accounts[oldEmailKey];
+        } else if (newEmailKey) {
+          // If they didn't have an email before or account was missing, create one
+          data.accounts[newEmailKey] = {
+            pw: '0000',
+            userId: editTarget,
+            isInitial: true
+          };
         }
       }
       
