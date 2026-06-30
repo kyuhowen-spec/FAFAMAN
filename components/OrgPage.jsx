@@ -78,6 +78,13 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
       const newEmployees = employees.map(e => e.id === editTarget ? { ...e, ...form } : e);
       setEmployees(newEmployees);
       window.PAPA_DATA.employees = newEmployees;
+
+      // 대표이사 정보 변경 시 재직증명서 자동 연동
+      const updatedEmp = { ...employees.find(e => e.id === editTarget), ...form };
+      if (updatedEmp.title === '대표이사' && data.certTemplate) {
+        data.certTemplate.ceo = updatedEmp.name;
+        window.dispatchEvent(new Event('papa-data-updated'));
+      }
     } else {
       const newId = form.id || `e${Date.now().toString(36).slice(-4)}`;
       const initials = form.name ? form.name.slice(-2).toUpperCase() : 'NN';
