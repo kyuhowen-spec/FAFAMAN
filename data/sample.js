@@ -1,7 +1,7 @@
 // Sample data for PAPA HR system
 const defaultData = {
   employees: [
-    { id: 'kh', name: '김규호', en: 'Kyuho',   role: 'admin',  title: '대표이사',     department: 'EX', team: '', joined: '2016-03-15', initials: 'KH', color: 'av-0', birthday: '05-22', email: 'kyuho@foundfounded.com',   phone: '010-2214-3391' },
+    { id: 'kh', name: '김규호', en: 'Kyuho',   role: 'admin',  title: '대표이사',     department: 'EX', team: '', joined: '2016-03-15', initials: 'KH', color: 'av-0', birthday: '05-22', email: 'song@foundfounded.com',   phone: '010-2214-3391' },
   ],
 
   // Title rank order for org chart grouping
@@ -152,7 +152,7 @@ const defaultData = {
 
   // Login accounts — email → { pw, userId }
   accounts: {
-    'kyuho@foundfounded.com':     { pw: 'papa1234', userId: 'kh' },
+    'song@foundfounded.com':      { pw: '0000', userId: 'kh' },
   },
 
   // Demo login hints shown on login screen
@@ -260,8 +260,24 @@ window.initPapaData = async () => {
       dataObj = JSON.parse(rawStr.replace(/foundfounded\.kr/g, 'foundfounded.com'));
       await setDoc(docRef, dataObj);
     }
-    // Migration: ensure '팀장', '랩장' are in titleOrder
     let migrated = false;
+    // Migration: 대표 계정 이메일 변경 (kyuho → song)
+    if (dataObj.accounts) {
+      if (dataObj.accounts['kyuho@foundfounded.com']) {
+        delete dataObj.accounts['kyuho@foundfounded.com'];
+        migrated = true;
+      }
+      if (!dataObj.accounts['song@foundfounded.com']) {
+        dataObj.accounts['song@foundfounded.com'] = { pw: '0000', userId: 'kh', isInitial: true };
+        migrated = true;
+      }
+    }
+    const khEmp = dataObj.employees?.find(e => e.id === 'kh');
+    if (khEmp && khEmp.email !== 'song@foundfounded.com') {
+      khEmp.email = 'song@foundfounded.com';
+      migrated = true;
+    }
+    // Migration: ensure '팀장', '랩장' are in titleOrder
     if (!dataObj.titleOrder || !dataObj.titleOrder.includes('팀장') || !dataObj.titleOrder.includes('랩장')) {
       dataObj.titleOrder = defaultData.titleOrder;
       migrated = true;
