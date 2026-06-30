@@ -224,14 +224,7 @@ window.initPapaData = async () => {
   if (docSnap.exists()) {
     let dataObj = docSnap.data();
     
-    // 1회성 강제 초기화 (더미 데이터가 1명 이상이면 덮어쓰기)
-    if (dataObj.employees && dataObj.employees.length > 1) {
-      window.PAPA_DATA = defaultData;
-      window.PAPA_DATA.today = getSeoulDateInfo();
-      await setDoc(docRef, window.PAPA_DATA);
-      console.warn("데이터베이스가 초기화(클린업) 되었습니다.");
-      dataObj = window.PAPA_DATA;
-    }
+
     const rawStr = JSON.stringify(dataObj);
     if (rawStr.includes('foundfounded.kr')) {
       dataObj = JSON.parse(rawStr.replace(/foundfounded\.kr/g, 'foundfounded.com'));
@@ -250,9 +243,10 @@ window.initPapaData = async () => {
       }
     }
     const khEmp = dataObj.employees?.find(e => e.id === 'kh');
-    // Migration: 더미 급여 데이터 제거 (노무법인 미입력 상태)
-    if (dataObj.payroll && Object.keys(dataObj.payroll).length > 0) {
+    // Migration: 더미 급여 데이터 1회성 제거 (노무법인 미입력 상태)
+    if (!dataObj._payrollCleared && dataObj.payroll && Object.keys(dataObj.payroll).length > 0) {
       dataObj.payroll = {};
+      dataObj._payrollCleared = true;
       migrated = true;
     }
     if (khEmp && khEmp.email !== 'song@foundfounded.com') {
