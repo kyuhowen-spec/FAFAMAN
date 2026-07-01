@@ -8,6 +8,7 @@ const LABOR_RATES = {
 
 const QuotePage = ({ currentUserId }) => {
   const [projectTitle, setProjectTitle] = React.useState('');
+  const [projectCategory, setProjectCategory] = React.useState('디자인 프로젝트');
   const [clientInfo, setClientInfo] = React.useState({
     client: '',
     job: '',
@@ -290,12 +291,14 @@ const QuotePage = ({ currentUserId }) => {
                       return (
                         <tr key={r.id}>
                           {isFirstRowOfFirstSection && isFirstRow && (
-                            <td rowSpan={sections.reduce((acc, curr) => acc + curr.rows.length + 1, 0) + 2} style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
-                              디자인 프로젝트
+                            <td rowSpan={sections.reduce((acc, curr) => acc + curr.rows.length + 1, 0)} style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+                              {editMode ? (
+                                <input className="q-input" style={{ textAlign: 'center' }} value={projectCategory} onChange={e => setProjectCategory(e.target.value)} />
+                              ) : projectCategory}
                             </td>
                           )}
                           {isFirstRow && (
-                            <td rowSpan={s.rows.length + 1}>
+                            <td rowSpan={s.rows.length}>
                               {editMode ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
                                   <input className="q-input" style={{ textAlign: 'center' }} value={s.name} onChange={e => updateSection(s.id, 'name', e.target.value)} />
@@ -333,12 +336,12 @@ const QuotePage = ({ currentUserId }) => {
                           <td style={{ textAlign: 'right' }}>{formatMoney(finalAmount)}</td>
                           
                           {isFirstRow && (
-                            <td rowSpan={s.rows.length + 1}>
+                            <td rowSpan={s.rows.length}>
                               {editMode ? <input className="q-input" style={{ textAlign: 'center' }} value={s.period} onChange={e => updateSection(s.id, 'period', e.target.value)} /> : s.period}
                             </td>
                           )}
                           {isFirstRow && (
-                            <td rowSpan={s.rows.length + 1} style={{ textAlign: 'left', verticalAlign: 'top', padding: '6px' }}>
+                            <td rowSpan={s.rows.length} style={{ textAlign: 'left', verticalAlign: 'top', padding: '6px' }}>
                               {editMode ? (
                                 <textarea className="q-input-multiline" style={{ minHeight: 60 }} value={s.note} onChange={e => updateSection(s.id, 'note', e.target.value)} />
                               ) : (
@@ -350,11 +353,11 @@ const QuotePage = ({ currentUserId }) => {
                       );
                     })}
                     <tr className="q-bg-gray">
-                      <td colSpan={7} style={{ fontWeight: 700 }}>
+                      <td colSpan={6} style={{ fontWeight: 700 }}>
                         {s.name} 소계
                         {editMode && <button className="q-btn-add no-print" style={{ marginLeft: 12 }} onClick={() => addRow(s.id)}>+ 행 추가</button>}
                       </td>
-                      <td style={{ textAlign: 'right', fontWeight: 700 }}>{formatMoney(s.subtotal)}</td>
+                      <td colSpan={3} style={{ textAlign: 'right', fontWeight: 700 }}>{formatMoney(s.subtotal)}</td>
                     </tr>
                   </React.Fragment>
                 );
