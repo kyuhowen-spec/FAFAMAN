@@ -494,16 +494,16 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, background: 'rgba(20,22,32,.55)',
       backdropFilter: 'blur(6px)', zIndex: 100,
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      padding: '5vh 24px', overflowY: 'auto'
+      padding: '60px 24px', overflowY: 'auto',
+      textAlign: 'center', /* To help center the inline-block form if needed, though margin auto does it */
     }}>
       <form
         onClick={(e) => e.stopPropagation()}
         onSubmit={submit}
         style={{
           background: 'white', borderRadius: 16,
-          width: 560, maxWidth: '100%', flexShrink: 0,
-          margin: 'auto 0',
+          width: 560, maxWidth: '100%',
+          margin: '0 auto', textAlign: 'left',
           boxShadow: '0 24px 80px rgba(0,0,0,.18)',
         }}>
         <div style={{
