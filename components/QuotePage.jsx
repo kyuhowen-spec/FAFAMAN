@@ -162,7 +162,7 @@ const QuotePage = ({ currentUserId }) => {
     return { ...s, subtotal, computedDays };
   });
 
-  const finalQuote = Math.floor(grandTotal / 1000) * 1000; 
+  const finalQuote = Math.floor(grandTotal / 100000) * 100000; 
 
   const handlePrint = () => {
     window.print();
@@ -175,6 +175,7 @@ const QuotePage = ({ currentUserId }) => {
   return (
     <>
       <style>{`
+        @page { size: auto; margin: 0mm; }
         @media print {
           body * { visibility: hidden !important; }
           #quote-print-area, #quote-print-area * { visibility: visible !important; }
@@ -255,10 +256,8 @@ const QuotePage = ({ currentUserId }) => {
           <table className="q-table" style={{ marginBottom: 10 }}>
             <tbody>
               <tr>
-                <td className="q-bg-green" style={{ width: '15%' }}>공급받는자</td>
-                <td style={{ width: '35%', backgroundColor: '#fff' }}></td>
-                <td className="q-bg-green" style={{ width: '15%' }}>공급자</td>
-                <td style={{ width: '35%', backgroundColor: '#fff' }}></td>
+                <td colSpan={2} className="q-bg-green" style={{ width: '50%' }}>공급받는자</td>
+                <td colSpan={2} className="q-bg-green" style={{ width: '50%' }}>공급자</td>
               </tr>
               <tr>
                 <td>CLIENT</td>
