@@ -494,16 +494,16 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, background: 'rgba(20,22,32,.55)',
       backdropFilter: 'blur(6px)', zIndex: 100,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: 24,
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      padding: '5vh 24px', overflowY: 'auto'
     }}>
       <form
         onClick={(e) => e.stopPropagation()}
         onSubmit={submit}
         style={{
           background: 'white', borderRadius: 16,
-          width: 560, maxWidth: '100%',
-          maxHeight: '90vh', display: 'flex', flexDirection: 'column',
+          width: 560, maxWidth: '100%', flexShrink: 0,
+          margin: 'auto 0',
           boxShadow: '0 24px 80px rgba(0,0,0,.18)',
         }}>
         <div style={{
@@ -522,7 +522,7 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
           </button>
         </div>
 
-        <div style={{ padding: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, overflowY: 'auto' }}>
+        <div style={{ padding: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <FormField label="이름 *" value={form.name} onChange={v => update('name', v)} disabled={!canFullEdit} />
           <FormField label="영문 이름" value={form.en} onChange={v => update('en', v)} />
           <div style={{ gridColumn: 'span 2' }}>
