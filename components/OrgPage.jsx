@@ -492,7 +492,7 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
 
   return (
     <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, background: 'rgba(20,22,32,.55)',
+      position: 'fixed', inset: 0, background: 'linear-gradient(180deg, rgba(20,22,32,0.7) 0%, rgba(20,22,32,0.1) 100%)',
       backdropFilter: 'blur(6px)', zIndex: 100,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: 24,
