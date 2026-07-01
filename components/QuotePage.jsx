@@ -26,8 +26,8 @@ const QuotePage = ({ currentUserId }) => {
     {
       id: 's1',
       name: '디자인 기획',
-      period: '3W',
-      note: '-마켓 리서치 및 트렌드 리서치, 콘셉트 개발 기획',
+      period: '1W',
+      note: '',
       rows: [
         { id: 'r1_1', item: '디자인 기획', level: '특급', count: 0, days: 15, effort: 25 },
         { id: 'r1_2', item: '', level: '고급', count: 0, days: 15, effort: 100 },
@@ -38,8 +38,8 @@ const QuotePage = ({ currentUserId }) => {
     {
       id: 's2',
       name: '제품 디자인',
-      period: '10W',
-      note: '-라이프스타일, 캐릭터 활용 굿즈 제품 각 10종, 총 20종 개발을 위한 디자인 프로젝트 진행\n-아이데이션, 스케치, 모델링, 렌더링 등',
+      period: '1W',
+      note: '',
       rows: [
         { id: 'r2_1', item: '제품 디자인', level: '특급', count: 0, days: 50, effort: 50 },
         { id: 'r2_2', item: '', level: '고급', count: 0, days: 50, effort: 70 },
@@ -198,16 +198,16 @@ const QuotePage = ({ currentUserId }) => {
           <div className="q-header" style={{ fontSize: 24, fontWeight: 900, marginBottom: 20 }}>
             {editMode ? (
               <input className="q-input" style={{ fontSize: 24, fontWeight: 900, textAlign: 'center' }} placeholder="프로젝트 명을 입력하세요" value={clientInfo.job} onChange={e => updateClientInfo('job', e.target.value)} />
-            ) : clientInfo.job}
+            ) : (clientInfo.job || '프로젝트 명')}
           </div>
 
           <table className="q-table" style={{ marginBottom: 10 }}>
             <tbody>
               <tr>
                 <td className="q-bg-green" style={{ width: '15%' }}>공급받는자</td>
-                <td className="q-bg-green" style={{ width: '35%' }}></td>
+                <td style={{ width: '35%', backgroundColor: '#fff' }}></td>
                 <td className="q-bg-green" style={{ width: '15%' }}>공급자</td>
-                <td className="q-bg-green" style={{ width: '35%' }}></td>
+                <td style={{ width: '35%', backgroundColor: '#fff' }}></td>
               </tr>
               <tr>
                 <td>CLIENT</td>
@@ -262,11 +262,11 @@ const QuotePage = ({ currentUserId }) => {
             </tbody>
           </table>
 
-          <div style={{ textAlign: 'center', fontSize: 20, fontWeight: 700, margin: '32px 0' }}>
+          <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, margin: '24px 0' }}>
             아래와 같이 견적합니다.
           </div>
 
-          <div style={{ textAlign: 'right', fontSize: 10, marginBottom: 4 }}>[V1] ( 단위 : KRW )</div>
+          <div style={{ textAlign: 'right', fontSize: 10, marginBottom: 4 }}>( 단위 : KRW )</div>
 
           <table className="q-table">
             <thead>
@@ -382,7 +382,7 @@ const QuotePage = ({ currentUserId }) => {
             이 밖에 당사의 원가 또는 원가를 추정할 수 있는 자료를 제출하지 않았음을 확인합니다.
           </div>
 
-          <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 6 }}>디자이너</div>
+          <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 6 }}>디자이너 인건비</div>
           <div style={{ textAlign: 'center', fontSize: 10, marginBottom: 4 }}>* 참고자료 : 디자이너 등급별 노임단가 기준 (2026)</div>
           
           <table className="q-table" style={{ width: '60%', marginBottom: 0 }}>
@@ -399,7 +399,7 @@ const QuotePage = ({ currentUserId }) => {
             </thead>
             <tbody>
               <tr>
-                <td rowSpan={4}>디자이너</td>
+                <td rowSpan={4}>디자이너 인건비</td>
                 <td>특급 기술자</td>
                 <td style={{ textAlign: 'right' }}>265,163</td>
                 <td style={{ textAlign: 'right' }}>26,516</td>
