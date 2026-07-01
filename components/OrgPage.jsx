@@ -494,8 +494,8 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, background: 'rgba(20,22,32,.55)',
       backdropFilter: 'blur(6px)', zIndex: 100,
-      padding: '60px 24px', overflowY: 'auto',
-      textAlign: 'center', /* To help center the inline-block form if needed, though margin auto does it */
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 24,
     }}>
       <form
         onClick={(e) => e.stopPropagation()}
@@ -503,11 +503,11 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
         style={{
           background: 'white', borderRadius: 16,
           width: 560, maxWidth: '100%',
-          margin: '0 auto', textAlign: 'left',
+          maxHeight: 'calc(100vh - 48px)', display: 'flex', flexDirection: 'column',
           boxShadow: '0 24px 80px rgba(0,0,0,.18)',
         }}>
         <div style={{
-          padding: '24px 28px', flexShrink: 0,
+          padding: '20px 24px', flexShrink: 0,
           borderBottom: '1px solid var(--line-soft)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
@@ -522,7 +522,7 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
           </button>
         </div>
 
-        <div style={{ padding: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div style={{ padding: '20px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, overflowY: 'auto', minHeight: 0 }}>
           <FormField label="이름 *" value={form.name} onChange={v => update('name', v)} disabled={!canFullEdit} />
           <FormField label="영문 이름" value={form.en} onChange={v => update('en', v)} />
           <div style={{ gridColumn: 'span 2' }}>
@@ -555,7 +555,7 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
         </div>
 
         <div style={{
-          padding: '18px 28px', flexShrink: 0,
+          padding: '16px 24px', flexShrink: 0,
           borderTop: '1px solid var(--line-soft)',
           display: 'flex', justifyContent: 'space-between', gap: 8,
           background: 'var(--bg)', borderRadius: '0 0 16px 16px'
@@ -593,7 +593,7 @@ const FormField = ({ label, value, onChange, type = 'text', placeholder, disable
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
       style={{
-        padding: '10px 12px',
+        padding: '8px 12px',
         borderRadius: 8,
         border: '1px solid var(--line)',
         fontSize: 14, fontWeight: 500,
