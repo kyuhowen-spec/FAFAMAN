@@ -102,17 +102,19 @@ const QuotePage = ({ currentUserId }) => {
     setSections(prev => prev.filter(s => s.id !== sId));
   };
 
-  const calculateRowTotal = (row) => {
+  const calculateRowTotal = (row, sectionDays) => {
     const amount = (LABOR_RATES[row.level] || 0) * (row.count || 0);
     const effortMultiplier = (row.effort || 0) / 100;
-    return amount * (row.days || 0) * effortMultiplier;
+    return amount * sectionDays * effortMultiplier;
   };
 
   let grandTotal = 0;
   const sectionsWithTotals = sections.map(s => {
-    const subtotal = s.rows.reduce((sum, r) => sum + calculateRowTotal(r), 0);
+    const weeks = parseInt(s.period.replace(/\D/g, '')) || 0;
+    const computedDays = weeks * 5;
+    const subtotal = s.rows.reduce((sum, r) => sum + calculateRowTotal(r, computedDays), 0);
     grandTotal += subtotal;
-    return { ...s, subtotal };
+    return { ...s, subtotal, computedDays };
   });
 
   const finalQuote = Math.floor(grandTotal / 1000) * 1000; 
@@ -288,7 +290,7 @@ const QuotePage = ({ currentUserId }) => {
                     {s.rows.map((r, rIdx) => {
                       const isFirstRow = rIdx === 0;
                       const amount = (LABOR_RATES[r.level] || 0) * (r.count || 0);
-                      const finalAmount = calculateRowTotal(r);
+                      const finalAmount = calculateRowTotal(r, s.computedDays);
                       
                       return (
                         <tr key={r.id}>
@@ -320,7 +322,7 @@ const QuotePage = ({ currentUserId }) => {
                           </td>
                           <td style={{ textAlign: 'right' }}>{formatMoney(amount)}</td>
                           <td>
-                            {editMode ? <input className="q-input" type="number" value={r.days} onChange={e => updateRow(s.id, r.id, 'days', Number(e.target.value))} /> : r.days}
+                            {s.computedDays}
                           </td>
                           <td>
                             {editMode ? <input className="q-input" type="number" value={r.effort} onChange={e => updateRow(s.id, r.id, 'effort', Number(e.target.value))} /> : `${r.effort}%`}
