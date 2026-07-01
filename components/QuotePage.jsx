@@ -84,6 +84,51 @@ const QuotePage = ({ currentUserId }) => {
       };
     }));
   };
+  const [savedQuotes, setSavedQuotes] = React.useState(() => {
+    try {
+      const stored = localStorage.getItem('papa_saved_quotes');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const handleSaveQuote = () => {
+    if (!clientInfo.job) {
+      alert('프로젝트 명(JOB)을 먼저 입력해주세요.');
+      return;
+    }
+    const newQuote = {
+      id: Date.now(),
+      date: new Date().toISOString(),
+      clientInfo,
+      providerInfo,
+      sections,
+      finalQuote
+    };
+    const updated = [newQuote, ...savedQuotes];
+    setSavedQuotes(updated);
+    localStorage.setItem('papa_saved_quotes', JSON.stringify(updated));
+    alert('견적이 저장되었습니다.');
+  };
+
+  const loadQuote = (quote) => {
+    if (window.confirm('해당 견적을 불러오시겠습니까? 현재 작성 중인 내용은 덮어씌워집니다.')) {
+      setClientInfo(quote.clientInfo);
+      setProviderInfo(quote.providerInfo);
+      setSections(quote.sections);
+      alert('견적을 불러왔습니다.');
+    }
+  };
+
+  const deleteSavedQuote = (id) => {
+    if (window.confirm('정말로 이 견적을 삭제하시겠습니까?')) {
+      const updated = savedQuotes.filter(q => q.id !== id);
+      setSavedQuotes(updated);
+      localStorage.setItem('papa_saved_quotes', JSON.stringify(updated));
+    }
+  };
+
   const addSection = () => {
     setSections(prev => [
       ...prev,
@@ -93,7 +138,7 @@ const QuotePage = ({ currentUserId }) => {
         period: '1W',
         note: '',
         rows: [
-          { id: `r_${Date.now()}_1`, item: '', level: '고급', count: 1, days: 5, effort: 100 }
+          { id: `r_${Date.now()}_1`, item: '', level: '고급', count: 0, days: 5, effort: 100 }
         ]
       }
     ]);
@@ -186,10 +231,16 @@ const QuotePage = ({ currentUserId }) => {
               <Icon name={editMode ? 'eye' : 'edit-2'} size={16} />
               {editMode ? '미리보기' : '작성 모드'}
             </button>
-            <button className="btn btn-primary" onClick={handlePrint}>
-              <Icon name="printer" size={16} />
-              PDF 인쇄
+            <button className="btn" onClick={handleSaveQuote}>
+              <Icon name="save" size={16} />
+              견적 저장
             </button>
+            {!editMode && (
+              <button className="btn btn-primary" onClick={handlePrint}>
+                <Icon name="printer" size={16} />
+                PDF 인쇄
+              </button>
+            )}
           </div>
         </div>
 
@@ -382,10 +433,10 @@ const QuotePage = ({ currentUserId }) => {
             이 밖에 당사의 원가 또는 원가를 추정할 수 있는 자료를 제출하지 않았음을 확인합니다.
           </div>
 
-          <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 6 }}>디자이너 인건비</div>
-          <div style={{ textAlign: 'center', fontSize: 10, marginBottom: 4 }}>* 참고자료 : 디자이너 등급별 노임단가 기준 (2026)</div>
+          <div className="no-print" style={{ fontSize: 11, fontWeight: 700, marginBottom: 6 }}>디자이너 인건비</div>
+          <div className="no-print" style={{ textAlign: 'center', fontSize: 10, marginBottom: 4 }}>* 참고자료 : 디자이너 등급별 노임단가 기준 (2026)</div>
           
-          <table className="q-table" style={{ width: '60%', marginBottom: 0 }}>
+          <table className="q-table no-print" style={{ width: '60%', marginBottom: 0 }}>
             <thead>
               <tr className="q-bg-gray">
                 <th>항목</th>
@@ -433,6 +484,38 @@ const QuotePage = ({ currentUserId }) => {
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <div className="no-print" style={{ marginTop: 60 }}>
+          <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 20 }}>저장된 견적</h2>
+          {savedQuotes.length === 0 ? (
+            <div style={{ padding: 40, background: 'var(--surface)', borderRadius: 12, textAlign: 'center', color: 'var(--ink-soft)' }}>
+              저장된 견적이 없습니다.
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gap: 16 }}>
+              {savedQuotes.map(q => (
+                <div key={q.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: 24, borderRadius: 12, border: '1px solid var(--line)', color: 'black' }}>
+                  <div>
+                    <div style={{ fontSize: 13, color: '#666', marginBottom: 4 }}>
+                      {new Date(q.date).toLocaleString('ko-KR')}
+                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#111' }}>
+                      {q.clientInfo?.job || '이름 없는 견적'}
+                    </div>
+                    <div style={{ fontSize: 14, color: '#444', marginTop: 8 }}>
+                      클라이언트: <strong>{q.clientInfo?.client || '미상'}</strong> <span style={{color:'#ccc', margin:'0 8px'}}>|</span>
+                      최종 견적: <strong style={{color:'#00C853'}}>{formatMoney(q.finalQuote)}</strong> 원
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button className="btn" onClick={() => loadQuote(q)}>불러오기</button>
+                    <button className="btn" style={{ color: '#F44336', borderColor: '#F44336' }} onClick={() => deleteSavedQuote(q.id)}>삭제</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </>
