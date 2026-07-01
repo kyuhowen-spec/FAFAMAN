@@ -470,6 +470,13 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
         const deptTeams = teams.filter(t => t.dept === val);
         next.team = deptTeams.length > 0 ? deptTeams[0].key : '';
       }
+      if (key === 'rrn') {
+        if (val.length >= 6) {
+          next.birthday = `${val.substring(2, 4)}-${val.substring(4, 6)}`;
+        } else {
+          next.birthday = '';
+        }
+      }
       return next;
     });
   };
@@ -487,16 +494,17 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, background: 'rgba(20,22,32,.55)',
       backdropFilter: 'blur(6px)', zIndex: 100,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: 24,
+      display: 'flex', flexDirection: 'column',
+      padding: '40px 24px', overflowY: 'auto'
     }}>
       <form
         onClick={(e) => e.stopPropagation()}
         onSubmit={submit}
         style={{
           background: 'white', borderRadius: 16,
-          width: 560, maxWidth: '100%', maxHeight: '90vh', overflow: 'auto',
+          width: 560, maxWidth: '100%',
           boxShadow: '0 24px 80px rgba(0,0,0,.18)',
+          margin: 'auto', flexShrink: 0,
         }}>
         <div style={{
           padding: '24px 28px',
@@ -540,7 +548,6 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
               { value: 'senior', label: '리더 (senior)' },
               { value: 'member', label: '멤버 (member)' },
             ]} disabled={!canFullEdit} />
-          <FormField label="생일 (MM-DD)" value={form.birthday} onChange={v => update('birthday', v)} placeholder="04-21" />
           <FormField label="생년월일 (YYMMDD)" value={form.rrn} onChange={v => update('rrn', v)} placeholder="900101" />
           <div style={{ gridColumn: 'span 2' }}>
             <FormField label="주소" value={form.address} onChange={v => update('address', v)} placeholder="서울시 마포구 연남로..." />
