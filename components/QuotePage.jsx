@@ -7,12 +7,12 @@ const LABOR_RATES = {
 };
 
 const QuotePage = ({ currentUserId }) => {
-  const [projectTitle, setProjectTitle] = React.useState('WYD Seoul 2027 리테일 굿즈 디자인 개발 프로젝트');
+  const [projectTitle, setProjectTitle] = React.useState('');
   const [clientInfo, setClientInfo] = React.useState({
-    client: '이노션',
-    job: 'WYD Seoul 2027 리테일 굿즈 디자인 개발 프로젝트',
+    client: '',
+    job: '',
     jobNo: '',
-    contact: '황경선 / 010-9955-4734',
+    contact: '',
   });
   const [providerInfo, setProviderInfo] = React.useState({
     company: '주식회사 파운드파운디드',
