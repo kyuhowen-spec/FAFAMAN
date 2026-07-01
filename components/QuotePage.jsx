@@ -8,7 +8,6 @@ const LABOR_RATES = {
 
 const QuotePage = ({ currentUserId }) => {
   const [projectTitle, setProjectTitle] = React.useState('');
-  const [projectCategory, setProjectCategory] = React.useState('디자인 프로젝트');
   const [clientInfo, setClientInfo] = React.useState({
     client: '',
     job: '',
@@ -290,13 +289,6 @@ const QuotePage = ({ currentUserId }) => {
                       
                       return (
                         <tr key={r.id}>
-                          {isFirstRowOfFirstSection && isFirstRow && (
-                            <td rowSpan={sections.reduce((acc, curr) => acc + curr.rows.length + 1, 0)} style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
-                              {editMode ? (
-                                <input className="q-input" style={{ textAlign: 'center' }} value={projectCategory} onChange={e => setProjectCategory(e.target.value)} />
-                              ) : projectCategory}
-                            </td>
-                          )}
                           {isFirstRow && (
                             <td rowSpan={s.rows.length}>
                               {editMode ? (
@@ -353,25 +345,26 @@ const QuotePage = ({ currentUserId }) => {
                       );
                     })}
                     <tr className="q-bg-gray">
-                      <td colSpan={6} style={{ fontWeight: 700 }}>
+                      <td colSpan={7} style={{ fontWeight: 700 }}>
                         {s.name} 소계
                         {editMode && <button className="q-btn-add no-print" style={{ marginLeft: 12 }} onClick={() => addRow(s.id)}>+ 행 추가</button>}
                       </td>
-                      <td colSpan={3} style={{ textAlign: 'right', fontWeight: 700 }}>{formatMoney(s.subtotal)}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 700 }}>{formatMoney(s.subtotal)}</td>
+                      <td colSpan={2}></td>
                     </tr>
                   </React.Fragment>
                 );
               })}
               
               <tr className="q-bg-gray">
-                <td colSpan={8} style={{ fontWeight: 700 }}>소계</td>
+                <td colSpan={7} style={{ fontWeight: 700 }}>소계</td>
                 <td style={{ textAlign: 'right', fontWeight: 700 }}>{formatMoney(grandTotal)}</td>
-                <td style={{ textAlign: 'left', fontWeight: 700, borderLeft: 'none' }}>원</td>
+                <td colSpan={2} style={{ textAlign: 'left', fontWeight: 700, borderLeft: 'none' }}>원</td>
               </tr>
               <tr className="q-bg-green">
-                <td colSpan={8} style={{ fontWeight: 700 }}>최종 견적</td>
+                <td colSpan={7} style={{ fontWeight: 700 }}>최종 견적</td>
                 <td style={{ textAlign: 'right', fontWeight: 700 }}>{formatMoney(finalQuote)}</td>
-                <td style={{ textAlign: 'left', fontWeight: 700, borderLeft: 'none' }}>원</td>
+                <td colSpan={2} style={{ textAlign: 'left', fontWeight: 700, borderLeft: 'none' }}>원</td>
               </tr>
             </tbody>
           </table>
