@@ -228,8 +228,8 @@ const QuotePage = ({ currentUserId }) => {
             <div style={{ color: 'var(--ink-soft)', fontSize: 17, marginTop: 10, fontWeight: 500 }}>인건비 기반 견적서를 작성하고 PDF로 출력할 수 있습니다.</div>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
-            <button className="btn" onClick={() => setEditMode(!editMode)}>
-              <Icon name={editMode ? 'eye' : 'edit-2'} size={16} />
+            <button className="btn" style={{ background: '#00FF00', color: '#000', borderColor: '#00DD00' }} onClick={() => setEditMode(!editMode)}>
+              <Icon name={editMode ? 'eye' : 'wand'} size={16} />
               {editMode ? '미리보기' : '작성 모드'}
             </button>
             <button className="btn btn-primary" onClick={handleSaveQuote}>
