@@ -22,9 +22,9 @@ const CertificateDocument = ({ empId, template, purpose, issueDate }) => {
   const prof = (window.PAPA_DATA.profiles || {})[empId] || {};
   const rows = [
     ['성    명', emp.name],
-    ['생 년 월 일', prof.rrn ? prof.rrn + '******' : '-'],
-    ['주    소', prof.address || '-'],
-    ['소    속', (emp.team || (emp.department === 'EX' ? '디렉터' : emp.department))],
+    ['생 년 월 일', emp.rrn ? emp.rrn + '******' : (prof.rrn ? prof.rrn + '******' : '-')],
+    ['주    소', emp.address || prof.address || '-'],
+    ['소    속', '디자인팀'],
     ['직    위', emp.title],
     ['입 사 일', fmtKDate(emp.joined)],
     ['재 직 기 간', `${fmtKDate(emp.joined)} ~ 현재 (${tenureText(emp.joined)})`],

@@ -435,7 +435,7 @@ const OrgRow = ({ emp, isAdmin, currentUserId, onView, onEdit, onDelete, onReset
 
 const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments, teams, onResetPw, isAdmin, currentUserId }) => {
   const [form, setForm] = React.useState(emp || {
-    id: '', empNo: '', name: '', en: '', email: '', phone: '', joined: '', department: departments[1]?.key || 'ID', team: teams[0]?.key || '', title: titleOrder[0], role: 'member', birthday: ''
+    id: '', empNo: '', name: '', en: '', email: '', phone: '', joined: '', department: departments[1]?.key || 'ID', team: teams[0]?.key || '', title: titleOrder[0], role: 'member', birthday: '', rrn: '', address: ''
   });
 
   const isSelf = emp && emp.id === currentUserId;
@@ -541,6 +541,10 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
               { value: 'member', label: '멤버 (member)' },
             ]} disabled={!canFullEdit} />
           <FormField label="생일 (MM-DD)" value={form.birthday} onChange={v => update('birthday', v)} placeholder="04-21" />
+          <FormField label="생년월일 (YYMMDD)" value={form.rrn} onChange={v => update('rrn', v)} placeholder="900101" />
+          <div style={{ gridColumn: 'span 2' }}>
+            <FormField label="주소" value={form.address} onChange={v => update('address', v)} placeholder="서울시 마포구 연남로..." />
+          </div>
         </div>
 
         <div style={{
