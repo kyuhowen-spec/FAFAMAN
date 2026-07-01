@@ -46,30 +46,6 @@ const QuotePage = ({ currentUserId }) => {
         { id: 'r2_3', item: '', level: '중급', count: 2, days: 50, effort: 80 },
         { id: 'r2_4', item: '', level: '초급', count: 6, days: 50, effort: 100 },
       ]
-    },
-    {
-      id: 's3',
-      name: '패키지디자인',
-      period: '6W',
-      note: '-굿즈 라인업 별 그래픽 및 패키지 디자인 진행',
-      rows: [
-        { id: 'r3_1', item: '패키지디자인', level: '특급', count: 1, days: 20, effort: 15 },
-        { id: 'r3_2', item: '', level: '고급', count: 1, days: 20, effort: 50 },
-        { id: 'r3_3', item: '', level: '중급', count: 1, days: 30, effort: 100 },
-        { id: 'r3_4', item: '', level: '초급', count: 3, days: 30, effort: 100 },
-      ]
-    },
-    {
-      id: 's4',
-      name: '팔로우업',
-      period: '3W',
-      note: '-시제품 제작 비용 및 양산 비용 미포함\n-시방서 및 디자인 도면 문서 작성 10건',
-      rows: [
-        { id: 'r4_1', item: '시제품 및 양산 팔로우업 문서 작성', level: '특급', count: 1, days: 15, effort: 10 },
-        { id: 'r4_2', item: '', level: '고급', count: 1, days: 15, effort: 50 },
-        { id: 'r4_3', item: '', level: '중급', count: 1, days: 15, effort: 50 },
-        { id: 'r4_4', item: '', level: '초급', count: 2, days: 15, effort: 80 },
-      ]
     }
   ]);
 
