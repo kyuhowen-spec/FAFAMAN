@@ -402,7 +402,7 @@ const QuotePage = ({ currentUserId }) => {
                         {editMode && <button className="q-btn-add no-print" style={{ marginLeft: 12 }} onClick={() => addRow(s.id)}>+ 행 추가</button>}
                       </td>
                       <td style={{ textAlign: 'right', fontWeight: 700 }}>{formatMoney(s.subtotal)}</td>
-                      <td colSpan={2}></td>
+                      <td colSpan={2} style={{ textAlign: 'left', fontSize: 11, color: '#555', paddingLeft: 12 }}>*직접경비, 제경비, 기술료가 포함된 견적입니다.</td>
                     </tr>
                   </React.Fragment>
                 );
