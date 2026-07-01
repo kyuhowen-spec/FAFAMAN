@@ -232,7 +232,7 @@ const QuotePage = ({ currentUserId }) => {
               <Icon name={editMode ? 'eye' : 'edit-2'} size={16} />
               {editMode ? '미리보기' : '작성 모드'}
             </button>
-            <button className="btn" onClick={handleSaveQuote}>
+            <button className="btn btn-primary" onClick={handleSaveQuote}>
               <Icon name="save" size={16} />
               견적 저장
             </button>
