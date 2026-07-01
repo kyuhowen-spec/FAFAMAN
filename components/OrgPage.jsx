@@ -494,8 +494,8 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, background: 'rgba(20,22,32,.55)',
       backdropFilter: 'blur(6px)', zIndex: 100,
-      display: 'flex', flexDirection: 'column',
-      padding: '40px 24px', overflowY: 'auto'
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 24,
     }}>
       <form
         onClick={(e) => e.stopPropagation()}
@@ -503,11 +503,11 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
         style={{
           background: 'white', borderRadius: 16,
           width: 560, maxWidth: '100%',
+          maxHeight: '90vh', display: 'flex', flexDirection: 'column',
           boxShadow: '0 24px 80px rgba(0,0,0,.18)',
-          margin: 'auto', flexShrink: 0,
         }}>
         <div style={{
-          padding: '24px 28px',
+          padding: '24px 28px', flexShrink: 0,
           borderBottom: '1px solid var(--line-soft)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
@@ -522,7 +522,7 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
           </button>
         </div>
 
-        <div style={{ padding: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div style={{ padding: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, overflowY: 'auto' }}>
           <FormField label="이름 *" value={form.name} onChange={v => update('name', v)} disabled={!canFullEdit} />
           <FormField label="영문 이름" value={form.en} onChange={v => update('en', v)} />
           <div style={{ gridColumn: 'span 2' }}>
@@ -555,10 +555,10 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
         </div>
 
         <div style={{
-          padding: '18px 28px',
+          padding: '18px 28px', flexShrink: 0,
           borderTop: '1px solid var(--line-soft)',
           display: 'flex', justifyContent: 'space-between', gap: 8,
-          background: 'var(--bg)',
+          background: 'var(--bg)', borderRadius: '0 0 16px 16px'
         }}>
           <div>
             {emp && onResetPw && isAdmin && (
