@@ -193,26 +193,25 @@ const QuotePage = ({ currentUserId }) => {
 
         <div id="quote-print-area" style={{ background: 'white', padding: '20px 40px', color: 'black', minHeight: 800, border: '1px solid var(--line)', borderRadius: 12 }}>
           
-          <div className="q-header">
+          <div className="q-header" style={{ fontSize: 24, fontWeight: 900, marginBottom: 20 }}>
             {editMode ? (
-              <input className="q-input" style={{ fontSize: 18, fontWeight: 800, textAlign: 'center' }} value={projectTitle} onChange={e => setProjectTitle(e.target.value)} />
-            ) : projectTitle}
+              <input className="q-input" style={{ fontSize: 24, fontWeight: 900, textAlign: 'center' }} placeholder="프로젝트 명을 입력하세요" value={clientInfo.job} onChange={e => updateClientInfo('job', e.target.value)} />
+            ) : clientInfo.job}
           </div>
 
           <table className="q-table" style={{ marginBottom: 10 }}>
             <tbody>
               <tr>
                 <td className="q-bg-green" style={{ width: '15%' }}>공급받는자</td>
-                <td colSpan={2} style={{ width: '35%' }}></td>
+                <td className="q-bg-green" style={{ width: '35%' }}></td>
                 <td className="q-bg-green" style={{ width: '15%' }}>공급자</td>
-                <td colSpan={2} style={{ width: '35%' }}></td>
+                <td className="q-bg-green" style={{ width: '35%' }}></td>
               </tr>
               <tr>
                 <td>CLIENT</td>
-                <td colSpan={2}>
+                <td>
                   {editMode ? <input className="q-input" value={clientInfo.client} onChange={e => updateClientInfo('client', e.target.value)} /> : clientInfo.client}
                 </td>
-                <td rowSpan={5} style={{ borderBottom: 'none' }}>아래와 같이<br/>견적 합니다.</td>
                 <td>회사명</td>
                 <td>
                   {editMode ? <input className="q-input" value={providerInfo.company} onChange={e => updateProviderInfo('company', e.target.value)} /> : providerInfo.company}
@@ -220,7 +219,7 @@ const QuotePage = ({ currentUserId }) => {
               </tr>
               <tr>
                 <td>JOB</td>
-                <td colSpan={2}>
+                <td>
                   {editMode ? <input className="q-input" value={clientInfo.job} onChange={e => updateClientInfo('job', e.target.value)} /> : clientInfo.job}
                 </td>
                 <td>대표이사</td>
@@ -229,8 +228,8 @@ const QuotePage = ({ currentUserId }) => {
                 </td>
               </tr>
               <tr>
-                <td>Job No.</td>
-                <td colSpan={2}>
+                <td>사업자등록번호</td>
+                <td>
                   {editMode ? <input className="q-input" value={clientInfo.jobNo} onChange={e => updateClientInfo('jobNo', e.target.value)} /> : clientInfo.jobNo}
                 </td>
                 <td>사업자등록번호</td>
@@ -240,8 +239,9 @@ const QuotePage = ({ currentUserId }) => {
               </tr>
               <tr>
                 <td>거래가격</td>
-                <td style={{ fontWeight: 700 }}>{formatMoney(finalQuote)}</td>
-                <td style={{ fontSize: 10 }}>(VAT별도)</td>
+                <td style={{ fontWeight: 700 }}>
+                  {formatMoney(finalQuote)} <span style={{ fontSize: 10, fontWeight: 400 }}>(VAT별도)</span>
+                </td>
                 <td>사업장주소</td>
                 <td>
                   {editMode ? <input className="q-input" value={providerInfo.address} onChange={e => updateProviderInfo('address', e.target.value)} /> : providerInfo.address}
@@ -249,7 +249,7 @@ const QuotePage = ({ currentUserId }) => {
               </tr>
               <tr>
                 <td>담당자/연락처</td>
-                <td colSpan={2}>
+                <td>
                   {editMode ? <input className="q-input" value={clientInfo.contact} onChange={e => updateClientInfo('contact', e.target.value)} /> : clientInfo.contact}
                 </td>
                 <td>담당자/연락처</td>
@@ -259,6 +259,10 @@ const QuotePage = ({ currentUserId }) => {
               </tr>
             </tbody>
           </table>
+
+          <div style={{ textAlign: 'center', fontSize: 20, fontWeight: 700, margin: '32px 0' }}>
+            아래와 같이 견적합니다.
+          </div>
 
           <div style={{ textAlign: 'right', fontSize: 10, marginBottom: 4 }}>[V1] ( 단위 : KRW )</div>
 
