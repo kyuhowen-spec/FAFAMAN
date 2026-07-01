@@ -611,7 +611,10 @@ const App = () => {
           {active === 'attendance' && me.role === 'admin' && (
             <AttendanceReviewPage />
           )}
-          {active !== 'dashboard' && active !== 'calendar' && active !== 'policy' && active !== 'org' && active !== 'inbox' && active !== 'payroll' && active !== 'cert' && active !== 'settings' && active !== 'attendance' && (
+          {active === 'quote' && (me.role === 'admin' || me.role === 'senior') && (
+            <QuotePage currentUserId={currentUserId} />
+          )}
+          {active !== 'dashboard' && active !== 'calendar' && active !== 'policy' && active !== 'org' && active !== 'inbox' && active !== 'payroll' && active !== 'cert' && active !== 'settings' && active !== 'attendance' && active !== 'quote' && (
             <PlaceholderPage tabKey={active} />
           )}
         </div>

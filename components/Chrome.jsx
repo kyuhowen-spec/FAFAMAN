@@ -7,6 +7,7 @@ const navItems = [
   { key: 'org',       label: '조직도',       icon: 'users',      roles: ['admin','senior','member'] },
   { key: 'payroll',   label: '급여',         icon: 'wallet',     roles: ['admin','senior','member','accountant'] },
   { key: 'cert',      label: '재직증명서',    icon: 'file-text',  roles: ['admin','senior','member'] },
+  { key: 'quote',     label: '견적서 작성',   icon: 'file-plus',  roles: ['admin','senior'] },
   { key: 'policy',    label: '근무 규정',    icon: 'book',       roles: ['admin','senior','member'] },
   { key: 'settings',  label: '서버 설정',    icon: 'settings',   roles: ['admin'] },
 ];
