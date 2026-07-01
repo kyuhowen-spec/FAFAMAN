@@ -29,10 +29,10 @@ const QuotePage = ({ currentUserId }) => {
       period: '3W',
       note: '-마켓 리서치 및 트렌드 리서치, 콘셉트 개발 기획',
       rows: [
-        { id: 'r1_1', item: '디자인 기획', level: '특급', count: 1, days: 15, effort: 25 },
-        { id: 'r1_2', item: '', level: '고급', count: 1, days: 15, effort: 100 },
-        { id: 'r1_3', item: '', level: '중급', count: 2, days: 15, effort: 100 },
-        { id: 'r1_4', item: '', level: '초급', count: 2, days: 15, effort: 100 },
+        { id: 'r1_1', item: '디자인 기획', level: '특급', count: 0, days: 15, effort: 25 },
+        { id: 'r1_2', item: '', level: '고급', count: 0, days: 15, effort: 100 },
+        { id: 'r1_3', item: '', level: '중급', count: 0, days: 15, effort: 100 },
+        { id: 'r1_4', item: '', level: '초급', count: 0, days: 15, effort: 100 },
       ]
     },
     {
@@ -41,10 +41,10 @@ const QuotePage = ({ currentUserId }) => {
       period: '10W',
       note: '-라이프스타일, 캐릭터 활용 굿즈 제품 각 10종, 총 20종 개발을 위한 디자인 프로젝트 진행\n-아이데이션, 스케치, 모델링, 렌더링 등',
       rows: [
-        { id: 'r2_1', item: '제품 디자인', level: '특급', count: 1, days: 50, effort: 50 },
-        { id: 'r2_2', item: '', level: '고급', count: 2, days: 50, effort: 70 },
-        { id: 'r2_3', item: '', level: '중급', count: 2, days: 50, effort: 80 },
-        { id: 'r2_4', item: '', level: '초급', count: 6, days: 50, effort: 100 },
+        { id: 'r2_1', item: '제품 디자인', level: '특급', count: 0, days: 50, effort: 50 },
+        { id: 'r2_2', item: '', level: '고급', count: 0, days: 50, effort: 70 },
+        { id: 'r2_3', item: '', level: '중급', count: 0, days: 50, effort: 80 },
+        { id: 'r2_4', item: '', level: '초급', count: 0, days: 50, effort: 100 },
       ]
     }
   ]);
@@ -266,7 +266,6 @@ const QuotePage = ({ currentUserId }) => {
             <thead>
               <tr className="q-bg-green">
                 <th style={{width: '10%'}}>구분</th>
-                <th style={{width: '15%'}}>항목</th>
                 <th style={{width: '10%'}}>인력 구분</th>
                 <th style={{width: '6%'}}>인원</th>
                 <th style={{width: '10%'}}>금액</th>
@@ -274,7 +273,7 @@ const QuotePage = ({ currentUserId }) => {
                 <th style={{width: '8%'}}>투입률</th>
                 <th style={{width: '12%'}}>최종금액</th>
                 <th style={{width: '6%'}}>기간(W)</th>
-                <th style={{width: '17%'}}>비고</th>
+                <th style={{width: '32%'}}>비고</th>
               </tr>
             </thead>
             <tbody>
@@ -300,9 +299,6 @@ const QuotePage = ({ currentUserId }) => {
                             </td>
                           )}
                           <td>
-                            {editMode ? <input className="q-input" value={r.item} onChange={e => updateRow(s.id, r.id, 'item', e.target.value)} /> : r.item}
-                          </td>
-                          <td>
                             {editMode ? (
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <select className="q-input" style={{ width: '80%' }} value={r.level} onChange={e => updateRow(s.id, r.id, 'level', e.target.value)}>
@@ -316,7 +312,7 @@ const QuotePage = ({ currentUserId }) => {
                             ) : `${r.level} 기술자`}
                           </td>
                           <td>
-                            {editMode ? <input className="q-input" type="number" value={r.count} onChange={e => updateRow(s.id, r.id, 'count', Number(e.target.value))} /> : r.count}
+                            {editMode ? <input className="q-input" type="number" value={r.count} onChange={e => updateRow(s.id, r.id, 'count', Number(e.target.value))} /> : (r.count === 0 ? '-' : r.count)}
                           </td>
                           <td style={{ textAlign: 'right' }}>{formatMoney(amount)}</td>
                           <td>
@@ -345,7 +341,7 @@ const QuotePage = ({ currentUserId }) => {
                       );
                     })}
                     <tr className="q-bg-gray">
-                      <td colSpan={7} style={{ fontWeight: 700 }}>
+                      <td colSpan={6} style={{ fontWeight: 700 }}>
                         {s.name} 소계
                         {editMode && <button className="q-btn-add no-print" style={{ marginLeft: 12 }} onClick={() => addRow(s.id)}>+ 행 추가</button>}
                       </td>
@@ -357,12 +353,12 @@ const QuotePage = ({ currentUserId }) => {
               })}
               
               <tr className="q-bg-gray">
-                <td colSpan={7} style={{ fontWeight: 700 }}>소계</td>
+                <td colSpan={6} style={{ fontWeight: 700 }}>소계</td>
                 <td style={{ textAlign: 'right', fontWeight: 700 }}>{formatMoney(grandTotal)}</td>
                 <td colSpan={2} style={{ textAlign: 'left', fontWeight: 700, borderLeft: 'none' }}>원</td>
               </tr>
               <tr className="q-bg-green">
-                <td colSpan={7} style={{ fontWeight: 700 }}>최종 견적</td>
+                <td colSpan={6} style={{ fontWeight: 700 }}>최종 견적</td>
                 <td style={{ textAlign: 'right', fontWeight: 700 }}>{formatMoney(finalQuote)}</td>
                 <td colSpan={2} style={{ textAlign: 'left', fontWeight: 700, borderLeft: 'none' }}>원</td>
               </tr>
