@@ -758,9 +758,6 @@ const App = () => {
             <div style={{ fontSize: 15, color: 'var(--ink-soft)', marginTop: 10, lineHeight: 1.5, fontWeight: 500 }}>
               퇴근하시겠습니까?
             </div>
-            <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 8, lineHeight: 1.5 }}>
-              퇴근 후에는 다음 날 오전 9시까지 출근하기 버튼이 비활성화됩니다.
-            </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 24, justifyContent: 'center' }}>
               <button className="btn" onClick={() => setShowCheckOutConfirm(false)} style={{ minWidth: 100 }}>
                 취소
