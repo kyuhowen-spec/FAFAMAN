@@ -196,7 +196,7 @@ const QuotePage = ({ currentUserId }) => {
           .q-table th { font-weight: 700; }
           
           .q-header { text-align: center; font-size: 16px; font-weight: 800; margin-bottom: 8px; font-family: 'Pretendard', sans-serif;}
-          .q-bg-green { background-color: #00FF00 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .q-bg-green { background-color: #00FF00 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 700 !important; }
           .q-bg-gray { background-color: #E2E2E2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
         
@@ -205,7 +205,7 @@ const QuotePage = ({ currentUserId }) => {
         .q-table { border-collapse: collapse; width: 100%; font-size: 12px; margin-bottom: 20px; color: #000; }
         .q-table th, .q-table td { border: 1px solid #333; padding: 8px 6px; text-align: center; vertical-align: middle; }
         .q-table th { font-weight: 700; }
-        .q-bg-green { background-color: #00FF00; }
+        .q-bg-green { background-color: #00FF00; font-weight: 700 !important; }
         .q-bg-gray { background-color: #E2E2E2; }
         
         .q-input { width: 100%; border: none; background: transparent; font-family: inherit; font-size: inherit; text-align: inherit; }
@@ -247,10 +247,16 @@ const QuotePage = ({ currentUserId }) => {
 
         <div id="quote-print-area" style={{ background: 'white', padding: '20px 40px', color: 'black', minHeight: 800, border: '1px solid var(--line)', borderRadius: 12 }}>
           
-          <div className="q-header" style={{ fontSize: 24, fontWeight: 900, marginBottom: 20 }}>
-            {editMode ? (
-              <input className="q-input" style={{ fontSize: 24, fontWeight: 900, textAlign: 'center' }} placeholder="프로젝트 명을 입력하세요" value={clientInfo.job} onChange={e => updateClientInfo('job', e.target.value)} />
-            ) : (clientInfo.job || '프로젝트 명')}
+          <div className="q-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 20 }}>
+            <div style={{ fontSize: 24, fontWeight: 900, flex: 1, textAlign: 'left' }}>
+              {editMode ? (
+                <input className="q-input" style={{ fontSize: 24, fontWeight: 900, textAlign: 'left', width: '100%' }} placeholder="프로젝트 명을 입력하세요" value={clientInfo.job} onChange={e => updateClientInfo('job', e.target.value)} />
+              ) : (clientInfo.job || '프로젝트 명')}
+            </div>
+            
+            <div style={{ fontSize: 22, letterSpacing: '-.03em', fontFamily: "'Montserrat', 'Pretendard', sans-serif", paddingBottom: 2 }}>
+              <span style={{ fontWeight: 500 }}>found/</span><span style={{ fontWeight: 800 }}>Founded</span>
+            </div>
           </div>
 
           <table className="q-table" style={{ marginBottom: 10 }}>
