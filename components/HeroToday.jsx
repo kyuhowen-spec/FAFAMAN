@@ -219,7 +219,7 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
             background: 'rgba(255,255,255,.14)', color: 'white',
             border: '1px solid rgba(255,255,255,.24)',
           }} onClick={onShowOutsideWorkForm}>
-            <Icon name="briefcase" size={14} />
+            <Icon name="car" size={14} />
             외근 신청
           </button>
           <button className="btn btn-lg" style={{

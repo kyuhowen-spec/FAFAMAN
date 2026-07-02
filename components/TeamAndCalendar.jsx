@@ -499,7 +499,7 @@ const MiniCalendar = ({ events }) => {
 
   const typeIcon = (t) => ({
     vacation: '🌴',
-    holiday: '💼',
+    holiday: '🚗',
     halfday: '◐',
     birthday: '🎂',
     late: '·',

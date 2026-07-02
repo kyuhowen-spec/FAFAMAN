@@ -473,7 +473,7 @@ const App = () => {
       }
       setToast({ text: '외근 자동 승인', icon: 'check' });
     } else {
-      setToast({ text: '외근 신청이 접수되었어요', icon: 'briefcase' });
+      setToast({ text: '외근 신청이 접수되었어요', icon: 'car' });
     }
   };
 
