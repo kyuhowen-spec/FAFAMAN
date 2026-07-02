@@ -98,7 +98,7 @@ const MemberProfilePopup = ({ empId, currentUserId, onClose }) => {
               display: 'grid', placeItems: 'center',
               fontSize: 26, fontWeight: 800, letterSpacing: '-.02em',
               border: '3px solid rgba(255,255,255,.3)',
-            }}>{emp.initials}</div>
+            }}>{emp.name ? emp.name.slice(-2) : ''}</div>
           </div>
 
           <div style={{ marginTop: 16 }}>

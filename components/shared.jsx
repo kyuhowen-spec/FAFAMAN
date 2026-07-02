@@ -30,7 +30,7 @@ const Avatar = ({ empId, size = 'md', className = '' }) => {
 
   return (
     <div className={`avatar avatar-${size} ${emp.color} ${className}`}>
-      {emp.initials}
+      {emp.name ? emp.name.slice(-2) : ''}
     </div>
   );
 };
