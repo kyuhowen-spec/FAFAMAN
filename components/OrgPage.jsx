@@ -491,30 +491,18 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
   };
 
   return (
-    <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, background: 'linear-gradient(180deg, rgba(20,22,32,0.7) 0%, rgba(20,22,32,0.1) 100%)',
-      backdropFilter: 'blur(6px)', zIndex: 100,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: 24,
-    }}>
+    <div className="modal-backdrop" onClick={onClose}>
       <form
+        className="modal"
         onClick={(e) => e.stopPropagation()}
         onSubmit={submit}
-        style={{
-          background: 'white', borderRadius: 16,
-          width: 560, maxWidth: '100%',
-          maxHeight: 'calc(100vh - 48px)', display: 'flex', flexDirection: 'column',
-          boxShadow: '0 24px 80px rgba(0,0,0,.18)',
-        }}>
-        <div style={{
-          padding: '20px 24px', flexShrink: 0,
-          borderBottom: '1px solid var(--line-soft)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
+        style={{ width: 560, padding: 32 }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
-            <div className="eyebrow">{emp ? '구성원 수정' : '구성원 등록'}</div>
-            <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4, letterSpacing: '-.01em' }}>
-              {emp ? `${emp.name} 정보 수정` : '새 구성원 추가'}
+            <div className="eyebrow" style={{ color: '#0ea5e9' }}>PROFILE EDIT</div>
+            <div className="h1" style={{ marginTop: 6 }}>
+              {emp ? '정보 수정' : '구성원 등록'}
             </div>
           </div>
           <button type="button" onClick={onClose} className="btn-icon" style={{ background: 'var(--bg)' }}>
@@ -522,7 +510,7 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
           </button>
         </div>
 
-        <div style={{ padding: '20px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, overflowY: 'auto', minHeight: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24, overflowY: 'auto', maxHeight: '50vh', paddingRight: 4 }}>
           <FormField label="이름 *" value={form.name} onChange={v => update('name', v)} disabled={!canFullEdit} />
           <FormField label="영문 이름" value={form.en} onChange={v => update('en', v)} />
           <div style={{ gridColumn: 'span 2' }}>
@@ -554,27 +542,16 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
           </div>
         </div>
 
-        <div style={{
-          padding: '16px 24px', flexShrink: 0,
-          borderTop: '1px solid var(--line-soft)',
-          display: 'flex', justifyContent: 'space-between', gap: 8,
-          background: 'var(--bg)', borderRadius: '0 0 16px 16px'
-        }}>
-          <div>
-            {emp && onResetPw && isAdmin && (
-              <button type="button" className="btn btn-ghost" onClick={() => { onResetPw(); onClose(); }} style={{ color: '#b56b00', borderColor: 'rgba(245,166,35,.4)', background: 'rgba(245,166,35,.08)' }}>
-                <Icon name="key" size={14} />
-                비밀번호 초기화 (0000)
-              </button>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button type="button" className="btn" onClick={onClose}>취소</button>
-            <button type="submit" className="btn btn-primary">
-              <Icon name="check" size={14} strokeWidth={2.5} />
-              {emp ? '저장' : '등록'}
+        <div style={{ display: 'flex', gap: 8 }}>
+          {emp && onResetPw && isAdmin && (
+            <button type="button" className="btn btn-ghost btn-lg" onClick={() => { onResetPw(); onClose(); }} style={{ color: '#b56b00', borderColor: 'rgba(245,166,35,.4)', background: 'rgba(245,166,35,.08)', flex: 1 }}>
+              비밀번호 초기화
             </button>
-          </div>
+          )}
+          <button type="button" className="btn btn-ghost btn-lg" onClick={onClose} style={{ flex: 1 }}>취소</button>
+          <button type="submit" className="btn btn-primary btn-lg" style={{ flex: 2 }}>
+            {emp ? '저장하기' : '등록하기'}
+          </button>
         </div>
       </form>
     </div>
