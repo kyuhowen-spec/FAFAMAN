@@ -702,7 +702,14 @@ const App = () => {
               onShowLeaveForm={() => setShowLeaveForm(true)}
               onShowOvertimeForm={() => setShowOvertimeForm(true)}
               onShowOutsideWorkForm={() => setShowOutsideWorkForm(true)}
-              onShowRecheckInForm={() => setShowRecheckInForm(true)}
+              onShowRecheckInForm={() => {
+                const isExecutive = ['대표이사', '디렉터'].includes(me.title) || me.role === 'admin';
+                if (isExecutive) {
+                  handleSubmitRecheckIn({ reason: '임원 재출근' });
+                } else {
+                  setShowRecheckInForm(true);
+                }
+              }}
               onSelectMember={setSelectedMember}
             />
           )}

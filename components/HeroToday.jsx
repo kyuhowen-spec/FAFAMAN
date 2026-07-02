@@ -174,8 +174,8 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
               }}/>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,.68)', letterSpacing: '.02em', fontVariantNumeric: 'tabular-nums' }}>
-              <span>{att.checkIn} 출근</span>
-              <span>{fmtDuration(Math.max(0, totalWorkMin - elapsedMin))} 남음</span>
+              <span>출근 ({att.checkIn})</span>
+              <span>퇴근 가능 {att.plannedOut}</span>
             </div>
           </div>
         )}
