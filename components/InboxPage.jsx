@@ -315,7 +315,11 @@ const ApprovalDocCard = ({ approval, selected, onClick }) => {
           fontSize: 10, color: 'var(--ink-mute)',
           fontVariantNumeric: 'tabular-nums', fontWeight: 600,
         }}>
-          {(approval.appliedAt || '').slice(5, 16).replace('-', '/').replace(' ', ' · ')}
+          {(approval.stage === 'approved' && approval.approvedAt
+            ? approval.approvedAt
+            : approval.stage === 'rejected' && approval.rejectedAt
+              ? approval.rejectedAt
+              : approval.appliedAt || '').slice(5, 16).replace('-', '/').replace(' ', ' · ')}
         </div>
       </div>
     </div>
@@ -390,8 +394,8 @@ const ApprovalDetail = ({ approval, role, currentUserId, rejectMode, rejectMsg, 
   const seniorEmp = approval.assignedSenior ? getEmployee(approval.assignedSenior) : null;
   const steps = [
     { key: 'submit',  label: '신청',        ts: approval.appliedAt },
-    { key: 'senior',  label: seniorEmp ? `${seniorEmp.name} 팀장 결재` : '팀장 결재',  ts: approval.stage === 'pending_senior' ? null : approval.approvedAt || approval.rejectedAt },
-    { key: 'admin',   label: '관리자 최종 승인',    ts: approval.stage === 'approved' ? approval.approvedAt : null },
+    { key: 'senior',  label: seniorEmp ? `${seniorEmp.name} 팀장 결재` : '팀장 결재',  ts: approval.stage === 'pending_senior' ? null : (approval.seniorApprovedAt || approval.approvedAt || approval.rejectedAt) },
+    { key: 'admin',   label: '관리자 최종 승인',    ts: approval.stage === 'approved' ? approval.approvedAt : (approval.stage === 'rejected' && approval.seniorApprovedAt ? approval.rejectedAt : null) },
   ];
   const currentStep = approval.stage === 'pending_senior' ? 1
                     : approval.stage === 'pending_admin'  ? 2

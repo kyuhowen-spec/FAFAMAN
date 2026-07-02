@@ -445,7 +445,7 @@ const App = () => {
           ...prevAtt,
           [a.empId]: { ...prevAtt[a.empId], lunchStatus: 'approved' },
         }));
-        return { ...a, stage: 'approved' };
+        return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId };
       }
       if (a.isOvertime) {
         return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId, cc: getOvertimeCC() };
@@ -472,7 +472,9 @@ const App = () => {
         }
         return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId, cc: getLeaveCC() };
       }
-      if (meEmp.role === 'senior' && a.stage === 'pending_senior') return { ...a, stage: 'pending_admin' };
+      if (meEmp.role === 'senior' && a.stage === 'pending_senior') {
+        return { ...a, stage: 'pending_admin', seniorApprovedAt: new Date().toISOString().slice(0, 16).replace('T', ' ') };
+      }
       if (meEmp.role === 'admin') return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId, cc: getLeaveCC() };
       return a;
     }));
@@ -893,7 +895,7 @@ const PlaceholderPage = ({ tabKey }) => {
 // Dashboard page layout
 const DashboardPage = ({
   me, myRole, attendance, approvals, lateCounter, lateLogs, penaltyMode, clockSecs,
-  onCheckIn, onCheckOut, onChangeLunch, onApprove, onReject, onShowLeaveForm, onShowOvertimeForm, onShowOutsideWorkForm, onSelectMember }) => {
+  onCheckIn, onCheckOut, onChangeLunch, onApprove, onReject, onShowLeaveForm, onShowOvertimeForm, onShowOutsideWorkForm, onShowRecheckInForm, onSelectMember }) => {
   const data = window.PAPA_DATA;
   const isSeniorOrAdmin = myRole === 'senior' || myRole === 'admin';
   const emp = getEmployee(me);
@@ -940,6 +942,7 @@ const DashboardPage = ({
           onShowLeaveForm={onShowLeaveForm}
           onShowOvertimeForm={onShowOvertimeForm}
           onShowOutsideWorkForm={onShowOutsideWorkForm}
+          onShowRecheckInForm={onShowRecheckInForm}
         />
         <div style={{ gridColumn: 'span 4', display: 'flex', flexDirection: 'column', gap: 20 }}>
           <LateCounter
