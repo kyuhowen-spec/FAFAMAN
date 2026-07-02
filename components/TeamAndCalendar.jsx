@@ -427,6 +427,7 @@ const MiniCalendar = ({ events }) => {
   const initDate = React.useMemo(() => window.PAPA_DATA?.today?.date ? new Date(window.PAPA_DATA.today.date) : new Date(), []);
   const [month, setMonth] = React.useState(initDate.getMonth()); // 0-11
   const [year, setYear] = React.useState(initDate.getFullYear());
+  const [selectedEvents, setSelectedEvents] = React.useState(null);
 
   // Handle month navigation
   const handlePrevMonth = () => {
@@ -553,7 +554,9 @@ const MiniCalendar = ({ events }) => {
               position: 'relative',
               cursor: evs.length ? 'pointer' : 'default',
               transition: 'all .15s',
-            }}>
+            }}
+            onClick={() => { if (evs.length > 0) setSelectedEvents({ d, evs }); }}
+            >
               {/* Day number */}
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -601,6 +604,57 @@ const MiniCalendar = ({ events }) => {
           );
         })}
       </div>
+
+      {selectedEvents && (
+        <div className="modal-backdrop" onClick={() => setSelectedEvents(null)} style={{ zIndex: 100 }}>
+          <div className="modal fade-in" onClick={e => e.stopPropagation()} style={{ width: 340, padding: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <div>
+                <div className="eyebrow">{monthName} {selectedEvents.d}일 일정</div>
+              </div>
+              <button className="btn-icon" onClick={() => setSelectedEvents(null)} style={{ background: 'var(--bg)' }}>
+                <Icon name="x" size={16}/>
+              </button>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {selectedEvents.evs.map((e, idx) => {
+                const emp = getEmployee(e.empId);
+                return (
+                  <div key={idx} style={{
+                    display: 'flex', gap: 12, alignItems: 'flex-start',
+                    padding: 12, borderRadius: 10, background: 'var(--bg)',
+                    border: '1px solid var(--line-soft)'
+                  }}>
+                    <div style={{ fontSize: 18 }}>{typeIcon(e.type)}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {emp.name}
+                        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-mute)' }}>
+                          {e.type === 'holiday' ? '외근' : e.type === 'vacation' ? '연차' : e.type === 'halfday' ? '반차' : e.type === 'birthday' ? '생일' : '지각'}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 4, lineHeight: 1.4 }}>
+                        {e.label}
+                      </div>
+                      {e.reason && (
+                        <div style={{
+                          fontSize: 12, color: 'var(--ink)', marginTop: 6,
+                          padding: '8px 10px', background: 'var(--bg)',
+                          borderRadius: 6, border: '1px solid var(--line-soft)',
+                          whiteSpace: 'pre-wrap'
+                        }}>
+                          {e.reason}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Legend */}
       <div style={{

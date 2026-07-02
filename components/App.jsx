@@ -576,6 +576,7 @@ const App = () => {
               type: evType,
               empId: id,
               label: `${eEmp.name} ${typeStr}`,
+              reason: a.reason,
             });
           };
 
