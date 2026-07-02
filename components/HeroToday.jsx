@@ -1,5 +1,5 @@
 // Today's me hero - refined compact design
-const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChangeLunch, onShowLeaveForm, onShowOvertimeForm, onShowOutsideWorkForm, clockSecs }) => {
+const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChangeLunch, onShowLeaveForm, onShowOvertimeForm, onShowOutsideWorkForm, onShowRecheckInForm, clockSecs }) => {
   const emp = getEmployee(me);
   const att = attendance[me] || {};
   const status = att.status || 'not_checked_in';
@@ -12,16 +12,7 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
   // 퇴근 후 다시 출근 가능 (오후 6시부터 다음날 오전 9시 전까지는 차단)
   const canCheckIn = (() => {
     if (!notIn && !isCheckedOut) return false; // 이미 근무중이면 출근 불가
-    if (isCheckedOut) {
-      const now = new Date();
-      const kstTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (9 * 3600000));
-      const h = kstTime.getHours();
-      if (h >= 18 || h < 9) {
-        return false; 
-      }
-      return true;
-    }
-    return true;
+    return true; // 퇴근 후에도 재출근 가능하게 허용 (모달 호출)
   })();
 
   const today = window.PAPA_DATA.today.date;
@@ -192,12 +183,27 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
         {/* Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 22 }}>
           {(notIn || isCheckedOut) && (
-            <button className="btn btn-lg btn-white" onClick={onCheckIn}
-              disabled={!canCheckIn}
-              style={{ opacity: canCheckIn ? 1 : .45, cursor: canCheckIn ? 'pointer' : 'not-allowed' }}>
-              <Icon name="play" size={13} />
-              {isCheckedOut ? (canCheckIn ? '다시 출근하기' : '퇴근 완료 · 내일 출근 가능') : '지금 출근하기'}
-            </button>
+            <>
+              {isCheckedOut ? (
+                <button
+                  className="btn btn-lg btn-white"
+                  onClick={onShowRecheckInForm}
+                >
+                  <Icon name="log-in" size={14} strokeWidth={2.5}/>
+                  다시 출근하기
+                </button>
+              ) : (
+                <button
+                  className="btn btn-lg btn-white"
+                  onClick={onCheckIn}
+                  disabled={!canCheckIn}
+                  style={{ opacity: canCheckIn ? 1 : .45, cursor: canCheckIn ? 'pointer' : 'not-allowed' }}
+                >
+                  <Icon name="log-in" size={14} strokeWidth={2.5}/>
+                  지금 출근하기
+                </button>
+              )}
+            </>
           )}
           {(isWorking || isHalfday) && (
             <button className="btn btn-lg" style={{

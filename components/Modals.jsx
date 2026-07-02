@@ -516,4 +516,47 @@ const OutsideWorkRequestForm = ({ onClose, onSubmit, me }) => {
   );
 };
 
-Object.assign(window, { LeaveRequestForm, LateReportForm, Toast, TweaksPanel, SeniorPicker, OvertimeRequestForm, OutsideWorkRequestForm });
+const RecheckInRequestForm = ({ me, onClose, onSubmit }) => {
+  const [reason, setReason] = React.useState('');
+
+  return (
+    <div className="modal-backdrop" onClick={onClose} style={{ zIndex: 120 }}>
+      <div className="modal fade-in" onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div>
+            <div className="eyebrow" style={{ color: 'var(--accent)' }}>RE-CHECK IN</div>
+            <div className="h1" style={{ marginTop: 6 }}>재출근 신청</div>
+          </div>
+          <button className="btn-icon" onClick={onClose} style={{ background: 'var(--bg)' }}>
+            <Icon name="x" size={16} />
+          </button>
+        </div>
+
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: 'var(--ink)' }}>재출근 사유 <span style={{ color: 'var(--danger)' }}>(필수)</span></div>
+          <textarea
+            className="input"
+            rows={3}
+            placeholder="퇴근 후 다시 업무를 진행하게 된 사유를 입력해주세요."
+            value={reason}
+            onChange={e => setReason(e.target.value)}
+            style={{ resize: 'none', fontFamily: 'inherit' }} />
+        </div>
+
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-ghost btn-lg" onClick={onClose} style={{ flex: 1 }}>취소</button>
+          <button
+            className="btn btn-primary btn-lg"
+            onClick={() => onSubmit({ reason })}
+            disabled={!reason.trim()}
+            style={{ flex: 2, opacity: !reason.trim() ? .4 : 1, cursor: !reason.trim() ? 'not-allowed' : 'pointer' }}
+          >
+            신청하기
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+Object.assign(window, { LeaveRequestForm, LateReportForm, Toast, TweaksPanel, SeniorPicker, OvertimeRequestForm, OutsideWorkRequestForm, RecheckInRequestForm });

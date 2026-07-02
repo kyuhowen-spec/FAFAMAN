@@ -62,6 +62,7 @@ const App = () => {
   const [showLunchForm, setShowLunchForm] = React.useState(false);
   const [showOvertimeForm, setShowOvertimeForm] = React.useState(false);
   const [showOutsideWorkForm, setShowOutsideWorkForm] = React.useState(false);
+  const [showRecheckInForm, setShowRecheckInForm] = React.useState(false);
   const [toast, setToast] = React.useState(() => {
     const pt = sessionStorage.getItem('papa_pending_toast');
     if (pt) {
@@ -390,6 +391,38 @@ const App = () => {
     }
   };
 
+  const handleSubmitRecheckIn = ({ reason }) => {
+    const tl = window.PAPA_DATA.employees.find(e => e.team === me.team && e.role === 'senior' && e.id !== me.id);
+    const assignedSenior = tl ? tl.id : 'kh';
+    const targetIsAdmin = assignedSenior === 'kh';
+    const newAppr = {
+      id: `recheckin${Date.now()}`,
+      empId: currentUserId,
+      type: '재출근',
+      subtype: 'recheckin',
+      start: window.PAPA_DATA.today.date,
+      end: window.PAPA_DATA.today.date,
+      days: 0,
+      reason: reason,
+      appliedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
+      stage: me.role === 'admin' ? 'approved' : (targetIsAdmin ? 'pending_admin' : 'pending_senior'),
+      isRecheckIn: true,
+      assignedSenior: assignedSenior,
+    };
+    setApprovals(prev => [newAppr, ...prev]);
+    setShowRecheckInForm(false);
+    if (me.role === 'admin') {
+      setAttendance(prevAtt => ({
+        ...prevAtt,
+        [currentUserId]: { ...prevAtt[currentUserId], status: 'working' }
+      }));
+      setToast({ text: '재출근 자동 승인', icon: 'check' });
+    } else {
+      const seniorName = getEmployee(assignedSenior).name;
+      setToast({ text: `${seniorName}에게 재출근 승인 요청 완료`, icon: 'log-in' });
+    }
+  };
+
   const handleApprove = (id) => {
     setApprovals(prev => prev.map(a => {
       if (a.id !== id) return a;
@@ -415,6 +448,13 @@ const App = () => {
         return { ...a, stage: 'approved' };
       }
       if (a.isOvertime) {
+        return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId, cc: getOvertimeCC() };
+      }
+      if (a.isRecheckIn) {
+        setAttendance(prevAtt => ({
+          ...prevAtt,
+          [a.empId]: { ...prevAtt[a.empId], status: 'working' }
+        }));
         return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId, cc: getOvertimeCC() };
       }
       if (a.isOutsideWork) {
@@ -640,6 +680,7 @@ const App = () => {
               onShowLeaveForm={() => setShowLeaveForm(true)}
               onShowOvertimeForm={() => setShowOvertimeForm(true)}
               onShowOutsideWorkForm={() => setShowOutsideWorkForm(true)}
+              onShowRecheckInForm={() => setShowRecheckInForm(true)}
               onSelectMember={setSelectedMember}
             />
           )}
@@ -726,6 +767,11 @@ const App = () => {
         me={me}
         onClose={() => setShowOutsideWorkForm(false)}
         onSubmit={handleSubmitOutsideWork}
+      />}
+      {showRecheckInForm && <RecheckInRequestForm
+        me={me}
+        onClose={() => setShowRecheckInForm(false)}
+        onSubmit={handleSubmitRecheckIn}
       />}
       <Toast toast={toast} onDismiss={() => setToast(null)} />
 
