@@ -59,6 +59,16 @@ const LoginScreen = ({ onLogin }) => {
       return;
     }
 
+    // Device Lock Check
+    const deviceOwner = localStorage.getItem('papa_device_owner');
+    if (deviceOwner && deviceOwner !== acct.userId) {
+      setError('이 기기는 이미 다른 사용자의 계정으로 귀속되어 있어 다른 아이디로 접속할 수 없습니다.');
+      return;
+    }
+
+    // Set device owner on successful login
+    localStorage.setItem('papa_device_owner', acct.userId);
+
     setBusy(true);
     setTimeout(() => onLogin(acct.userId), 350);
   };
@@ -94,6 +104,9 @@ const LoginScreen = ({ onLogin }) => {
 
       // Save changes to localStorage
       if (window.savePapaData) window.savePapaData();
+
+      // Set device owner on successful login
+      localStorage.setItem('papa_device_owner', acct.userId);
 
       setBusy(true);
       setTimeout(() => onLogin(acct.userId), 350);

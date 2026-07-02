@@ -144,12 +144,21 @@ const App = () => {
     return () => clearInterval(id);
   }, [myAtt?.checkIn, myAtt?.status, myAtt?.accumulatedSecs, currentUserId]);
 
-  // Auto-checkout on browser close
+  // Smart auto-checkout on ungraceful close
   React.useEffect(() => {
-    const handleBeforeUnload = () => {
+    if (!currentUserId) return;
+    
+    const isNewSession = !sessionStorage.getItem('papa_active');
+    
+    if (isNewSession) {
       const currentAtt = window.PAPA_DATA?.attendance?.[currentUserId];
       if (currentAtt && (currentAtt.status === 'working' || currentAtt.status === 'halfday')) {
-        const now = new Date();
+        const lastSeenStr = localStorage.getItem(`papa_last_seen_${currentUserId}`);
+        const lastSeen = lastSeenStr ? parseInt(lastSeenStr, 10) : null;
+        
+        // If lastSeen is within the last 24 hours, use it. Otherwise use current time.
+        const now = lastSeen && (Date.now() - lastSeen < 24 * 3600 * 1000) ? new Date(lastSeen) : new Date();
+        
         const kstTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (9 * 3600000));
         const currentSecs = kstTime.getHours() * 3600 + kstTime.getMinutes() * 60 + kstTime.getSeconds();
         
@@ -164,13 +173,23 @@ const App = () => {
         currentAtt.checkIn = null;
         currentAtt.checkedOutAt = now.toISOString();
         
+        setAttendance(prev => ({ ...prev, [currentUserId]: currentAtt }));
+        
         if (window.savePapaData) {
           window.savePapaData();
         }
       }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+      
+      // Mark session as active
+      sessionStorage.setItem('papa_active', '1');
+    }
+
+    // Heartbeat: save last seen time every 10 seconds
+    const heartbeat = setInterval(() => {
+      localStorage.setItem(`papa_last_seen_${currentUserId}`, Date.now().toString());
+    }, 10000);
+
+    return () => clearInterval(heartbeat);
   }, [currentUserId]);
 
   // Actions
