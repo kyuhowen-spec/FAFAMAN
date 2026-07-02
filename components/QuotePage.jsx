@@ -29,7 +29,7 @@ const QuotePage = ({ currentUserId }) => {
       period: '1W',
       note: '',
       rows: [
-        { id: 'r1_1', item: '디자인 기획', level: '특급', count: 0, days: 15, effort: 25 },
+        { id: 'r1_1', item: '디자인 기획', level: '특급', count: 0, days: 15, effort: 100 },
         { id: 'r1_2', item: '', level: '고급', count: 0, days: 15, effort: 100 },
         { id: 'r1_3', item: '', level: '중급', count: 0, days: 15, effort: 100 },
         { id: 'r1_4', item: '', level: '초급', count: 0, days: 15, effort: 100 },
@@ -41,9 +41,9 @@ const QuotePage = ({ currentUserId }) => {
       period: '1W',
       note: '',
       rows: [
-        { id: 'r2_1', item: '제품 디자인', level: '특급', count: 0, days: 50, effort: 50 },
-        { id: 'r2_2', item: '', level: '고급', count: 0, days: 50, effort: 70 },
-        { id: 'r2_3', item: '', level: '중급', count: 0, days: 50, effort: 80 },
+        { id: 'r2_1', item: '제품 디자인', level: '특급', count: 0, days: 50, effort: 100 },
+        { id: 'r2_2', item: '', level: '고급', count: 0, days: 50, effort: 100 },
+        { id: 'r2_3', item: '', level: '중급', count: 0, days: 50, effort: 100 },
         { id: 'r2_4', item: '', level: '초급', count: 0, days: 50, effort: 100 },
       ]
     }
