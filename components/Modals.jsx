@@ -110,7 +110,6 @@ const LeaveRequestForm = ({ onClose, onSubmit, me }) => {
   const [start, setStart] = React.useState(window.PAPA_DATA.today.date);
   const [end, setEnd] = React.useState(window.PAPA_DATA.today.date);
   const [reason, setReason] = React.useState('');
-  const [reason, setReason] = React.useState('');
 
   // Count working days between two dates, excluding Sat(6) and Sun(0)
   const countWorkingDays = (startStr, endStr) => {
