@@ -36,18 +36,22 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
   const elapsedMin = Math.floor(clockSecs / 60);
   const progressPct = totalWorkMin > 0 ? Math.min(100, (elapsedMin / totalWorkMin) * 100) : 0;
 
+  const h = Math.floor(clockSecs / 3600);
+  const m = Math.floor((clockSecs % 3600) / 60);
+  const durationText = h > 0 ? `${h}시간 ${m}분` : `${m}분`;
+
   // labels
   let statusLabel, subLabel, clockLabel;
   if (isWorking) {
     statusLabel = '근무중';
     clockLabel = fmtClock(clockSecs);
     subLabel = emp.role === 'admin'
-      ? `${att.checkIn} 출근 · ${att.plannedOut} 퇴근 예정`
-      : `${att.checkIn} 출근 · ${att.plannedOut} 퇴근 예정 · 점심 ${att.lunch === 90 ? '1.5h' : '1h'}`;
+      ? `오늘 ${att.checkIn} 출근 · 현재 ${durationText}째 근무중`
+      : `오늘 ${att.checkIn} 출근 · 현재 ${durationText}째 근무중 · ${att.plannedOut} 퇴근 예정`;
   } else if (isHalfday) {
     statusLabel = '반차 근무중';
     clockLabel = fmtClock(clockSecs);
-    subLabel = `${att.checkIn} 출근 · ${att.plannedOut} 퇴근`;
+    subLabel = `오늘 ${att.checkIn} 출근 · 현재 ${durationText}째 근무중 · ${att.plannedOut} 퇴근 예정`;
   } else if (isVacation) {
     statusLabel = '오늘은 연차';
     clockLabel = '—';
