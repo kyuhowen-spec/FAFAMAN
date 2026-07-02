@@ -36,13 +36,11 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
   if (isWorking) {
     statusLabel = '근무중';
     clockLabel = fmtClock(clockSecs);
-    subLabel = emp.role === 'admin'
-      ? `오늘 ${att.checkIn} 출근 · 현재 ${durationText}째 근무중`
-      : `오늘 ${att.checkIn} 출근 · 현재 ${durationText}째 근무중 · ${att.plannedOut} 퇴근 예정`;
+    subLabel = null;
   } else if (isHalfday) {
     statusLabel = '반차 근무중';
     clockLabel = fmtClock(clockSecs);
-    subLabel = `오늘 ${att.checkIn} 출근 · 현재 ${durationText}째 근무중 · ${att.plannedOut} 퇴근 예정`;
+    subLabel = null;
   } else if (isVacation) {
     statusLabel = '오늘은 연차';
     clockLabel = '—';
@@ -134,9 +132,11 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
             }}>
               {clockLabel}
             </div>
-            <div style={{ marginTop: 10, fontSize: 13, color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>
-              {subLabel}
-            </div>
+            {subLabel && (
+              <div style={{ marginTop: 10, fontSize: 13, color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>
+                {subLabel}
+              </div>
+            )}
           </div>
 
           {/* Right-side: check-in + out times */}
@@ -174,7 +174,7 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
               }}/>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,.68)', letterSpacing: '.02em', fontVariantNumeric: 'tabular-nums' }}>
-              <span>{Math.round(progressPct)}% 진행</span>
+              <span>{att.checkIn} 출근</span>
               <span>{fmtDuration(Math.max(0, totalWorkMin - elapsedMin))} 남음</span>
             </div>
           </div>

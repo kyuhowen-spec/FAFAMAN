@@ -411,6 +411,7 @@ const App = () => {
   };
 
   const handleSubmitRecheckIn = ({ reason }) => {
+    const isExecutive = ['대표이사', '디렉터'].includes(me.title) || me.role === 'admin';
     const tl = window.PAPA_DATA.employees.find(e => e.team === me.team && e.role === 'senior' && e.id !== me.id);
     const assignedSenior = tl ? tl.id : 'kh';
     const targetIsAdmin = assignedSenior === 'kh';
@@ -424,13 +425,13 @@ const App = () => {
       days: 0,
       reason: reason,
       appliedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
-      stage: me.role === 'admin' ? 'approved' : (targetIsAdmin ? 'pending_admin' : 'pending_senior'),
+      stage: isExecutive ? 'approved' : (targetIsAdmin ? 'pending_admin' : 'pending_senior'),
       isRecheckIn: true,
       assignedSenior: assignedSenior,
     };
     setApprovals(prev => [newAppr, ...prev]);
     setShowRecheckInForm(false);
-    if (me.role === 'admin') {
+    if (isExecutive) {
       setAttendance(prevAtt => ({
         ...prevAtt,
         [currentUserId]: { ...prevAtt[currentUserId], status: 'working' }
