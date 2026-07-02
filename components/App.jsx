@@ -406,12 +406,14 @@ const App = () => {
       if (a.isOutsideWork) {
         if (a.start === window.PAPA_DATA.today.date) {
           setAttendance(prevAtt => {
-            const empAtt = prevAtt[a.empId] || {};
-            const addSecs = a.subtype === 'outside_half' ? 14400 : 28800;
-            return {
-              ...prevAtt,
-              [a.empId]: { ...empAtt, accumulatedSecs: (empAtt.accumulatedSecs || 0) + addSecs }
-            };
+            const nextAtt = { ...prevAtt };
+            const addSecs = a.hours * 3600;
+            const affectedIds = [a.empId, ...(a.coworkers || [])];
+            affectedIds.forEach(id => {
+              const empAtt = nextAtt[id] || {};
+              nextAtt[id] = { ...empAtt, accumulatedSecs: (empAtt.accumulatedSecs || 0) + addSecs };
+            });
+            return nextAtt;
           });
         }
         return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId };
@@ -442,10 +444,11 @@ const App = () => {
       id: `o${Date.now()}`,
       empId: currentUserId,
       type: '외근',
-      subtype: payload.subtype,
+      hours: payload.hours,
+      coworkers: payload.coworkers,
       start: payload.date,
       end: payload.date,
-      days: payload.subtype === 'outside_half' ? 0.5 : 1,
+      days: 0,
       reason: payload.reason || '—',
       appliedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
       stage: me.role === 'admin' ? 'approved' : (targetIsAdmin ? 'pending_admin' : 'pending_senior'),
@@ -458,9 +461,14 @@ const App = () => {
     if (me.role === 'admin') {
       if (payload.date === window.PAPA_DATA.today.date) {
         setAttendance(prevAtt => {
-          const empAtt = prevAtt[currentUserId] || {};
-          const addSecs = payload.subtype === 'outside_half' ? 14400 : 28800;
-          return { ...prevAtt, [currentUserId]: { ...empAtt, accumulatedSecs: (empAtt.accumulatedSecs || 0) + addSecs } };
+          const nextAtt = { ...prevAtt };
+          const addSecs = payload.hours * 3600;
+          const affectedIds = [currentUserId, ...(payload.coworkers || [])];
+          affectedIds.forEach(id => {
+            const empAtt = nextAtt[id] || {};
+            nextAtt[id] = { ...empAtt, accumulatedSecs: (empAtt.accumulatedSecs || 0) + addSecs };
+          });
+          return nextAtt;
         });
       }
       setToast({ text: '외근 자동 승인', icon: 'check' });
@@ -534,24 +542,31 @@ const App = () => {
     const leaveEvents = [];
     approvals.forEach(a => {
       if (a.isLunch || a.isOvertime || a.stage !== 'approved') return;
-      const emp = window.PAPA_DATA.employees.find(e => e.id === a.empId);
-      if (!emp) return;
       
       const s = new Date(a.start);
       const e = new Date(a.end);
-      const typeStr = a.type === '외근' ? (a.subtype === 'outside_half' ? '반일 외근' : '종일 외근') : a.type;
+      const typeStr = a.type === '외근' ? `${a.hours}시간 외근` : a.type;
       const evType = a.type === '반차' ? 'halfday' : (a.type === '외근' ? 'holiday' : 'vacation');
       
       let cur = new Date(s);
       while (cur <= e) {
         const wd = cur.getDay();
         if (wd !== 0 && wd !== 6) { // skip weekends
-          leaveEvents.push({
-            date: cur.toISOString().slice(0, 10),
-            type: evType,
-            empId: a.empId,
-            label: `${emp.name} ${typeStr}`,
-          });
+          const addEventFor = (id) => {
+            const eEmp = window.PAPA_DATA.employees.find(x => x.id === id);
+            if (!eEmp) return;
+            leaveEvents.push({
+              date: cur.toISOString().slice(0, 10),
+              type: evType,
+              empId: id,
+              label: `${eEmp.name} ${typeStr}`,
+            });
+          };
+
+          addEventFor(a.empId);
+          if (a.isOutsideWork && a.coworkers) {
+            a.coworkers.forEach(c => addEventFor(c));
+          }
         }
         cur.setDate(cur.getDate() + 1);
       }

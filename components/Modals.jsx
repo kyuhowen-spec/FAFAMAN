@@ -57,6 +57,52 @@ const SeniorPicker = ({ value, onChange, currentUserId, label = '결재권자 �
   );
 };
 
+// Multiple Coworker selection card grid — used by Outside Work form
+const CoworkerPicker = ({ value, onChange, currentUserId }) => {
+  const coworkers = window.PAPA_DATA.employees.filter(e => e.id !== currentUserId);
+  const toggle = (id) => {
+    if (value.includes(id)) {
+      onChange(value.filter(v => v !== id));
+    } else {
+      onChange([...value, id]);
+    }
+  };
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div className="eyebrow" style={{ marginBottom: 8 }}>함께 가는 사람 <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 500 }}>(선택)</span></div>
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 6,
+      }}>
+        {coworkers.map(s => {
+          const active = value.includes(s.id);
+          return (
+            <button
+              key={s.id}
+              onClick={() => toggle(s.id)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '6px 10px', borderRadius: 20,
+                background: active ? 'var(--accent-soft)' : 'var(--bg)',
+                border: `1px solid ${active ? 'var(--accent)' : 'var(--line-soft)'}`,
+                transition: 'all .12s',
+              }}>
+              <Avatar empId={s.id} size="xxs" />
+              <div style={{
+                fontSize: 12, fontWeight: 600,
+                color: active ? 'var(--accent-dark)' : 'var(--ink-soft)',
+              }}>
+                {s.name}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 // Leave request form modal
 const LeaveRequestForm = ({ onClose, onSubmit, me }) => {
   const [type, setType] = React.useState('연차');
@@ -421,7 +467,8 @@ const OvertimeRequestForm = ({ onClose, onSubmit, me }) => {
 // Outside Work request form modal
 const OutsideWorkRequestForm = ({ onClose, onSubmit, me }) => {
   const [date, setDate] = React.useState(window.PAPA_DATA.today.date);
-  const [subtype, setSubtype] = React.useState('outside_full'); // 'outside_full' or 'outside_half'
+  const [hours, setHours] = React.useState(2);
+  const [coworkers, setCoworkers] = React.useState([]);
   const [reason, setReason] = React.useState('');
   const needsApprover = me.role !== 'admin' && me.role !== 'senior';
   const availableApprovers = window.PAPA_DATA.employees.filter(e => (e.role === 'senior' || e.role === 'admin') && e.id !== me.id);
@@ -447,21 +494,24 @@ const OutsideWorkRequestForm = ({ onClose, onSubmit, me }) => {
             value={date} onChange={e => setDate(e.target.value)} />
         </div>
 
-        {/* Type toggle */}
+        {/* Duration toggle */}
         <div style={{ marginBottom: 16 }}>
-          <div className="eyebrow" style={{ marginBottom: 8 }}>외근 종류</div>
+          <div className="eyebrow" style={{ marginBottom: 8 }}>외근 시간</div>
           <div style={{ display: 'flex', gap: 8 }}>
-            {[{ k: 'outside_full', l: '종일 외근 (8h)' }, { k: 'outside_half', l: '반일 외근 (4h)' }].map(s => (
-              <button key={s.k} onClick={() => setSubtype(s.k)} style={{
-                flex: 1, padding: '12px 14px', borderRadius: 10,
+            {[2, 4, 6, 8].map(h => (
+              <button key={h} onClick={() => setHours(h)} style={{
+                flex: 1, padding: '12px 0', borderRadius: 10,
                 fontSize: 14, fontWeight: 700,
-                background: subtype === s.k ? 'var(--accent)' : 'var(--bg)',
-                color: subtype === s.k ? 'white' : 'var(--ink-soft)',
+                background: hours === h ? 'var(--accent)' : 'var(--bg)',
+                color: hours === h ? 'white' : 'var(--ink-soft)',
                 transition: 'all .15s',
-              }}>{s.l}</button>
+              }}>{h}시간</button>
             ))}
           </div>
         </div>
+
+        {/* Coworkers */}
+        <CoworkerPicker value={coworkers} onChange={setCoworkers} currentUserId={me.id} />
 
         {/* Approver selection */}
         {needsApprover && (
@@ -486,7 +536,7 @@ const OutsideWorkRequestForm = ({ onClose, onSubmit, me }) => {
           <button className="btn btn-ghost btn-lg" onClick={onClose} style={{ flex: 1 }}>취소</button>
           <button
             className="btn btn-primary btn-lg"
-            onClick={() => onSubmit({ date, subtype, reason, assignedSenior: needsApprover ? assignedSenior : null })}
+            onClick={() => onSubmit({ date, hours, coworkers, reason, assignedSenior: needsApprover ? assignedSenior : null })}
             disabled={!reason.trim() || (needsApprover && !assignedSenior) || !date}
             style={{ flex: 2, opacity: (!reason.trim() || (needsApprover && !assignedSenior) || !date) ? .4 : 1, cursor: (!reason.trim() || (needsApprover && !assignedSenior) || !date) ? 'not-allowed' : 'pointer' }}
           >

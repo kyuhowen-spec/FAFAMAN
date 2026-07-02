@@ -412,7 +412,7 @@ const ApprovalDetail = ({ approval, role, currentUserId, rejectMode, rejectMsg, 
           <StageBadge stage={approval.stage} />
         </div>
         <div style={{ marginTop: 10, fontSize: 28, fontWeight: 800, letterSpacing: '-.02em' }}>
-          {approval.type === '외근' ? (approval.subtype === 'outside_half' ? '반일 외근' : '종일 외근') : approval.type}{(isLunch || isOvertime || approval.type === '외근') ? '' : ` ${approval.days}일`}
+          {approval.type === '외근' ? `외근 (${approval.hours}h)` : approval.type}{(isLunch || isOvertime || approval.type === '외근') ? '' : ` ${approval.days}일`}
         </div>
         <div style={{ fontSize: 13, opacity: .92, marginTop: 4, fontWeight: 600 }}>
           {isLunch ? `${dateLabel} · ${approval.lunchSlot === 'early' ? '12:00 – 13:30' : '12:30 – 14:00'}` : dateLabel}
@@ -438,6 +438,29 @@ const ApprovalDetail = ({ approval, role, currentUserId, rejectMode, rejectMsg, 
           </div>
           <Icon name="chevron-right" size={14} />
         </div>
+
+        {/* Coworkers */}
+        {approval.type === '외근' && approval.coworkers && approval.coworkers.length > 0 && (
+          <div>
+            <div className="eyebrow" style={{ marginBottom: 6 }}>동행자</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {approval.coworkers.map(cId => {
+                const cEmp = getEmployee(cId);
+                if (!cEmp) return null;
+                return (
+                  <div key={cId} style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '4px 8px', borderRadius: 20,
+                    background: 'var(--bg)', border: '1px solid var(--line-soft)',
+                  }}>
+                    <Avatar empId={cId} size="xxs" />
+                    <span style={{ fontSize: 12, fontWeight: 600 }}>{cEmp.name}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Reason */}
         {approval.reason && (
