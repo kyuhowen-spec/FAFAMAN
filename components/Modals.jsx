@@ -110,9 +110,7 @@ const LeaveRequestForm = ({ onClose, onSubmit, me }) => {
   const [start, setStart] = React.useState(window.PAPA_DATA.today.date);
   const [end, setEnd] = React.useState(window.PAPA_DATA.today.date);
   const [reason, setReason] = React.useState('');
-  const needsApprover = me.role !== 'admin';
-  const availableApprovers = window.PAPA_DATA.employees.filter(e => (e.role === 'senior' || e.role === 'admin') && e.id !== me.id);
-  const [assignedSenior, setAssignedSenior] = React.useState(availableApprovers[0]?.id || null);
+  const [reason, setReason] = React.useState('');
 
   // Count working days between two dates, excluding Sat(6) and Sun(0)
   const countWorkingDays = (startStr, endStr) => {
@@ -200,16 +198,7 @@ const LeaveRequestForm = ({ onClose, onSubmit, me }) => {
           </div>
         </div>
 
-        {/* Approver selection */}
-        {needsApprover && (
-          <SeniorPicker
-            value={assignedSenior}
-            onChange={setAssignedSenior}
-            currentUserId={me.id}
-            label="결재권자 선택"
-            helper="선택한 결재권자에게 승인 요청을 보냅니다"
-          />
-        )}
+
 
         {/* Reason */}
         <div style={{ marginBottom: 20 }}>
@@ -247,12 +236,7 @@ const LeaveRequestForm = ({ onClose, onSubmit, me }) => {
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: 11, color: 'var(--accent-dark)', fontWeight: 600 }}>결재 경로</div>
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
-              {needsApprover ? (
-                <React.Fragment>
-                  {assignedSenior && <Avatar empId={assignedSenior} size="xxs" />}
-                  <span>{assignedSenior ? `${getEmployee(assignedSenior).name.replace(/^./, '')} 승인` : '결재자 미선택'}</span>
-                </React.Fragment>
-              ) : '자동 승인 (관리자)'}
+              자동 상신 (대표이사)
             </div>
           </div>
         </div>
@@ -261,9 +245,9 @@ const LeaveRequestForm = ({ onClose, onSubmit, me }) => {
           <button className="btn btn-ghost btn-lg" onClick={onClose} style={{ flex: 1 }}>취소</button>
           <button
             className="btn btn-primary btn-lg"
-            onClick={() => onSubmit({ type, subtype, start, end, days, reason, assignedSenior: needsApprover ? assignedSenior : null })}
-            disabled={days === 0 || (needsApprover && !assignedSenior)}
-            style={{ flex: 2, opacity: (days === 0 || (needsApprover && !assignedSenior)) ? .4 : 1, cursor: (days === 0 || (needsApprover && !assignedSenior)) ? 'not-allowed' : 'pointer' }}
+            onClick={() => onSubmit({ type, subtype, start, end, days, reason })}
+            disabled={days === 0}
+            style={{ flex: 2, opacity: (days === 0) ? .4 : 1, cursor: (days === 0) ? 'not-allowed' : 'pointer' }}
           >
             신청하기
           </button>
@@ -400,9 +384,9 @@ const TweaksPanel = ({ show, currentUserId, onSetUser }) => {
 // Overtime request form modal
 const OvertimeRequestForm = ({ onClose, onSubmit, me }) => {
   const [reason, setReason] = React.useState('');
-  const needsApprover = me.role !== 'admin';
-  const availableApprovers = window.PAPA_DATA.employees.filter(e => (e.role === 'senior' || e.role === 'admin') && e.id !== me.id);
-  const [assignedSenior, setAssignedSenior] = React.useState(availableApprovers[0]?.id || null);
+  
+  const now = new Date();
+  const isPastDeadline = now.getHours() >= 18;
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -429,15 +413,11 @@ const OvertimeRequestForm = ({ onClose, onSubmit, me }) => {
           </div>
         </div>
 
-        {/* Approver selection */}
-        {needsApprover && (
-          <SeniorPicker
-            value={assignedSenior}
-            onChange={setAssignedSenior}
-            currentUserId={me.id}
-            label="결재권자 선택"
-            helper="선택한 결재권자에게 야근 승인 요청을 보냅니다"
-          />
+        {isPastDeadline && (
+          <div style={{ marginBottom: 20, padding: 12, borderRadius: 10, background: 'var(--danger-soft)', color: 'var(--danger)' }}>
+            <div style={{ fontSize: 13, fontWeight: 700 }}>야근 당일 신청 마감 (18:00)</div>
+            <div style={{ fontSize: 12, marginTop: 4 }}>야근 신청은 당일 오후 6시 전까지만 가능합니다.</div>
+          </div>
         )}
 
         {/* Reason */}
@@ -445,6 +425,7 @@ const OvertimeRequestForm = ({ onClose, onSubmit, me }) => {
           <div className="eyebrow" style={{ marginBottom: 8 }}>야근 사유 <span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--danger)', fontWeight: 500 }}>(필수)</span></div>
           <textarea className="input" rows="3" placeholder="어떤 업무로 인해 야근이 필요한지 작성해주세요"
             value={reason} onChange={e => setReason(e.target.value)}
+            disabled={isPastDeadline}
             style={{ resize: 'none', fontFamily: 'inherit' }}/>
         </div>
 
@@ -452,9 +433,9 @@ const OvertimeRequestForm = ({ onClose, onSubmit, me }) => {
           <button className="btn btn-ghost btn-lg" onClick={onClose} style={{ flex: 1 }}>취소</button>
           <button
             className="btn btn-primary btn-lg"
-            onClick={() => onSubmit({ reason, assignedSenior: needsApprover ? assignedSenior : null })}
-            disabled={!reason.trim() || (needsApprover && !assignedSenior)}
-            style={{ flex: 2, opacity: (!reason.trim() || (needsApprover && !assignedSenior)) ? .4 : 1, cursor: (!reason.trim() || (needsApprover && !assignedSenior)) ? 'not-allowed' : 'pointer' }}
+            onClick={() => onSubmit({ reason })}
+            disabled={!reason.trim() || isPastDeadline}
+            style={{ flex: 2, opacity: (!reason.trim() || isPastDeadline) ? .4 : 1, cursor: (!reason.trim() || isPastDeadline) ? 'not-allowed' : 'pointer' }}
           >
             신청하기
           </button>
@@ -470,9 +451,6 @@ const OutsideWorkRequestForm = ({ onClose, onSubmit, me }) => {
   const [hours, setHours] = React.useState(2);
   const [coworkers, setCoworkers] = React.useState([]);
   const [reason, setReason] = React.useState('');
-  const needsApprover = me.role !== 'admin' && me.role !== 'senior';
-  const availableApprovers = window.PAPA_DATA.employees.filter(e => (e.role === 'senior' || e.role === 'admin') && e.id !== me.id);
-  const [assignedSenior, setAssignedSenior] = React.useState(availableApprovers[0]?.id || null);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -513,16 +491,7 @@ const OutsideWorkRequestForm = ({ onClose, onSubmit, me }) => {
         {/* Coworkers */}
         <CoworkerPicker value={coworkers} onChange={setCoworkers} currentUserId={me.id} />
 
-        {/* Approver selection */}
-        {needsApprover && (
-          <SeniorPicker
-            value={assignedSenior}
-            onChange={setAssignedSenior}
-            currentUserId={me.id}
-            label="결재권자 선택"
-            helper="외근 승인 요청을 보낼 결재권자를 선택해주세요"
-          />
-        )}
+
 
         {/* Reason */}
         <div style={{ marginBottom: 20 }}>
@@ -536,9 +505,9 @@ const OutsideWorkRequestForm = ({ onClose, onSubmit, me }) => {
           <button className="btn btn-ghost btn-lg" onClick={onClose} style={{ flex: 1 }}>취소</button>
           <button
             className="btn btn-primary btn-lg"
-            onClick={() => onSubmit({ date, hours, coworkers, reason, assignedSenior: needsApprover ? assignedSenior : null })}
-            disabled={!reason.trim() || (needsApprover && !assignedSenior) || !date}
-            style={{ flex: 2, opacity: (!reason.trim() || (needsApprover && !assignedSenior) || !date) ? .4 : 1, cursor: (!reason.trim() || (needsApprover && !assignedSenior) || !date) ? 'not-allowed' : 'pointer' }}
+            onClick={() => onSubmit({ date, hours, coworkers, reason })}
+            disabled={!reason.trim() || !date}
+            style={{ flex: 2, opacity: (!reason.trim() || !date) ? .4 : 1, cursor: (!reason.trim() || !date) ? 'not-allowed' : 'pointer' }}
           >
             신청하기
           </button>

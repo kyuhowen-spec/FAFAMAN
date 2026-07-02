@@ -24,6 +24,7 @@ const InboxPage = ({ role, currentUserId, approvals, onApprove, onReject, onSele
     }
     if (tab === 'done')  return a.stage === 'approved' || a.stage === 'rejected';
     if (tab === 'mine')  return a.empId === currentUserId;
+    if (tab === 'cc')    return a.cc && a.cc.includes(currentUserId);
     return false;
   };
 
@@ -39,6 +40,7 @@ const InboxPage = ({ role, currentUserId, approvals, onApprove, onReject, onSele
   }).length;
   const doneCount = approvals.filter(a => a.stage === 'approved' || a.stage === 'rejected').length;
   const mineCount = approvals.filter(a => a.empId === currentUserId).length;
+  const ccCount = approvals.filter(a => a.cc && a.cc.includes(currentUserId)).length;
 
   const sel = list.find(a => a.id === selected) || list[0] || null;
 
@@ -89,6 +91,9 @@ const InboxPage = ({ role, currentUserId, approvals, onApprove, onReject, onSele
         }}>
           <TabBtn active={tab === 'pending'} onClick={() => { setTab('pending'); setSelected(null); }} count={pendingCount} hot>
             대기
+          </TabBtn>
+          <TabBtn active={tab === 'cc'} onClick={() => { setTab('cc'); setSelected(null); }} count={ccCount} hot={ccCount > 0}>
+            수신 참조
           </TabBtn>
           <TabBtn active={tab === 'done'} onClick={() => { setTab('done'); setSelected(null); }} count={doneCount}>
             처리 완료

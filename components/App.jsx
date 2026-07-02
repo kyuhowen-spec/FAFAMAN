@@ -362,8 +362,10 @@ const App = () => {
     }
   };
 
-  const handleSubmitOvertime = ({ reason, assignedSenior }) => {
-    const targetIsAdmin = assignedSenior && getEmployee(assignedSenior).role === 'admin';
+  const handleSubmitOvertime = ({ reason }) => {
+    const tl = window.PAPA_DATA.employees.find(e => e.team === me.team && e.role === 'senior' && e.id !== me.id);
+    const assignedSenior = tl ? tl.id : 'kh';
+    const targetIsAdmin = assignedSenior === 'kh';
     const newAppr = {
       id: `overtime${Date.now()}`,
       empId: currentUserId,
@@ -376,14 +378,14 @@ const App = () => {
       appliedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
       stage: me.role === 'admin' ? 'approved' : (targetIsAdmin ? 'pending_admin' : 'pending_senior'),
       isOvertime: true,
-      assignedSenior: assignedSenior || null,
+      assignedSenior: assignedSenior,
     };
     setApprovals(prev => [newAppr, ...prev]);
     setShowOvertimeForm(false);
     if (me.role === 'admin') {
       setToast({ text: '야근 자동 승인', icon: 'check' });
     } else {
-      const seniorName = assignedSenior ? getEmployee(assignedSenior).name : '결재권자';
+      const seniorName = getEmployee(assignedSenior).name;
       setToast({ text: `${seniorName}에게 야근 승인 요청 완료`, icon: 'moon' });
     }
   };
@@ -392,6 +394,18 @@ const App = () => {
     setApprovals(prev => prev.map(a => {
       if (a.id !== id) return a;
       const meEmp = getEmployee(currentUserId);
+      const applicant = getEmployee(a.empId);
+      
+      const getLeaveCC = () => {
+        const tl = window.PAPA_DATA.employees.find(e => e.team === applicant.team && e.role === 'senior' && e.id !== applicant.id);
+        return tl ? [tl.id] : [];
+      };
+
+      const getOvertimeCC = () => {
+        const directors = window.PAPA_DATA.employees.filter(e => e.department === 'EX').map(e => e.id);
+        return Array.from(new Set(['kh', ...directors])).filter(id => id !== currentUserId && id !== applicant.id);
+      };
+
       // Lunch & Overtime requests only need senior approval (not a full two-stage flow)
       if (a.isLunch) {
         setAttendance(prevAtt => ({
@@ -401,7 +415,7 @@ const App = () => {
         return { ...a, stage: 'approved' };
       }
       if (a.isOvertime) {
-        return { ...a, stage: 'approved' };
+        return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId, cc: getOvertimeCC() };
       }
       if (a.isOutsideWork) {
         if (a.start === window.PAPA_DATA.today.date) {
@@ -416,10 +430,10 @@ const App = () => {
             return nextAtt;
           });
         }
-        return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId };
+        return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId, cc: getLeaveCC() };
       }
       if (meEmp.role === 'senior' && a.stage === 'pending_senior') return { ...a, stage: 'pending_admin' };
-      if (meEmp.role === 'admin') return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId };
+      if (meEmp.role === 'admin') return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId, cc: getLeaveCC() };
       return a;
     }));
     setToast({ text: '결재 승인 완료', icon: 'check' });
@@ -439,7 +453,8 @@ const App = () => {
   };
 
   const handleSubmitOutsideWork = (payload) => {
-    const targetIsAdmin = payload.assignedSenior && getEmployee(payload.assignedSenior).role === 'admin';
+    const assignedSenior = 'kh';
+    const targetIsAdmin = true;
     const newAppr = {
       id: `o${Date.now()}`,
       empId: currentUserId,
@@ -451,8 +466,8 @@ const App = () => {
       days: 0,
       reason: payload.reason || '—',
       appliedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
-      stage: me.role === 'admin' ? 'approved' : (targetIsAdmin ? 'pending_admin' : 'pending_senior'),
-      assignedSenior: payload.assignedSenior || null,
+      stage: me.role === 'admin' ? 'approved' : 'pending_admin',
+      assignedSenior: assignedSenior,
       isOutsideWork: true,
     };
     setApprovals(prev => [newAppr, ...prev]);
@@ -478,7 +493,8 @@ const App = () => {
   };
 
   const handleSubmitLeave = (payload) => {
-    const targetIsAdmin = payload.assignedSenior && getEmployee(payload.assignedSenior).role === 'admin';
+    const assignedSenior = 'kh';
+    const targetIsAdmin = true;
     const newAppr = {
       id: `a${Date.now()}`,
       empId: currentUserId,
@@ -489,8 +505,8 @@ const App = () => {
       days: payload.days,
       reason: payload.reason || '—',
       appliedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
-      stage: me.role === 'admin' ? 'approved' : (targetIsAdmin ? 'pending_admin' : 'pending_senior'),
-      assignedSenior: payload.assignedSenior || null,
+      stage: me.role === 'admin' ? 'approved' : 'pending_admin',
+      assignedSenior: assignedSenior,
     };
     setApprovals(prev => [newAppr, ...prev]);
     setShowLeaveForm(false);
