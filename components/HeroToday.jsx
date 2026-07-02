@@ -1,5 +1,5 @@
 // Today's me hero - refined compact design
-const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChangeLunch, onShowLeaveForm, onShowOvertimeForm, clockSecs }) => {
+const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChangeLunch, onShowLeaveForm, onShowOvertimeForm, onShowOutsideWorkForm, clockSecs }) => {
   const emp = getEmployee(me);
   const att = attendance[me] || {};
   const status = att.status || 'not_checked_in';
@@ -214,6 +214,13 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
           }} onClick={onShowLeaveForm}>
             <Icon name="plane" size={14} />
             휴가 신청
+          </button>
+          <button className="btn btn-lg" style={{
+            background: 'rgba(255,255,255,.14)', color: 'white',
+            border: '1px solid rgba(255,255,255,.24)',
+          }} onClick={onShowOutsideWorkForm}>
+            <Icon name="briefcase" size={14} />
+            외근 신청
           </button>
           <button className="btn btn-lg" style={{
             background: 'rgba(255,255,255,.14)', color: 'white',

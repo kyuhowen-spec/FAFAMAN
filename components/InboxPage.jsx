@@ -373,6 +373,7 @@ const ApprovalDetail = ({ approval, role, currentUserId, rejectMode, rejectMsg, 
     approval.type === '연차'    ? '#3b82f6' :
     approval.type === '반차'    ? '#8b5cf6' :
     approval.type === '리프레시' ? '#f59e0b' :
+    approval.type === '외근'    ? '#0ea5e9' :
     isLunch                     ? '#ef8754' :
     isOvertime                  ? '#4c1d95' : '#64748b';
 
@@ -411,7 +412,7 @@ const ApprovalDetail = ({ approval, role, currentUserId, rejectMode, rejectMsg, 
           <StageBadge stage={approval.stage} />
         </div>
         <div style={{ marginTop: 10, fontSize: 28, fontWeight: 800, letterSpacing: '-.02em' }}>
-          {approval.type}{(isLunch || isOvertime) ? '' : ` ${approval.days}일`}
+          {approval.type === '외근' ? (approval.subtype === 'outside_half' ? '반일 외근' : '종일 외근') : approval.type}{(isLunch || isOvertime || approval.type === '외근') ? '' : ` ${approval.days}일`}
         </div>
         <div style={{ fontSize: 13, opacity: .92, marginTop: 4, fontWeight: 600 }}>
           {isLunch ? `${dateLabel} · ${approval.lunchSlot === 'early' ? '12:00 – 13:30' : '12:30 – 14:00'}` : dateLabel}

@@ -482,8 +482,8 @@ const MiniCalendar = ({ events }) => {
     byDate[d].push(e);
   });
 
-  // Priority: vacation > halfday > birthday > late (for day background tint)
-  const priority = { vacation: 4, halfday: 3, birthday: 2, late: 1 };
+  // Priority: vacation > holiday > halfday > birthday > late (for day background tint)
+  const priority = { vacation: 5, holiday: 4, halfday: 3, birthday: 2, late: 1 };
 
   const cells = [];
   for (let i = 0; i < firstDayOfMonth; i++) cells.push(null);
@@ -491,6 +491,7 @@ const MiniCalendar = ({ events }) => {
 
   const typeColor = (t) => ({
     vacation: { bg: 'rgba(245,166,35,.14)', dot: 'var(--warn)', border: 'rgba(245,166,35,.35)' },
+    holiday:  { bg: 'rgba(14,165,233,.14)', dot: '#0ea5e9', border: 'rgba(14,165,233,.35)' },
     halfday:  { bg: 'rgba(77,106,255,.10)', dot: 'var(--accent)', border: 'rgba(77,106,255,.28)' },
     birthday: { bg: 'rgba(248,99,99,.12)', dot: 'var(--danger)', border: 'rgba(248,99,99,.32)' },
     late:     { bg: 'var(--bg)', dot: 'var(--ink-mute)', border: 'var(--line)' },
@@ -498,6 +499,7 @@ const MiniCalendar = ({ events }) => {
 
   const typeIcon = (t) => ({
     vacation: '🌴',
+    holiday: '💼',
     halfday: '◐',
     birthday: '🎂',
     late: '·',

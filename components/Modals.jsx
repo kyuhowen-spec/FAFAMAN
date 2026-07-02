@@ -418,4 +418,84 @@ const OvertimeRequestForm = ({ onClose, onSubmit, me }) => {
   );
 };
 
-Object.assign(window, { LeaveRequestForm, LateReportForm, Toast, TweaksPanel, SeniorPicker, OvertimeRequestForm });
+// Outside Work request form modal
+const OutsideWorkRequestForm = ({ onClose, onSubmit, me }) => {
+  const [date, setDate] = React.useState(window.PAPA_DATA.today.date);
+  const [subtype, setSubtype] = React.useState('outside_full'); // 'outside_full' or 'outside_half'
+  const [reason, setReason] = React.useState('');
+  const needsApprover = me.role !== 'admin' && me.role !== 'senior';
+  const availableApprovers = window.PAPA_DATA.employees.filter(e => (e.role === 'senior' || e.role === 'admin') && e.id !== me.id);
+  const [assignedSenior, setAssignedSenior] = React.useState(availableApprovers[0]?.id || null);
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div>
+            <div className="eyebrow" style={{ color: '#0ea5e9' }}>OUTSIDE WORK</div>
+            <div className="h1" style={{ marginTop: 6 }}>외근 신청</div>
+          </div>
+          <button className="btn-icon" onClick={onClose} style={{ background: 'var(--bg)' }}>
+            <Icon name="x" size={16} />
+          </button>
+        </div>
+
+        {/* Date */}
+        <div style={{ marginBottom: 16 }}>
+          <div className="eyebrow" style={{ marginBottom: 8 }}>외근 날짜</div>
+          <input type="date" className="input" style={{ fontFamily: 'inherit' }}
+            value={date} onChange={e => setDate(e.target.value)} />
+        </div>
+
+        {/* Type toggle */}
+        <div style={{ marginBottom: 16 }}>
+          <div className="eyebrow" style={{ marginBottom: 8 }}>외근 종류</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {[{ k: 'outside_full', l: '종일 외근 (8h)' }, { k: 'outside_half', l: '반일 외근 (4h)' }].map(s => (
+              <button key={s.k} onClick={() => setSubtype(s.k)} style={{
+                flex: 1, padding: '12px 14px', borderRadius: 10,
+                fontSize: 14, fontWeight: 700,
+                background: subtype === s.k ? 'var(--accent)' : 'var(--bg)',
+                color: subtype === s.k ? 'white' : 'var(--ink-soft)',
+                transition: 'all .15s',
+              }}>{s.l}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* Approver selection */}
+        {needsApprover && (
+          <SeniorPicker
+            value={assignedSenior}
+            onChange={setAssignedSenior}
+            currentUserId={me.id}
+            label="결재권자 선택"
+            helper="외근 승인 요청을 보낼 결재권자를 선택해주세요"
+          />
+        )}
+
+        {/* Reason */}
+        <div style={{ marginBottom: 20 }}>
+          <div className="eyebrow" style={{ marginBottom: 8 }}>외근 사유 <span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--danger)', fontWeight: 500 }}>(필수)</span></div>
+          <textarea className="input" rows="3" placeholder="외근 목적 및 일정을 작성해주세요"
+            value={reason} onChange={e => setReason(e.target.value)}
+            style={{ resize: 'none', fontFamily: 'inherit' }} />
+        </div>
+
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-ghost btn-lg" onClick={onClose} style={{ flex: 1 }}>취소</button>
+          <button
+            className="btn btn-primary btn-lg"
+            onClick={() => onSubmit({ date, subtype, reason, assignedSenior: needsApprover ? assignedSenior : null })}
+            disabled={!reason.trim() || (needsApprover && !assignedSenior) || !date}
+            style={{ flex: 2, opacity: (!reason.trim() || (needsApprover && !assignedSenior) || !date) ? .4 : 1, cursor: (!reason.trim() || (needsApprover && !assignedSenior) || !date) ? 'not-allowed' : 'pointer' }}
+          >
+            신청하기
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+Object.assign(window, { LeaveRequestForm, LateReportForm, Toast, TweaksPanel, SeniorPicker, OvertimeRequestForm, OutsideWorkRequestForm });
