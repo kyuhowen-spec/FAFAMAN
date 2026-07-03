@@ -380,51 +380,137 @@ const TweaksPanel = ({ show, currentUserId, onSetUser }) => {
   );
 };
 
-// Overtime request form modal
-const OvertimeRequestForm = ({ onClose, onSubmit, me }) => {
+// Additional Work request form modal (Overtime & Weekend Work)
+const AdditionalWorkRequestForm = ({ onClose, onSubmit, me }) => {
+  const [workType, setWorkType] = React.useState('overtime'); // 'overtime' | 'weekend'
   const [reason, setReason] = React.useState('');
+  
+  // For weekend work
+  const [weekendWorkDate, setWeekendWorkDate] = React.useState(window.PAPA_DATA.today.date);
+  const [weekendWorkDuration, setWeekendWorkDuration] = React.useState('halfday'); // 'halfday' | 'fullday'
   
   const now = new Date();
   const isPastDeadline = now.getHours() >= 18;
+
+  // Generate upcoming weekend options
+  const getWeekendOptions = () => {
+    const opts = [];
+    const base = new Date();
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(base.getTime() + i * 24 * 60 * 60 * 1000);
+      const wd = d.getDay();
+      if (wd === 0 || wd === 6) {
+        opts.push(d.toISOString().slice(0, 10));
+      }
+    }
+    return opts;
+  };
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <div className="eyebrow" style={{ color: '#8b5cf6' }}>🌙 OVERTIME (10 PM)</div>
-            <div className="h1" style={{ marginTop: 6 }}>야근 신청</div>
+            <div className="eyebrow" style={{ color: '#8b5cf6' }}>💼 ADDITIONAL WORK</div>
+            <div className="h1" style={{ marginTop: 6 }}>추가 근무 신청</div>
           </div>
           <button className="btn-icon" onClick={onClose} style={{ background: 'var(--bg)' }}>
             <Icon name="x" size={16}/>
           </button>
         </div>
 
-        <div style={{ padding: '14px 16px', background: 'var(--accent-soft)', borderRadius: 12, marginBottom: 20 }}>
-          <div style={{ fontSize: 13, color: 'var(--accent-dark)', fontWeight: 600, lineHeight: 1.5 }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <Icon name="info" size={12}/> 안내사항
-            </span>
-            <ul style={{ marginTop: 8, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 4, fontWeight: 500 }}>
-              <li>밤 10시 이후의 근무만 야근으로 집계됩니다.</li>
-              <li>사전 결재 승인을 받아야 퇴근 시 야근 시간으로 인정됩니다.</li>
-            </ul>
-          </div>
+        {/* Type selector */}
+        <div style={{ display: 'flex', background: 'var(--bg)', borderRadius: 12, padding: 4, marginBottom: 20 }}>
+          <button
+            style={{
+              flex: 1, padding: '10px', fontSize: 13, fontWeight: 700, borderRadius: 8,
+              background: workType === 'overtime' ? 'white' : 'transparent',
+              color: workType === 'overtime' ? 'var(--ink)' : 'var(--ink-soft)',
+              boxShadow: workType === 'overtime' ? '0 2px 8px rgba(0,0,0,.08)' : 'none',
+              border: 'none', cursor: 'pointer', transition: 'all .2s'
+            }}
+            onClick={() => setWorkType('overtime')}
+          >
+            야근 신청
+          </button>
+          <button
+            style={{
+              flex: 1, padding: '10px', fontSize: 13, fontWeight: 700, borderRadius: 8,
+              background: workType === 'weekend' ? 'white' : 'transparent',
+              color: workType === 'weekend' ? 'var(--ink)' : 'var(--ink-soft)',
+              boxShadow: workType === 'weekend' ? '0 2px 8px rgba(0,0,0,.08)' : 'none',
+              border: 'none', cursor: 'pointer', transition: 'all .2s'
+            }}
+            onClick={() => setWorkType('weekend')}
+          >
+            주말 근무 신청
+          </button>
         </div>
 
-        {isPastDeadline && (
-          <div style={{ marginBottom: 20, padding: 12, borderRadius: 10, background: 'var(--danger-soft)', color: 'var(--danger)' }}>
-            <div style={{ fontSize: 13, fontWeight: 700 }}>야근 당일 신청 마감 (18:00)</div>
-            <div style={{ fontSize: 12, marginTop: 4 }}>야근 신청은 당일 오후 6시 전까지만 가능합니다.</div>
-          </div>
+        {workType === 'overtime' && (
+          <>
+            <div style={{ padding: '14px 16px', background: 'var(--accent-soft)', borderRadius: 12, marginBottom: 20 }}>
+              <div style={{ fontSize: 13, color: 'var(--accent-dark)', fontWeight: 600, lineHeight: 1.5 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <Icon name="info" size={12}/> 야근 안내사항
+                </span>
+                <ul style={{ marginTop: 8, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 4, fontWeight: 500 }}>
+                  <li>밤 10시 이후의 근무만 야근으로 집계됩니다.</li>
+                  <li>사전 결재 승인을 받아야 퇴근 시 야근 시간으로 인정됩니다.</li>
+                </ul>
+              </div>
+            </div>
+
+            {isPastDeadline && (
+              <div style={{ marginBottom: 20, padding: 12, borderRadius: 10, background: 'var(--danger-soft)', color: 'var(--danger)' }}>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>야근 당일 신청 마감 (18:00)</div>
+                <div style={{ fontSize: 12, marginTop: 4 }}>야근 신청은 당일 오후 6시 전까지만 가능합니다.</div>
+              </div>
+            )}
+          </>
+        )}
+
+        {workType === 'weekend' && (
+          <>
+            <div style={{ padding: '14px 16px', background: 'var(--ok-soft)', borderRadius: 12, marginBottom: 20 }}>
+              <div style={{ fontSize: 13, color: 'var(--ok-dark)', fontWeight: 600, lineHeight: 1.5 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <Icon name="info" size={12}/> 주말 근무 안내사항
+                </span>
+                <ul style={{ marginTop: 8, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 4, fontWeight: 500 }}>
+                  <li>반일 근무(4시간 30분)와 종일 근무(9시간 이상) 중 선택합니다.</li>
+                  <li>디렉터 및 대표이사의 승인이 완료되어야 주말 당일 시스템 출근이 가능합니다.</li>
+                  <li>결재가 완료되면 캘린더에 일정이 자동으로 표출됩니다.</li>
+                </ul>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+              <div>
+                <div className="eyebrow" style={{ marginBottom: 8 }}>근무 날짜</div>
+                <select className="input" value={weekendWorkDate} onChange={e => setWeekendWorkDate(e.target.value)}>
+                  {getWeekendOptions().map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <div className="eyebrow" style={{ marginBottom: 8 }}>근무 형태</div>
+                <select className="input" value={weekendWorkDuration} onChange={e => setWeekendWorkDuration(e.target.value)}>
+                  <option value="halfday">반일 근무 (4.5시간)</option>
+                  <option value="fullday">종일 근무 (9시간~)</option>
+                </select>
+              </div>
+            </div>
+          </>
         )}
 
         {/* Reason */}
         <div style={{ marginBottom: 20 }}>
-          <div className="eyebrow" style={{ marginBottom: 8 }}>야근 사유 <span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--danger)', fontWeight: 500 }}>(필수)</span></div>
-          <textarea className="input" rows="3" placeholder="어떤 업무로 인해 야근이 필요한지 작성해주세요"
+          <div className="eyebrow" style={{ marginBottom: 8 }}>{workType === 'overtime' ? '야근' : '주말 근무'} 사유 <span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--danger)', fontWeight: 500 }}>(필수)</span></div>
+          <textarea className="input" rows="3" placeholder={`어떤 업무로 인해 ${workType === 'overtime' ? '야근' : '주말 근무'}이/가 필요한지 작성해주세요`}
             value={reason} onChange={e => setReason(e.target.value)}
-            disabled={isPastDeadline}
+            disabled={workType === 'overtime' && isPastDeadline}
             style={{ resize: 'none', fontFamily: 'inherit' }}/>
         </div>
 
@@ -432,9 +518,9 @@ const OvertimeRequestForm = ({ onClose, onSubmit, me }) => {
           <button className="btn btn-ghost btn-lg" onClick={onClose} style={{ flex: 1 }}>취소</button>
           <button
             className="btn btn-primary btn-lg"
-            onClick={() => onSubmit({ reason })}
-            disabled={!reason.trim() || isPastDeadline}
-            style={{ flex: 2, opacity: (!reason.trim() || isPastDeadline) ? .4 : 1, cursor: (!reason.trim() || isPastDeadline) ? 'not-allowed' : 'pointer' }}
+            onClick={() => onSubmit({ type: workType, reason, date: weekendWorkDate, duration: weekendWorkDuration })}
+            disabled={!reason.trim() || (workType === 'overtime' && isPastDeadline)}
+            style={{ flex: 2, opacity: (!reason.trim() || (workType === 'overtime' && isPastDeadline)) ? .4 : 1, cursor: (!reason.trim() || (workType === 'overtime' && isPastDeadline)) ? 'not-allowed' : 'pointer' }}
           >
             신청하기
           </button>

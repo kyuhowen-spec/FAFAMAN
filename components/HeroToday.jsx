@@ -1,5 +1,5 @@
 // Today's me hero - refined compact design
-const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChangeLunch, onShowLeaveForm, onShowOvertimeForm, onShowOutsideWorkForm, onShowRecheckInForm, clockSecs }) => {
+const HeroToday = ({ me, attendance, approvals, penaltyMode, onCheckIn, onCheckOut, onChangeLunch, onShowLeaveForm, onShowAdditionalWorkForm, onShowOutsideWorkForm, onShowRecheckInForm, clockSecs }) => {
   const emp = getEmployee(me);
   const att = attendance[me] || {};
   const status = att.status || 'not_checked_in';
@@ -12,6 +12,19 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
   // 퇴근 후 다시 출근 가능 (오후 6시부터 다음날 오전 9시 전까지는 차단)
   const canCheckIn = (() => {
     if (!notIn && !isCheckedOut) return false; // 이미 근무중이면 출근 불가
+    
+    // Check if weekend
+    const todayStr = window.PAPA_DATA.today.date;
+    const isWeekend = window.PAPA_DATA.today.weekday === '토' || window.PAPA_DATA.today.weekday === '일';
+    
+    if (isWeekend) {
+      // Must have approved weekend work
+      const hasApproval = (approvals || []).some(a => 
+        a.empId === me && a.isWeekendWork && a.stage === 'approved' && a.start === todayStr
+      );
+      if (!hasApproval) return false;
+    }
+
     return true; // 퇴근 후에도 재출근 가능하게 허용 (모달 호출)
   })();
 
@@ -231,9 +244,9 @@ const HeroToday = ({ me, attendance, penaltyMode, onCheckIn, onCheckOut, onChang
           <button className="btn btn-lg" style={{
             background: 'rgba(255,255,255,.14)', color: 'white',
             border: '1px solid rgba(255,255,255,.24)',
-          }} onClick={onShowOvertimeForm}>
-            <Icon name="moon" size={14} />
-            야근 신청
+          }} onClick={onShowAdditionalWorkForm}>
+            <Icon name="briefcase" size={14} />
+            추가 근무
           </button>
 
           {/* Lunch selector — not for admin */}

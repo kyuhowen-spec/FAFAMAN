@@ -39,12 +39,24 @@ const AttendanceReviewPage = () => {
         }
       }
     }
+
+    // Add weekend work from approvals
+    record.weekendHalf = 0;
+    record.weekendFull = 0;
+    const weekendApprovals = (window.PAPA_DATA.approvals || []).filter(a => 
+      a.empId === empId && a.isWeekendWork && a.stage === 'approved' && a.start && a.start.startsWith(selectedMonth)
+    );
+    weekendApprovals.forEach(a => {
+      if (a.duration === 'halfday') record.weekendHalf += 1;
+      else record.weekendFull += 1;
+    });
+
     return record;
   };
 
   const handleDownloadExcel = () => {
     // Generate CSV content
-    const headers = ['이름', '부서', '근무 일수', '총 근무 시간 (시간)', '총 야근/연장 시간 (분)'];
+    const headers = ['이름', '부서', '근무 일수', '총 근무 시간 (시간)', '총 야근/연장 시간 (분)', '총 주말 반일 (건)', '총 주말 종일 (건)'];
     const rows = employees.map(emp => {
       const record = getLiveRecord(emp.id);
       return [
@@ -52,7 +64,9 @@ const AttendanceReviewPage = () => {
         (emp.team || (emp.department === 'EX' ? '디렉터' : emp.department)),
         record.days,
         record.hours,
-        record.overtime
+        record.overtime,
+        record.weekendHalf,
+        record.weekendFull
       ];
     });
 
@@ -110,6 +124,7 @@ const AttendanceReviewPage = () => {
               <th style={{ padding: '16px 20px', fontWeight: 700, color: 'var(--ink-mute)' }}>근무 일수</th>
               <th style={{ padding: '16px 20px', fontWeight: 700, color: 'var(--ink-mute)' }}>총 근무 시간</th>
               <th style={{ padding: '16px 20px', fontWeight: 700, color: 'var(--ink-mute)' }}>총 야근/연장</th>
+              <th style={{ padding: '16px 20px', fontWeight: 700, color: 'var(--ink-mute)' }}>총 주말 근무</th>
             </tr>
           </thead>
           <tbody>
@@ -144,6 +159,16 @@ const AttendanceReviewPage = () => {
                     {record.overtime > 0 ? (
                       <span style={{ fontWeight: 600, color: 'var(--danger)' }}>
                         {Math.floor(record.overtime / 60)}시간 {record.overtime % 60}분
+                      </span>
+                    ) : (
+                      <span style={{ color: 'var(--ink-mute)' }}>-</span>
+                    )}
+                  </td>
+                  <td style={{ padding: '16px 20px' }}>
+                    {(record.weekendHalf > 0 || record.weekendFull > 0) ? (
+                      <span style={{ fontWeight: 600, color: 'var(--ok-dark)' }}>
+                        {record.weekendHalf > 0 && `반일 ${record.weekendHalf} `}
+                        {record.weekendFull > 0 && `종일 ${record.weekendFull}`}
                       </span>
                     ) : (
                       <span style={{ color: 'var(--ink-mute)' }}>-</span>

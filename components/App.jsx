@@ -60,7 +60,7 @@ const App = () => {
 
   const [showLeaveForm, setShowLeaveForm] = React.useState(false);
   const [showLunchForm, setShowLunchForm] = React.useState(false);
-  const [showOvertimeForm, setShowOvertimeForm] = React.useState(false);
+  const [showAdditionalWorkForm, setShowAdditionalWorkForm] = React.useState(false);
   const [showOutsideWorkForm, setShowOutsideWorkForm] = React.useState(false);
   const [showRecheckInForm, setShowRecheckInForm] = React.useState(false);
   const [toast, setToast] = React.useState(() => {
@@ -382,31 +382,60 @@ const App = () => {
     }
   };
 
-  const handleSubmitOvertime = ({ reason }) => {
-    const tl = window.PAPA_DATA.employees.find(e => e.team === me.team && e.role === 'senior' && e.id !== me.id);
-    const assignedSenior = tl ? tl.id : 'kh';
-    const targetIsAdmin = assignedSenior === 'kh';
-    const newAppr = {
-      id: `overtime${Date.now()}`,
-      empId: currentUserId,
-      type: '야근',
-      subtype: 'overtime',
-      start: window.PAPA_DATA.today.date,
-      end: window.PAPA_DATA.today.date,
-      days: 0,
-      reason: reason,
-      appliedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
-      stage: me.role === 'admin' ? 'approved' : (targetIsAdmin ? 'pending_admin' : 'pending_senior'),
-      isOvertime: true,
-      assignedSenior: assignedSenior,
-    };
-    setApprovals(prev => [newAppr, ...prev]);
-    setShowOvertimeForm(false);
-    if (me.role === 'admin') {
-      setToast({ text: '야근 자동 승인', icon: 'check' });
-    } else {
-      const seniorName = getEmployee(assignedSenior).name;
-      setToast({ text: `${seniorName}에게 야근 승인 요청 완료`, icon: 'moon' });
+  const handleSubmitAdditionalWork = (payload) => {
+    if (payload.type === 'overtime') {
+      const tl = window.PAPA_DATA.employees.find(e => e.team === me.team && e.role === 'senior' && e.id !== me.id);
+      const assignedSenior = tl ? tl.id : 'kh';
+      const targetIsAdmin = assignedSenior === 'kh';
+      const newAppr = {
+        id: `overtime${Date.now()}`,
+        empId: currentUserId,
+        type: '야근',
+        subtype: 'overtime',
+        start: window.PAPA_DATA.today.date,
+        end: window.PAPA_DATA.today.date,
+        days: 0,
+        reason: payload.reason,
+        appliedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
+        stage: me.role === 'admin' ? 'approved' : (targetIsAdmin ? 'pending_admin' : 'pending_senior'),
+        isOvertime: true,
+        assignedSenior: assignedSenior,
+      };
+      setApprovals(prev => [newAppr, ...prev]);
+      setShowAdditionalWorkForm(false);
+      if (me.role === 'admin') {
+        setToast({ text: '야근 자동 승인', icon: 'check' });
+      } else {
+        const seniorName = getEmployee(assignedSenior).name;
+        setToast({ text: `${seniorName}에게 야근 승인 요청 완료`, icon: 'moon' });
+      }
+    } else if (payload.type === 'weekend') {
+      const director = window.PAPA_DATA.employees.find(e => e.department === me.department && ['디렉터', '대표이사'].includes(e.title) && e.id !== me.id);
+      const assignedSenior = director ? director.id : 'kh';
+      const targetIsAdmin = assignedSenior === 'kh';
+      const newAppr = {
+        id: `weekend${Date.now()}`,
+        empId: currentUserId,
+        type: '주말 근무',
+        subtype: 'weekend_work',
+        start: payload.date,
+        end: payload.date,
+        days: payload.duration === 'halfday' ? 0.5 : 1,
+        duration: payload.duration,
+        reason: payload.reason,
+        appliedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
+        stage: me.role === 'admin' ? 'approved' : (targetIsAdmin ? 'pending_admin' : 'pending_senior'),
+        isWeekendWork: true,
+        assignedSenior: assignedSenior,
+      };
+      setApprovals(prev => [newAppr, ...prev]);
+      setShowAdditionalWorkForm(false);
+      if (me.role === 'admin') {
+        setToast({ text: '주말 근무 자동 승인', icon: 'check' });
+      } else {
+        const seniorName = getEmployee(assignedSenior).name;
+        setToast({ text: `${seniorName}에게 주말 근무 승인 요청 완료`, icon: 'briefcase' });
+      }
     }
   };
 
@@ -475,6 +504,9 @@ const App = () => {
           ...prevAtt,
           [a.empId]: { ...prevAtt[a.empId], status: 'working' }
         }));
+        return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId, cc: getOvertimeCC() };
+      }
+      if (a.isWeekendWork) {
         return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId, cc: getOvertimeCC() };
       }
       if (a.isOutsideWork) {
@@ -623,9 +655,27 @@ const App = () => {
       
       const s = new Date(a.start);
       const e = new Date(a.end);
-      const typeStr = a.type === '외근' ? `${a.hours}시간 외근` : a.type;
-      const evType = a.type === '반차' ? 'halfday' : (a.type === '외근' ? 'holiday' : 'vacation');
+      let typeStr = a.type === '외근' ? `${a.hours}시간 외근` : a.type;
+      let evType = a.type === '반차' ? 'halfday' : (a.type === '외근' ? 'holiday' : 'vacation');
       
+      if (a.isWeekendWork) {
+        typeStr = a.duration === 'halfday' ? '주말 반일 근무' : '주말 종일 근무';
+        evType = 'halfday';
+        const addEventFor = (id) => {
+          const eEmp = window.PAPA_DATA.employees.find(x => x.id === id);
+          if (!eEmp) return;
+          leaveEvents.push({
+            date: a.start,
+            type: evType,
+            empId: id,
+            label: `${eEmp.name} ${typeStr}`,
+            reason: a.reason,
+          });
+        };
+        addEventFor(a.empId);
+        return;
+      }
+
       let cur = new Date(s);
       while (cur <= e) {
         const wd = cur.getDay();
@@ -700,7 +750,7 @@ const App = () => {
               onApprove={handleApprove}
               onReject={handleReject}
               onShowLeaveForm={() => setShowLeaveForm(true)}
-              onShowOvertimeForm={() => setShowOvertimeForm(true)}
+              onShowOvertimeForm={() => setShowAdditionalWorkForm(true)}
               onShowOutsideWorkForm={() => setShowOutsideWorkForm(true)}
               onShowRecheckInForm={() => {
                 const isExecutive = ['대표이사', '디렉터'].includes(me.title) || me.role === 'admin';
@@ -787,10 +837,10 @@ const App = () => {
           onSubmit={handleSubmitLunch}
         />
       )}
-      {showOvertimeForm && <OvertimeRequestForm
+      {showAdditionalWorkForm && <AdditionalWorkRequestForm
         me={me}
-        onClose={() => setShowOvertimeForm(false)}
-        onSubmit={handleSubmitOvertime}
+        onClose={() => setShowAdditionalWorkForm(false)}
+        onSubmit={handleSubmitAdditionalWork}
       />}
       {showOutsideWorkForm && <OutsideWorkRequestForm
         me={me}
@@ -922,7 +972,7 @@ const PlaceholderPage = ({ tabKey }) => {
 // Dashboard page layout
 const DashboardPage = ({
   me, myRole, attendance, approvals, lateCounter, lateLogs, penaltyMode, clockSecs,
-  onCheckIn, onCheckOut, onChangeLunch, onApprove, onReject, onShowLeaveForm, onShowOvertimeForm, onShowOutsideWorkForm, onShowRecheckInForm, onSelectMember }) => {
+  onCheckIn, onCheckOut, onChangeLunch, onApprove, onReject, onShowLeaveForm, onShowAdditionalWorkForm, onShowOutsideWorkForm, onShowRecheckInForm, onSelectMember }) => {
   const data = window.PAPA_DATA;
   const isSeniorOrAdmin = myRole === 'senior' || myRole === 'admin';
   const emp = getEmployee(me);
@@ -967,7 +1017,8 @@ const DashboardPage = ({
           onCheckOut={onCheckOut}
           onChangeLunch={onChangeLunch}
           onShowLeaveForm={onShowLeaveForm}
-          onShowOvertimeForm={onShowOvertimeForm}
+          onShowAdditionalWorkForm={onShowAdditionalWorkForm}
+          approvals={approvals}
           onShowOutsideWorkForm={onShowOutsideWorkForm}
           onShowRecheckInForm={onShowRecheckInForm}
         />
