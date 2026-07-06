@@ -836,7 +836,7 @@ const App = () => {
               onApprove={handleApprove}
               onReject={handleReject}
               onShowLeaveForm={() => setShowLeaveForm(true)}
-              onShowOvertimeForm={() => setShowAdditionalWorkForm(true)}
+              onShowAdditionalWorkForm={() => setShowAdditionalWorkForm(true)}
               onShowOutsideWorkForm={() => setShowOutsideWorkForm(true)}
               onShowRecheckInForm={() => {
                 const isExecutive = ['대표이사', '디렉터'].includes(me.title) || me.role === 'admin';
