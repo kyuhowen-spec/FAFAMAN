@@ -41,22 +41,23 @@ const App = () => {
     return now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
   });
 
-  // Auto-sync state changes to window.PAPA_DATA and Firestore
+  // Sync incoming real-time data changes from Firestore back to local state
   React.useEffect(() => {
-    let changed = false;
-    if (data.attendance !== attendance) { data.attendance = attendance; changed = true; }
-    if (data.penaltyMode !== penaltyMode) { data.penaltyMode = penaltyMode; changed = true; }
-    if (data.lateCounter !== lateCounter) { data.lateCounter = lateCounter; changed = true; }
-    if (data.monthlyOvertime !== monthlyOvertime) { data.monthlyOvertime = monthlyOvertime; changed = true; }
-    if (data.lateLogs !== lateLogs) { data.lateLogs = lateLogs; changed = true; }
-    if (data.approvals !== approvals) { data.approvals = approvals; changed = true; }
-    if (data.payroll !== payroll) { data.payroll = payroll; changed = true; }
-    if (data.certTemplate !== certTemplate) { data.certTemplate = certTemplate; changed = true; }
-    
-    if (changed && window.savePapaData) {
-      window.savePapaData();
-    }
-  }, [attendance, penaltyMode, lateCounter, lateLogs, approvals, payroll, certTemplate, monthlyOvertime]);
+    const handleSync = () => {
+      const data = window.PAPA_DATA;
+      setAttendance(data.attendance);
+      setPenaltyMode(data.penaltyMode || {});
+      setLateCounter(data.lateCounter);
+      setMonthlyOvertime(data.monthlyOvertime || {});
+      setLateLogs(data.lateLogs);
+      setApprovals(data.approvals);
+      setPayroll(data.payroll);
+      setPayrollSchema(data.payrollSchema);
+      setCertTemplate(data.certTemplate);
+    };
+    window.addEventListener('papa-data-updated', handleSync);
+    return () => window.removeEventListener('papa-data-updated', handleSync);
+  }, []);
 
   const [showLeaveForm, setShowLeaveForm] = React.useState(false);
   const [showLunchForm, setShowLunchForm] = React.useState(false);
@@ -168,15 +169,16 @@ const App = () => {
           sessionSecs = Math.max(0, currentSecs - (h * 3600 + m * 60));
         }
         
-        currentAtt.accumulatedSecs = (currentAtt.accumulatedSecs || 0) + sessionSecs;
-        currentAtt.status = 'checked_out';
-        currentAtt.checkIn = null;
-        currentAtt.checkedOutAt = now.toISOString();
-        
-        setAttendance(prev => ({ ...prev, [currentUserId]: currentAtt }));
-        
-        if (window.savePapaData) {
-          window.savePapaData();
+        if (window.apiMutatePapaData) {
+          window.apiMutatePapaData(data => {
+            if (!data.attendance) data.attendance = {};
+            if (!data.attendance[currentUserId]) data.attendance[currentUserId] = {};
+            
+            data.attendance[currentUserId].accumulatedSecs = (data.attendance[currentUserId].accumulatedSecs || 0) + sessionSecs;
+            data.attendance[currentUserId].status = 'checked_out';
+            data.attendance[currentUserId].checkIn = null;
+            data.attendance[currentUserId].checkedOutAt = now.toISOString();
+          });
         }
       }
       
@@ -217,12 +219,13 @@ const App = () => {
     const lateMins = Math.max(0, checkInMins - deadlineMins);
     const wasLate = lateMins > 0;
 
-    setAttendance(prev => {
-      const prevAtt = prev[currentUserId] || {};
-      const isFirst = !prevAtt.firstCheckIn;
-      return {
-        ...prev,
-        [currentUserId]: {
+    if (window.apiMutatePapaData) {
+      window.apiMutatePapaData(data => {
+        if (!data.attendance) data.attendance = {};
+        const prevAtt = data.attendance[currentUserId] || {};
+        const isFirst = !prevAtt.firstCheckIn;
+
+        data.attendance[currentUserId] = {
           ...prevAtt,
           status: 'working',
           checkIn,
@@ -231,46 +234,49 @@ const App = () => {
           lunch: prevAtt.lunch || 60,
           wasLate: isFirst ? wasLate : prevAtt.wasLate,
           lateMins: isFirst ? lateMins : prevAtt.lateMins,
-        },
-      };
-    });
+        };
 
-    const isFirstTimeCheckIn = !attendance[currentUserId]?.firstCheckIn;
-    if (wasLate && isFirstTimeCheckIn) {
-      const today = window.PAPA_DATA.today.date;
-      const reasonNote = inPenalty ? '(벌칙 근태 · 10시 마감 조과)' : '(자동 기록 · 체크인 시각 기준)';
-      const newLog = {
-        id: 'll_' + Date.now(),
-        empId: currentUserId,
-        date: today,
-        time: checkIn,
-        delta: lateMins,
-        reason: reasonNote,
-      };
-      setLateLogs(prev => [newLog, ...prev]);
+        if (wasLate && isFirst) {
+          const today = data.today.date;
+          const reasonNote = inPenalty ? '(벌칙 근태 · 10시 마감 조과)' : '(자동 기록 · 체크인 시각 기준)';
+          const newLog = {
+            id: 'll_' + Date.now(),
+            empId: currentUserId,
+            date: today,
+            time: checkIn,
+            delta: lateMins,
+            reason: reasonNote,
+          };
+          if (!data.lateLogs) data.lateLogs = [];
+          data.lateLogs.unshift(newLog);
 
-      // Increment counter; trigger penalty at 5
-      setLateCounter(prev => {
-        const next = (prev[currentUserId] || 0) + 1;
-        if (next >= 5 && !penaltyMode[currentUserId]) {
-          // Start penalty tomorrow, 7 days
-          const tmr = new Date(today);
-          tmr.setDate(tmr.getDate() + 1);
-          const end = new Date(tmr);
-          end.setDate(end.getDate() + 6);
-          const iso = (d) => d.toISOString().slice(0, 10);
-          setPenaltyMode(pm => ({
-            ...pm,
-            [currentUserId]: { startDate: iso(tmr), endDate: iso(end), reason: '지각 5회 누적' },
-          }));
-          setToast({ text: `⚠️ 지각 5회 도달 · 내일부터 7일간 10시 출근 벌칙 적용`, icon: 'flame' });
-          return { ...prev, [currentUserId]: next };
+          if (!data.lateCounter) data.lateCounter = {};
+          const next = (data.lateCounter[currentUserId] || 0) + 1;
+          data.lateCounter[currentUserId] = next;
+
+          if (next >= 5 && (!data.penaltyMode || !data.penaltyMode[currentUserId])) {
+            const tmr = new Date(today);
+            tmr.setDate(tmr.getDate() + 1);
+            const end = new Date(tmr);
+            end.setDate(end.getDate() + 6);
+            const iso = (d) => d.toISOString().slice(0, 10);
+            if (!data.penaltyMode) data.penaltyMode = {};
+            data.penaltyMode[currentUserId] = { startDate: iso(tmr), endDate: iso(end), reason: '지각 5회 누적' };
+          }
         }
-        setToast({ text: `${checkIn} 체크인 · ${lateMins}분 지각 자동 기록`, icon: 'alert-triangle' });
-        return { ...prev, [currentUserId]: next };
       });
-    } else {
-      setToast({ text: `${checkIn} 출근 체크인 완료`, icon: 'check' });
+
+      const isFirstTimeCheckIn = !attendance[currentUserId]?.firstCheckIn;
+      if (wasLate && isFirstTimeCheckIn) {
+        const next = (lateCounter[currentUserId] || 0) + 1;
+        if (next >= 5 && !penaltyMode[currentUserId]) {
+          setToast({ text: `⚠️ 지각 5회 도달 · 내일부터 7일간 10시 출근 벌칙 적용`, icon: 'flame' });
+        } else {
+          setToast({ text: `${checkIn} 체크인 · ${lateMins}분 지각 자동 기록`, icon: 'alert-triangle' });
+        }
+      } else {
+        setToast({ text: `${checkIn} 출근 체크인 완료`, icon: 'check' });
+      }
     }
   };
   const [showCheckOutConfirm, setShowCheckOutConfirm] = React.useState(false);
@@ -296,34 +302,32 @@ const App = () => {
       }
     }
 
-    if (overtimeMins > 0) {
-      setMonthlyOvertime(prev => ({
-        ...prev,
-        [currentUserId]: (prev[currentUserId] || 0) + overtimeMins,
-      }));
-    }
+    if (window.apiMutatePapaData) {
+      window.apiMutatePapaData(data => {
+        if (overtimeMins > 0) {
+          if (!data.monthlyOvertime) data.monthlyOvertime = {};
+          data.monthlyOvertime[currentUserId] = (data.monthlyOvertime[currentUserId] || 0) + overtimeMins;
+        }
 
-    setAttendance(prev => {
-      const prevAtt = prev[currentUserId] || {};
-      let sessionSecs = 0;
-      if (prevAtt.checkIn) {
-        const [ch, cm] = prevAtt.checkIn.split(':').map(Number);
-        const baseSecs = ch * 3600 + cm * 60;
-        const currentSecs = h * 3600 + m * 60 + kstTime.getSeconds();
-        sessionSecs = Math.max(0, currentSecs - baseSecs);
-      }
-      
-      return {
-        ...prev,
-        [currentUserId]: {
+        if (!data.attendance) data.attendance = {};
+        const prevAtt = data.attendance[currentUserId] || {};
+        let sessionSecs = 0;
+        if (prevAtt.checkIn) {
+          const [ch, cm] = prevAtt.checkIn.split(':').map(Number);
+          const baseSecs = ch * 3600 + cm * 60;
+          const currentSecs = h * 3600 + m * 60 + kstTime.getSeconds();
+          sessionSecs = Math.max(0, currentSecs - baseSecs);
+        }
+        
+        data.attendance[currentUserId] = {
           ...prevAtt,
           status: 'checked_out',
           accumulatedSecs: (prevAtt.accumulatedSecs || 0) + sessionSecs,
           checkIn: null,
           checkedOutAt: now.toISOString(),
-        },
-      };
-    });
+        };
+      });
+    }
     setShowCheckOutConfirm(false);
     if (overtimeMins > 0) {
       setToast({ text: `오늘 수고하셨어요 👋 (야근 ${Math.floor(overtimeMins / 60)}h ${overtimeMins % 60}m 적립)`, icon: 'moon' });
@@ -334,10 +338,16 @@ const App = () => {
 
   const handleChangeLunch = (mins) => {
     if (mins === 60) {
-      setAttendance(prev => ({
-        ...prev,
-        [currentUserId]: { ...prev[currentUserId], lunch: 60, lunchSlot: null, lunchStatus: null },
-      }));
+      if (window.apiMutatePapaData) {
+        window.apiMutatePapaData(data => {
+          if (!data.attendance) data.attendance = {};
+          if (data.attendance[currentUserId]) {
+            data.attendance[currentUserId].lunch = 60;
+            data.attendance[currentUserId].lunchSlot = null;
+            data.attendance[currentUserId].lunchStatus = null;
+          }
+        });
+      }
       setToast({ text: '점심 1시간으로 변경', icon: 'coffee' });
     } else {
       // 90 minutes → must go through approval
@@ -346,12 +356,6 @@ const App = () => {
   };
 
   const handleSubmitLunch = ({ slot, note, assignedSenior }) => {
-    // Set pending state on user's attendance
-    setAttendance(prev => ({
-      ...prev,
-      [currentUserId]: { ...prev[currentUserId], lunch: 90, lunchSlot: slot, lunchStatus: 'pending', lunchNote: note },
-    }));
-    // Add approval record
     const targetIsAdmin = assignedSenior && getEmployee(assignedSenior).role === 'admin';
     const newAppr = {
       id: `lunch${Date.now()}`,
@@ -368,13 +372,24 @@ const App = () => {
       lunchSlot: slot,
       assignedSenior: assignedSenior || null,
     };
-    setApprovals(prev => [newAppr, ...prev]);
+
+    if (window.apiMutatePapaData) {
+      window.apiMutatePapaData(data => {
+        if (!data.attendance) data.attendance = {};
+        if (!data.attendance[currentUserId]) data.attendance[currentUserId] = {};
+        
+        data.attendance[currentUserId].lunch = 90;
+        data.attendance[currentUserId].lunchSlot = slot;
+        data.attendance[currentUserId].lunchStatus = me.role === 'admin' ? 'approved' : 'pending';
+        data.attendance[currentUserId].lunchNote = note;
+
+        if (!data.approvals) data.approvals = [];
+        data.approvals.unshift(newAppr);
+      });
+    }
+
     setShowLunchForm(false);
     if (me.role === 'admin') {
-      setAttendance(prev => ({
-        ...prev,
-        [currentUserId]: { ...prev[currentUserId], lunchStatus: 'approved' },
-      }));
       setToast({ text: '점심 1.5h 자동 승인', icon: 'check' });
     } else {
       const seniorName = assignedSenior ? getEmployee(assignedSenior).name : '결재권자';
@@ -401,7 +416,14 @@ const App = () => {
         isOvertime: true,
         assignedSenior: assignedSenior,
       };
-      setApprovals(prev => [newAppr, ...prev]);
+
+      if (window.apiMutatePapaData) {
+        window.apiMutatePapaData(data => {
+          if (!data.approvals) data.approvals = [];
+          data.approvals.unshift(newAppr);
+        });
+      }
+
       setShowAdditionalWorkForm(false);
       if (me.role === 'admin') {
         setToast({ text: '야근 자동 승인', icon: 'check' });
@@ -428,7 +450,14 @@ const App = () => {
         isWeekendWork: true,
         assignedSenior: assignedSenior,
       };
-      setApprovals(prev => [newAppr, ...prev]);
+
+      if (window.apiMutatePapaData) {
+        window.apiMutatePapaData(data => {
+          if (!data.approvals) data.approvals = [];
+          data.approvals.unshift(newAppr);
+        });
+      }
+
       setShowAdditionalWorkForm(false);
       if (me.role === 'admin') {
         setToast({ text: '주말 근무 자동 승인', icon: 'check' });
@@ -458,13 +487,22 @@ const App = () => {
       isRecheckIn: true,
       assignedSenior: assignedSenior,
     };
-    setApprovals(prev => [newAppr, ...prev]);
+
+    if (window.apiMutatePapaData) {
+      window.apiMutatePapaData(data => {
+        if (!data.approvals) data.approvals = [];
+        data.approvals.unshift(newAppr);
+        
+        if (isExecutive) {
+          if (!data.attendance) data.attendance = {};
+          if (!data.attendance[currentUserId]) data.attendance[currentUserId] = {};
+          data.attendance[currentUserId].status = 'working';
+        }
+      });
+    }
+
     setShowRecheckInForm(false);
     if (isExecutive) {
-      setAttendance(prevAtt => ({
-        ...prevAtt,
-        [currentUserId]: { ...prevAtt[currentUserId], status: 'working' }
-      }));
       setToast({ text: '재출근 자동 승인', icon: 'check' });
     } else {
       const seniorName = getEmployee(assignedSenior).name;
@@ -473,76 +511,107 @@ const App = () => {
   };
 
   const handleApprove = (id) => {
-    setApprovals(prev => prev.map(a => {
-      if (a.id !== id) return a;
-      const meEmp = getEmployee(currentUserId);
-      const applicant = getEmployee(a.empId);
-      
-      const getLeaveCC = () => {
-        const tl = window.PAPA_DATA.employees.find(e => e.team === applicant.team && e.role === 'senior' && e.id !== applicant.id);
-        return tl ? [tl.id] : [];
-      };
+    if (window.apiMutatePapaData) {
+      window.apiMutatePapaData(data => {
+        if (!data.approvals) return;
+        
+        const aIndex = data.approvals.findIndex(a => a.id === id);
+        if (aIndex === -1) return;
+        const a = { ...data.approvals[aIndex] };
+        
+        const meEmp = getEmployee(currentUserId);
+        const applicant = getEmployee(a.empId);
+        
+        const getLeaveCC = () => {
+          const tl = window.PAPA_DATA.employees.find(e => e.team === applicant.team && e.role === 'senior' && e.id !== applicant.id);
+          return tl ? [tl.id] : [];
+        };
 
-      const getOvertimeCC = () => {
-        const directors = window.PAPA_DATA.employees.filter(e => e.department === 'EX').map(e => e.id);
-        return Array.from(new Set(['kh', ...directors])).filter(id => id !== currentUserId && id !== applicant.id);
-      };
+        const getOvertimeCC = () => {
+          const directors = window.PAPA_DATA.employees.filter(e => e.department === 'EX').map(e => e.id);
+          return Array.from(new Set(['kh', ...directors])).filter(id => id !== currentUserId && id !== applicant.id);
+        };
 
-      // Lunch & Overtime requests only need senior approval (not a full two-stage flow)
-      if (a.isLunch) {
-        setAttendance(prevAtt => ({
-          ...prevAtt,
-          [a.empId]: { ...prevAtt[a.empId], lunchStatus: 'approved' },
-        }));
-        return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId };
-      }
-      if (a.isOvertime) {
-        return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId, cc: getOvertimeCC() };
-      }
-      if (a.isRecheckIn) {
-        setAttendance(prevAtt => ({
-          ...prevAtt,
-          [a.empId]: { ...prevAtt[a.empId], status: 'working' }
-        }));
-        return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId, cc: getOvertimeCC() };
-      }
-      if (a.isWeekendWork) {
-        return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId, cc: getOvertimeCC() };
-      }
-      if (a.isOutsideWork) {
-        if (a.start === window.PAPA_DATA.today.date) {
-          setAttendance(prevAtt => {
-            const nextAtt = { ...prevAtt };
+        // Lunch & Overtime requests only need senior approval (not a full two-stage flow)
+        if (a.isLunch) {
+          if (!data.attendance) data.attendance = {};
+          if (!data.attendance[a.empId]) data.attendance[a.empId] = {};
+          data.attendance[a.empId].lunchStatus = 'approved';
+          
+          a.stage = 'approved';
+          a.approvedAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
+          a.approvedBy = currentUserId;
+        }
+        else if (a.isOvertime) {
+          a.stage = 'approved';
+          a.approvedAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
+          a.approvedBy = currentUserId;
+          a.cc = getOvertimeCC();
+        }
+        else if (a.isRecheckIn) {
+          if (!data.attendance) data.attendance = {};
+          if (!data.attendance[a.empId]) data.attendance[a.empId] = {};
+          data.attendance[a.empId].status = 'working';
+
+          a.stage = 'approved';
+          a.approvedAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
+          a.approvedBy = currentUserId;
+          a.cc = getOvertimeCC();
+        }
+        else if (a.isWeekendWork) {
+          a.stage = 'approved';
+          a.approvedAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
+          a.approvedBy = currentUserId;
+          a.cc = getOvertimeCC();
+        }
+        else if (a.isOutsideWork) {
+          if (a.start === data.today.date) {
+            if (!data.attendance) data.attendance = {};
             const addSecs = a.hours * 3600;
             const affectedIds = [a.empId, ...(a.coworkers || [])];
-            affectedIds.forEach(id => {
-              const empAtt = nextAtt[id] || {};
-              nextAtt[id] = { ...empAtt, accumulatedSecs: (empAtt.accumulatedSecs || 0) + addSecs };
+            affectedIds.forEach(eid => {
+              if (!data.attendance[eid]) data.attendance[eid] = {};
+              data.attendance[eid].accumulatedSecs = (data.attendance[eid].accumulatedSecs || 0) + addSecs;
             });
-            return nextAtt;
-          });
+          }
+          a.stage = 'approved';
+          a.approvedAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
+          a.approvedBy = currentUserId;
+          a.cc = getLeaveCC();
         }
-        return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId, cc: getLeaveCC() };
-      }
-      if (meEmp.role === 'senior' && a.stage === 'pending_senior') {
-        return { ...a, stage: 'pending_admin', seniorApprovedAt: new Date().toISOString().slice(0, 16).replace('T', ' ') };
-      }
-      if (meEmp.role === 'admin') return { ...a, stage: 'approved', approvedAt: new Date().toISOString().slice(0, 16).replace('T', ' '), approvedBy: currentUserId, cc: getLeaveCC() };
-      return a;
-    }));
+        else if (meEmp.role === 'senior' && a.stage === 'pending_senior') {
+          a.stage = 'pending_admin';
+          a.seniorApprovedAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
+        }
+        else if (meEmp.role === 'admin') {
+          a.stage = 'approved';
+          a.approvedAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
+          a.approvedBy = currentUserId;
+          a.cc = getLeaveCC();
+        }
+        
+        data.approvals[aIndex] = a;
+      });
+    }
     setToast({ text: '결재 승인 완료', icon: 'check' });
   };
 
   const handleReject = (id, msg) => {
     const now = new Date();
     const ts = `${now.toISOString().slice(0, 10)} ${now.toTimeString().slice(0, 5)}`;
-    setApprovals(prev => prev.map(a => a.id === id ? {
-      ...a,
-      stage: 'rejected',
-      rejectedAt: ts,
-      rejectedBy: currentUserId,
-      rejectReason: msg || a.rejectReason,
-    } : a));
+    
+    if (window.apiMutatePapaData) {
+      window.apiMutatePapaData(data => {
+        if (!data.approvals) return;
+        const aIndex = data.approvals.findIndex(a => a.id === id);
+        if (aIndex === -1) return;
+        
+        data.approvals[aIndex].stage = 'rejected';
+        data.approvals[aIndex].rejectedAt = ts;
+        data.approvals[aIndex].rejectedBy = currentUserId;
+        data.approvals[aIndex].rejectReason = msg || data.approvals[aIndex].rejectReason;
+      });
+    }
     setToast({ text: '결재 반려 처리', icon: 'x' });
   };
 
@@ -564,22 +633,28 @@ const App = () => {
       assignedSenior: assignedSenior,
       isOutsideWork: true,
     };
-    setApprovals(prev => [newAppr, ...prev]);
+    if (window.apiMutatePapaData) {
+      window.apiMutatePapaData(data => {
+        if (!data.approvals) data.approvals = [];
+        data.approvals.unshift(newAppr);
+        
+        if (me.role === 'admin') {
+          if (payload.date === data.today.date) {
+            if (!data.attendance) data.attendance = {};
+            const addSecs = payload.hours * 3600;
+            const affectedIds = [currentUserId, ...(payload.coworkers || [])];
+            affectedIds.forEach(id => {
+              if (!data.attendance[id]) data.attendance[id] = {};
+              data.attendance[id].accumulatedSecs = (data.attendance[id].accumulatedSecs || 0) + addSecs;
+            });
+          }
+        }
+      });
+    }
+
     setShowOutsideWorkForm(false);
     
     if (me.role === 'admin') {
-      if (payload.date === window.PAPA_DATA.today.date) {
-        setAttendance(prevAtt => {
-          const nextAtt = { ...prevAtt };
-          const addSecs = payload.hours * 3600;
-          const affectedIds = [currentUserId, ...(payload.coworkers || [])];
-          affectedIds.forEach(id => {
-            const empAtt = nextAtt[id] || {};
-            nextAtt[id] = { ...empAtt, accumulatedSecs: (empAtt.accumulatedSecs || 0) + addSecs };
-          });
-          return nextAtt;
-        });
-      }
       setToast({ text: '외근 자동 승인', icon: 'check' });
     } else {
       setToast({ text: '외근 신청이 접수되었어요', icon: 'car' });
@@ -602,9 +677,20 @@ const App = () => {
       stage: me.role === 'admin' ? 'approved' : 'pending_admin',
       assignedSenior: assignedSenior,
     };
-    setApprovals(prev => [newAppr, ...prev]);
+    
+    if (window.apiMutatePapaData) {
+      window.apiMutatePapaData(data => {
+        if (!data.approvals) data.approvals = [];
+        data.approvals.unshift(newAppr);
+      });
+    }
+
     setShowLeaveForm(false);
-    setToast({ text: '휴가 신청이 접수되었어요', icon: 'plane' });
+    if (me.role === 'admin') {
+      setToast({ text: '휴가 자동 승인', icon: 'check' });
+    } else {
+      setToast({ text: '휴가 신청이 접수되었어요', icon: 'send' });
+    }
   };
 
   const handleReportLate = (payload) => {
@@ -1257,13 +1343,8 @@ const PapaRoot = () => {
     } else {
       setReady(true);
     }
-
     // 2. Listen for realtime syncs from Firestore onSnapshot
-    const handleSync = () => {
-      setSyncTick(t => t + 1); // Force full remount on data sync
-    };
-    window.addEventListener('papa-data-updated', handleSync);
-    return () => window.removeEventListener('papa-data-updated', handleSync);
+    // We no longer use syncTick to force remount.
   }, []);
 
   if (!ready) {
@@ -1278,9 +1359,8 @@ const PapaRoot = () => {
     );
   }
 
-  // Using syncTick as key forces a complete remount of the app when data syncs,
-  // ensuring all internal component states (like React.useState) re-initialize with the fresh PAPA_DATA.
-  return <App key={syncTick} />;
+  // We no longer force a remount (key=syncTick) because App component manages its own internal state sync.
+  return <App />;
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

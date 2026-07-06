@@ -391,3 +391,36 @@ window.savePapaData = async () => {
     console.error("Failed to save PAPA_DATA to Firestore:", e);
   }
 };
+
+window.apiMutatePapaData = async (updaterCallback) => {
+  if (!window.PAPA_DATA || !window.firebaseDb) return;
+  
+  // 1. Optimistic local update for instant UI feedback
+  try {
+    updaterCallback(window.PAPA_DATA);
+    window.dispatchEvent(new Event('papa-data-updated'));
+  } catch (err) {
+    console.error("Local mutation error:", err);
+  }
+
+  // 2. Atomic server transaction
+  const db = window.firebaseDb;
+  const { doc, runTransaction } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+  const docRef = doc(db, 'workspaces', 'main');
+
+  try {
+    await runTransaction(db, async (t) => {
+      const snap = await t.get(docRef);
+      if (!snap.exists()) throw new Error("Document does not exist");
+      const data = snap.data();
+      
+      // Apply mutations
+      updaterCallback(data);
+      
+      const cleanData = JSON.parse(JSON.stringify(data));
+      t.update(docRef, cleanData);
+    });
+  } catch (e) {
+    console.error("Transaction failed:", e);
+  }
+};
