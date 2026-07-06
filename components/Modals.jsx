@@ -645,4 +645,4 @@ const RecheckInRequestForm = ({ me, onClose, onSubmit }) => {
   );
 };
 
-Object.assign(window, { LeaveRequestForm, LateReportForm, Toast, TweaksPanel, SeniorPicker, OvertimeRequestForm, OutsideWorkRequestForm, RecheckInRequestForm });
+Object.assign(window, { LeaveRequestForm, LateReportForm, Toast, TweaksPanel, SeniorPicker, AdditionalWorkRequestForm, OutsideWorkRequestForm, RecheckInRequestForm });
