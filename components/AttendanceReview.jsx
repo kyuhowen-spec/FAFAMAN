@@ -124,7 +124,7 @@ const AttendanceReviewPage = () => {
               <th style={{ padding: '16px 20px', fontWeight: 700, color: 'var(--ink-mute)' }}>근무 일수</th>
               <th style={{ padding: '16px 20px', fontWeight: 700, color: 'var(--ink-mute)' }}>총 근무 시간</th>
               <th style={{ padding: '16px 20px', fontWeight: 700, color: 'var(--ink-mute)' }}>총 야근/연장</th>
-              <th style={{ padding: '16px 20px', fontWeight: 700, color: 'var(--ink-mute)' }}>총 주말 근무</th>
+              <th style={{ padding: '16px 20px', fontWeight: 700, color: 'var(--ink-mute)' }}>총 휴일 근무</th>
             </tr>
           </thead>
           <tbody>

@@ -438,7 +438,7 @@ const App = () => {
       const newAppr = {
         id: `weekend${Date.now()}`,
         empId: currentUserId,
-        type: '주말 근무',
+        type: '휴일 근무',
         subtype: 'weekend_work',
         start: payload.date,
         end: payload.date,
@@ -460,10 +460,10 @@ const App = () => {
 
       setShowAdditionalWorkForm(false);
       if (me.role === 'admin') {
-        setToast({ text: '주말 근무 자동 승인', icon: 'check' });
+        setToast({ text: '휴일 근무 자동 승인', icon: 'check' });
       } else {
         const seniorName = getEmployee(assignedSenior).name;
-        setToast({ text: `${seniorName}에게 주말 근무 승인 요청 완료`, icon: 'briefcase' });
+        setToast({ text: `${seniorName}에게 휴일 근무 승인 요청 완료`, icon: 'briefcase' });
       }
     }
   };

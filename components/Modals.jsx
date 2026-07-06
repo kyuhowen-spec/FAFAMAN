@@ -392,19 +392,7 @@ const AdditionalWorkRequestForm = ({ onClose, onSubmit, me }) => {
   const now = new Date();
   const isPastDeadline = now.getHours() >= 18;
 
-  // Generate upcoming weekend options
-  const getWeekendOptions = () => {
-    const opts = [];
-    const base = new Date();
-    for (let i = 0; i < 14; i++) {
-      const d = new Date(base.getTime() + i * 24 * 60 * 60 * 1000);
-      const wd = d.getDay();
-      if (wd === 0 || wd === 6) {
-        opts.push(d.toISOString().slice(0, 10));
-      }
-    }
-    return opts;
-  };
+
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -443,7 +431,7 @@ const AdditionalWorkRequestForm = ({ onClose, onSubmit, me }) => {
             }}
             onClick={() => setWorkType('weekend')}
           >
-            주말 근무 신청
+            휴일 근무 신청
           </button>
         </div>
 
@@ -475,11 +463,11 @@ const AdditionalWorkRequestForm = ({ onClose, onSubmit, me }) => {
             <div style={{ padding: '14px 16px', background: 'var(--ok-soft)', borderRadius: 12, marginBottom: 20 }}>
               <div style={{ fontSize: 13, color: 'var(--ok-dark)', fontWeight: 600, lineHeight: 1.5 }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <Icon name="info" size={12}/> 주말 근무 안내사항
+                  <Icon name="info" size={12}/> 휴일 근무 안내사항
                 </span>
                 <ul style={{ marginTop: 8, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 4, fontWeight: 500 }}>
                   <li>반일 근무(4시간 30분)와 종일 근무(9시간 이상) 중 선택합니다.</li>
-                  <li>디렉터 및 대표이사의 승인이 완료되어야 주말 당일 시스템 출근이 가능합니다.</li>
+                  <li>디렉터 및 대표이사의 승인이 완료되어야 휴일 당일 시스템 출근이 가능합니다.</li>
                   <li>결재가 완료되면 캘린더에 일정이 자동으로 표출됩니다.</li>
                 </ul>
               </div>
@@ -488,11 +476,8 @@ const AdditionalWorkRequestForm = ({ onClose, onSubmit, me }) => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
               <div>
                 <div className="eyebrow" style={{ marginBottom: 8 }}>근무 날짜</div>
-                <select className="input" value={weekendWorkDate} onChange={e => setWeekendWorkDate(e.target.value)}>
-                  {getWeekendOptions().map(d => (
-                    <option key={d} value={d}>{d}</option>
-                  ))}
-                </select>
+                <input type="date" className="input" style={{ fontFamily: 'inherit' }}
+                  value={weekendWorkDate} onChange={e => setWeekendWorkDate(e.target.value)} />
               </div>
               <div>
                 <div className="eyebrow" style={{ marginBottom: 8 }}>근무 형태</div>
@@ -507,8 +492,8 @@ const AdditionalWorkRequestForm = ({ onClose, onSubmit, me }) => {
 
         {/* Reason */}
         <div style={{ marginBottom: 20 }}>
-          <div className="eyebrow" style={{ marginBottom: 8 }}>{workType === 'overtime' ? '야근' : '주말 근무'} 사유 <span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--danger)', fontWeight: 500 }}>(필수)</span></div>
-          <textarea className="input" rows="3" placeholder={`어떤 업무로 인해 ${workType === 'overtime' ? '야근' : '주말 근무'}이/가 필요한지 작성해주세요`}
+          <div className="eyebrow" style={{ marginBottom: 8 }}>{workType === 'overtime' ? '야근' : '휴일 근무'} 사유 <span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--danger)', fontWeight: 500 }}>(필수)</span></div>
+          <textarea className="input" rows="3" placeholder={`어떤 업무로 인해 ${workType === 'overtime' ? '야근' : '휴일 근무'}이/가 필요한지 작성해주세요`}
             value={reason} onChange={e => setReason(e.target.value)}
             disabled={workType === 'overtime' && isPastDeadline}
             style={{ resize: 'none', fontFamily: 'inherit' }}/>
