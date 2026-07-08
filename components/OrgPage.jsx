@@ -12,9 +12,13 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
   const teams = data.teams || [];
   const titleOrder = data.titleOrder || [];
 
-  // Group: department → team → title → members
+  // HR 역할 구성원은 일반 직원에게 숨기고, 관리자에게만 별도 표시
+  const hrEmployees = employees.filter(e => e.role === 'hr');
+  const visibleEmployees = isAdmin ? employees.filter(e => e.role !== 'hr') : employees.filter(e => e.role !== 'hr');
+
+  // Group: department → team → title → members (HR 제외)
   const grouped = departments.map(d => {
-    const deptMembers = employees.filter(e => e.department === d.key);
+    const deptMembers = visibleEmployees.filter(e => e.department === d.key);
     const deptTeams = (d.key === 'EX') ? [] : teams.filter(t => t.dept === d.key);
     
     const groupMembersByTitle = (members) => {
@@ -46,6 +50,17 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
 
     return { department: d, teamsGrouped, count: deptMembers.length };
   }).filter(g => g.count > 0);
+
+  // 관리자에게만: 인사관리팀 별도 그룹 추가
+  if (isAdmin && hrEmployees.length > 0) {
+    const hrByTitle = [{ title: '인사관리', members: hrEmployees }];
+    grouped.push({
+      department: { key: 'HR', label: 'HR', full: 'Human Resources', color: '#6366f1' },
+      teamsGrouped: [{ team: { key: '인사관리팀', label: '인사관리팀' }, byTitle: hrByTitle, count: hrEmployees.length }],
+      count: hrEmployees.length,
+      isHrSection: true,
+    });
+  }
 
   const handleSave = (form) => {
     if (form.id && employees.find(e => e.id === form.id && form.id !== editTarget)) {
@@ -189,10 +204,10 @@ const OrgPage = ({ role, currentUserId, onSelectMember }) => {
             <div style={{ fontFamily: "'Montserrat', 'Pretendard', sans-serif" }}>
               <span style={{ fontWeight: 500 }}>found/</span><span style={{ fontWeight: 800 }}>Founded</span>
             </div>
-            <span style={{ fontWeight: 800 }}>· {employees.length}명</span>
+            <span style={{ fontWeight: 800 }}>· {isAdmin ? employees.length : visibleEmployees.length}명</span>
           </h1>
           <div style={{ marginTop: 8, color: 'var(--ink-mute)', fontSize: 14, fontWeight: 500 }}>
-            총 {employees.length}명
+            총 {isAdmin ? employees.length : visibleEmployees.length}명
           </div>
         </div>
         {isAdmin ? (
