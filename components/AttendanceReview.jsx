@@ -412,7 +412,15 @@ const MemberAttendanceModal = ({ empId, monthStr, record, onClose }) => {
         background: 'var(--surface)', borderRadius: 20,
         width: 860, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto',
         boxShadow: '0 24px 64px rgba(0,0,0,.15), 0 0 0 1px var(--line)',
+        position: 'relative',
       }}>
+        {/* 닫기 버튼 — 모달 우상단 고정 */}
+        <button className="btn btn-ghost" onClick={onClose} style={{
+          position: 'sticky', top: 12, float: 'right', marginRight: 12, marginTop: 12,
+          zIndex: 10, padding: 8, borderRadius: 10,
+          background: 'var(--surface)', boxShadow: '0 2px 8px rgba(0,0,0,.08)',
+        }}><Icon name="x" size={20}/></button>
+
         <div style={{ padding: '32px 32px 24px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
             <Avatar empId={emp.id} size="xl" />
@@ -434,7 +442,6 @@ const MemberAttendanceModal = ({ empId, monthStr, record, onClose }) => {
               </div>
             </div>
           </div>
-          <button className="btn btn-ghost" onClick={onClose} style={{ padding: 8, margin: -8 }}><Icon name="x" size={20}/></button>
         </div>
         
         <div style={{ padding: 32, background: 'var(--bg)' }}>
