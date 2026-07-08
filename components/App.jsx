@@ -19,7 +19,7 @@ const App = () => {
   const [active, setActive] = React.useState(() => {
     const saved = sessionStorage.getItem('papa_active_tab');
     if (saved) return saved;
-    return getEmployee(initialUserId)?.role === 'accountant' ? 'payroll' : 'dashboard';
+    return (getEmployee(initialUserId)?.role === 'accountant' || getEmployee(initialUserId)?.role === 'hr') ? 'payroll' : 'dashboard';
   });
 
   React.useEffect(() => {
@@ -87,10 +87,40 @@ const App = () => {
 
   const handleLogin = (id) => {
     setCurrentUserId(id);
-    setActive(getEmployee(id)?.role === 'accountant' ? 'payroll' : 'dashboard');
+    const emp = getEmployee(id);
+    setActive((emp?.role === 'accountant' || emp?.role === 'hr') ? 'payroll' : 'dashboard');
   };
   const handleLogout = () => {
-    try { localStorage.removeItem('papa_auth'); } catch {}
+    // 로그아웃 시 근무 중이면 자동 퇴근 처리
+    if (currentUserId && window.apiMutatePapaData) {
+      const att = window.PAPA_DATA?.attendance?.[currentUserId];
+      if (att && (att.status === 'working' || att.status === 'halfday')) {
+        const now = new Date();
+        const kstTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (9 * 3600000));
+        const h = kstTime.getHours();
+        const m = kstTime.getMinutes();
+
+        window.apiMutatePapaData(data => {
+          if (!data.attendance) data.attendance = {};
+          const prevAtt = data.attendance[currentUserId] || {};
+          let sessionSecs = 0;
+          if (prevAtt.checkIn) {
+            const [ch, cm] = prevAtt.checkIn.split(':').map(Number);
+            const baseSecs = ch * 3600 + cm * 60;
+            const currentSecs = h * 3600 + m * 60 + kstTime.getSeconds();
+            sessionSecs = Math.max(0, currentSecs - baseSecs);
+          }
+          data.attendance[currentUserId] = {
+            ...prevAtt,
+            status: 'checked_out',
+            accumulatedSecs: (prevAtt.accumulatedSecs || 0) + sessionSecs,
+            checkIn: null,
+            checkedOutAt: now.toISOString(),
+          };
+        });
+      }
+    }
+    try { localStorage.removeItem('papa_auth'); localStorage.removeItem('papa_device_owner'); } catch {}
     setCurrentUserId(null);
   };
 
@@ -894,7 +924,7 @@ const App = () => {
           {active === 'settings' && me.role === 'admin' && (
             <SettingsPage onToast={setToast} />
           )}
-          {active === 'attendance' && me.role === 'admin' && (
+          {active === 'attendance' && (me.role === 'admin' || me.role === 'hr') && (
             <AttendanceReviewPage />
           )}
           {active === 'quote' && (me.role === 'admin' || me.role === 'senior') && (

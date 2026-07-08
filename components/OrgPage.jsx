@@ -392,6 +392,13 @@ const OrgRow = ({ emp, isAdmin, currentUserId, onView, onEdit, onDelete, onReset
               border: '1px solid rgba(235,94,85,.35)',
             }}>최초 로그인 대기</span>
           )}
+          {emp.role === 'hr' && (
+            <span style={{
+              fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
+              background: 'rgba(14,165,233,.12)', color: '#0284c7', letterSpacing: '.05em',
+              border: '1px solid rgba(14,165,233,.35)',
+            }}>인사관리</span>
+          )}
         </div>
         <div style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 2,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -534,6 +541,7 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
             options={[
               { value: 'admin', label: '관리자 (admin)' },
               { value: 'senior', label: '리더 (senior)' },
+              { value: 'hr', label: '인사관리 (hr)' },
               { value: 'member', label: '멤버 (member)' },
             ]} disabled={!canFullEdit} />
           <FormField label="생년월일 (YYMMDD)" value={form.rrn} onChange={v => update('rrn', v)} placeholder="900101" />

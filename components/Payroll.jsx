@@ -483,7 +483,7 @@ const AddItemModal = ({ onClose, onAdd, schema }) => {
 // ===== Page router =====
 const PayrollPage = (props) => {
   const months = recentMonths(6, '2026-06');
-  if (props.role === 'accountant') return <AccountantPayroll {...props} months={months} />;
+  if (props.role === 'accountant' || props.role === 'hr') return <AccountantPayroll {...props} months={months} />;
   return <EmployeePayslip {...props} months={months} />;
 };
 

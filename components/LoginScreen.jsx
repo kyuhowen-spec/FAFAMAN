@@ -59,9 +59,11 @@ const LoginScreen = ({ onLogin }) => {
       return;
     }
 
-    // Device Lock Check
+    // Device Lock Check — admin은 여러 계정 전환이 가능하므로 우회
+    const empForLock = data.employees.find(e => e.id === acct.userId) || data.externalUsers?.find(e => e.id === acct.userId);
+    const isAdminOrHr = empForLock && (empForLock.role === 'admin' || empForLock.role === 'hr');
     const deviceOwner = localStorage.getItem('papa_device_owner');
-    if (deviceOwner && deviceOwner !== acct.userId) {
+    if (deviceOwner && deviceOwner !== acct.userId && !isAdminOrHr) {
       setError('이 기기는 이미 다른 사용자의 계정으로 귀속되어 있어 다른 아이디로 접속할 수 없습니다.');
       return;
     }
