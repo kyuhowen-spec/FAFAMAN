@@ -221,7 +221,79 @@ const App = () => {
       localStorage.setItem(`papa_last_seen_${currentUserId}`, Date.now().toString());
     }, 10000);
 
-    return () => clearInterval(heartbeat);
+    // 창/탭 닫힐 때 자동 퇴근 처리
+    const handleBeforeUnload = () => {
+      const att = window.PAPA_DATA?.attendance?.[currentUserId];
+      if (!att || (att.status !== 'working' && att.status !== 'halfday')) return;
+
+      const now = new Date();
+      const kstTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (9 * 3600000));
+      const h = kstTime.getHours();
+      const m = kstTime.getMinutes();
+      const s = kstTime.getSeconds();
+
+      let sessionSecs = 0;
+      if (att.checkIn) {
+        const [ch, cm] = att.checkIn.split(':').map(Number);
+        sessionSecs = Math.max(0, (h * 3600 + m * 60 + s) - (ch * 3600 + cm * 60));
+      }
+
+      // 로컬 데이터 즉시 업데이트
+      if (window.PAPA_DATA?.attendance?.[currentUserId]) {
+        window.PAPA_DATA.attendance[currentUserId].accumulatedSecs = 
+          (window.PAPA_DATA.attendance[currentUserId].accumulatedSecs || 0) + sessionSecs;
+        window.PAPA_DATA.attendance[currentUserId].status = 'checked_out';
+        window.PAPA_DATA.attendance[currentUserId].checkIn = null;
+        window.PAPA_DATA.attendance[currentUserId].checkedOutAt = now.toISOString();
+      }
+
+      // Firestore에 저장 시도 (sendBeacon 사용 — 페이지 닫혀도 전송됨)
+      // Firestore REST API로 직접 전송
+      try {
+        const projectId = window.firebaseConfig?.projectId;
+        if (projectId) {
+          const cleanData = JSON.parse(JSON.stringify(window.PAPA_DATA));
+          const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/workspaces/main`;
+          // sendBeacon은 POST만 지원하므로, fetch keepalive 사용
+          fetch(url + '?updateMask.fieldPaths=attendance', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fields: {
+                attendance: {
+                  mapValue: {
+                    fields: Object.fromEntries(
+                      Object.entries(cleanData.attendance || {}).map(([k, v]) => [k, { mapValue: { fields: Object.fromEntries(
+                        Object.entries(v || {}).map(([fk, fv]) => {
+                          if (typeof fv === 'string') return [fk, { stringValue: fv }];
+                          if (typeof fv === 'number') return [fk, { integerValue: String(fv) }];
+                          if (typeof fv === 'boolean') return [fk, { booleanValue: fv }];
+                          if (fv === null) return [fk, { nullValue: null }];
+                          return [fk, { stringValue: String(fv) }];
+                        })
+                      )}}])
+                    )
+                  }
+                }
+              }
+            }),
+            keepalive: true,
+          }).catch(() => {});
+        }
+      } catch (e) {
+        // 실패해도 무시 — 다음 로그인 시 auto-checkout이 처리
+      }
+
+      // 마지막으로 본 시각 저장
+      localStorage.setItem(`papa_last_seen_${currentUserId}`, Date.now().toString());
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      clearInterval(heartbeat);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, [currentUserId]);
 
   // Actions
