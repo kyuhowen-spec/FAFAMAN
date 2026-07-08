@@ -81,29 +81,22 @@ const AttendanceReviewPage = () => {
   };
 
   const handleDownloadExcel = () => {
-    // Enhanced CSV content with detailed columns
-    const headers = [
-      '이름', '사번', '부서', '직급',
-      '근무 일수', '총 근무 시간',
-      '오늘 출근 시각', '오늘 상태',
-      '야근 승인 건수', '연장/야근 시간 (분)', '월 누적 야근 (분)',
-      '지각 횟수',
-      '주말 반일 근무 (건)', '주말 종일 근무 (건)',
+    const wb = XLSX.utils.book_new();
+
+    // ===== 시트 1: 월간 요약 =====
+    const summaryData = [
+      ['이름', '사번', '부서', '직급', '근무 일수', '총 근무 시간(h)', '오늘 출근', '오늘 상태', '야근 승인(건)', '연장/야근(분)', '월 누적 야근(분)', '지각 횟수', '주말 반일(건)', '주말 종일(건)'],
     ];
 
-    // Build daily detail rows for each employee
-    const rows = employees.map(emp => {
+    employees.forEach(emp => {
       const record = getLiveRecord(emp.id);
       const todayInfo = getTodayInfo(emp.id);
-      const statusLabel = todayInfo ? {
-        'working': '근무 중',
-        'checked_out': '퇴근',
-        'vacation': '휴가',
-        'halfday': '반차',
-        'not_checked_in': '미출근',
-      }[todayInfo.status] || todayInfo.status : '-';
+      const statusLabel = todayInfo ? ({
+        'working': '근무 중', 'checked_out': '퇴근', 'vacation': '휴가',
+        'halfday': '반차', 'not_checked_in': '미출근',
+      }[todayInfo.status] || todayInfo.status) : '-';
 
-      return [
+      summaryData.push([
         emp.name,
         emp.empNo || emp.id,
         (emp.team || (emp.department === 'EX' ? '디렉터' : emp.department)),
@@ -112,47 +105,54 @@ const AttendanceReviewPage = () => {
         record.hours,
         todayInfo?.checkIn || '-',
         statusLabel,
-        record.approvedOvertimeCount,
-        record.overtime,
-        record.monthlyOvertimeMins,
-        record.lateCount,
-        record.weekendHalf,
-        record.weekendFull,
-      ];
+        record.approvedOvertimeCount || 0,
+        record.overtime || 0,
+        record.monthlyOvertimeMins || 0,
+        record.lateCount || 0,
+        record.weekendHalf || 0,
+        record.weekendFull || 0,
+      ]);
     });
 
-    // Daily detail sheet
-    const dailyHeaders = ['이름', '날짜', '출근', '퇴근', '근무시간(h)', '비고'];
-    const dailyRows = [];
+    const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
+    // 컬럼 너비 설정
+    ws1['!cols'] = [
+      { wch: 10 }, { wch: 8 }, { wch: 12 }, { wch: 12 },
+      { wch: 10 }, { wch: 14 }, { wch: 12 }, { wch: 10 },
+      { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 10 },
+      { wch: 12 }, { wch: 12 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws1, '월간 요약');
+
+    // ===== 시트 2: 일별 상세 기록 =====
+    const dailyData = [
+      ['이름', '사번', '날짜', '출근 시각', '퇴근 시각', '근무시간(h)', '비고'],
+    ];
+
     employees.forEach(emp => {
       const record = getLiveRecord(emp.id);
       (record.daily || []).forEach(d => {
-        dailyRows.push([
-          emp.name, d.date, d.in || '-', d.out || '-', d.hours || 0,
+        dailyData.push([
+          emp.name,
+          emp.empNo || emp.id,
+          d.date,
+          d.in || '-',
+          d.out || '-',
+          d.hours || 0,
           d.late ? `지각 ${d.lateMins || ''}분` : '',
         ]);
       });
     });
 
-    const summarySheet = [
-      `[월간 요약] ${selectedMonth}`,
-      headers.join(','),
-      ...rows.map(r => r.map(v => `"${v}"`).join(',')),
-      '',
-      '[일별 상세 기록]',
-      dailyHeaders.join(','),
-      ...dailyRows.map(r => r.map(v => `"${v}"`).join(',')),
-    ].join('\n');
+    const ws2 = XLSX.utils.aoa_to_sheet(dailyData);
+    ws2['!cols'] = [
+      { wch: 10 }, { wch: 8 }, { wch: 12 }, { wch: 10 },
+      { wch: 10 }, { wch: 12 }, { wch: 15 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws2, '일별 상세');
 
-    // Add BOM for Excel UTF-8
-    const blob = new Blob(['\uFEFF' + summarySheet], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `근태리뷰_${selectedMonth}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // 파일 다운로드
+    XLSX.writeFile(wb, `근태리뷰_${selectedMonth}.xlsx`);
   };
 
   const thStyle = { padding: '14px 16px', fontWeight: 700, color: 'var(--ink-mute)', fontSize: 12, letterSpacing: '.02em', whiteSpace: 'nowrap' };
