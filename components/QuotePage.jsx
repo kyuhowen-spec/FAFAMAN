@@ -93,42 +93,6 @@ const QuotePage = ({ currentUserId }) => {
     }
   });
 
-  const handleSaveQuote = () => {
-    if (!clientInfo.job) {
-      alert('프로젝트 명(JOB)을 먼저 입력해주세요.');
-      return;
-    }
-    const newQuote = {
-      id: Date.now(),
-      date: new Date().toISOString(),
-      clientInfo,
-      providerInfo,
-      sections,
-      finalQuote
-    };
-    const updated = [newQuote, ...savedQuotes];
-    setSavedQuotes(updated);
-    localStorage.setItem('papa_saved_quotes', JSON.stringify(updated));
-    alert('견적이 저장되었습니다.');
-  };
-
-  const loadQuote = (quote) => {
-    if (window.confirm('해당 견적을 불러오시겠습니까? 현재 작성 중인 내용은 덮어씌워집니다.')) {
-      setClientInfo(quote.clientInfo);
-      setProviderInfo(quote.providerInfo);
-      setSections(quote.sections);
-      alert('견적을 불러왔습니다.');
-    }
-  };
-
-  const deleteSavedQuote = (id) => {
-    if (window.confirm('정말로 이 견적을 삭제하시겠습니까?')) {
-      const updated = savedQuotes.filter(q => q.id !== id);
-      setSavedQuotes(updated);
-      localStorage.setItem('papa_saved_quotes', JSON.stringify(updated));
-    }
-  };
-
   const addSection = () => {
     setSections(prev => [
       ...prev,
@@ -153,6 +117,7 @@ const QuotePage = ({ currentUserId }) => {
     return amount * sectionDays * effortMultiplier;
   };
 
+  // 합계 계산 — handleSaveQuote보다 먼저 정의
   let grandTotal = 0;
   const sectionsWithTotals = sections.map(s => {
     const weeks = parseInt(s.period.replace(/\D/g, '')) || 0;
@@ -164,6 +129,49 @@ const QuotePage = ({ currentUserId }) => {
 
   const finalQuote = Math.floor(grandTotal / 100000) * 100000; 
 
+  // 견적 저장 — finalQuote 계산 이후에 정의
+  const handleSaveQuote = () => {
+    if (!clientInfo.job) {
+      alert('프로젝트 명(JOB)을 먼저 입력해주세요.');
+      return;
+    }
+    const quoteData = {
+      id: Date.now(),
+      date: new Date().toISOString(),
+      clientInfo: { ...clientInfo },
+      providerInfo: { ...providerInfo },
+      sections: JSON.parse(JSON.stringify(sections)),
+      finalQuote: finalQuote,
+      grandTotal: grandTotal,
+    };
+    try {
+      const updated = [quoteData, ...savedQuotes];
+      setSavedQuotes(updated);
+      localStorage.setItem('papa_saved_quotes', JSON.stringify(updated));
+      alert('견적이 저장되었습니다.');
+    } catch (e) {
+      console.error('견적 저장 실패:', e);
+      alert('견적 저장에 실패했습니다. 데이터가 너무 크거나 localStorage가 꽉 찼을 수 있습니다.');
+    }
+  };
+
+  const loadQuote = (quote) => {
+    if (window.confirm('해당 견적을 불러오시겠습니까? 현재 작성 중인 내용은 덮어씌워집니다.')) {
+      setClientInfo(quote.clientInfo);
+      setProviderInfo(quote.providerInfo);
+      setSections(quote.sections);
+      alert('견적을 불러왔습니다.');
+    }
+  };
+
+  const deleteSavedQuote = (id) => {
+    if (window.confirm('정말로 이 견적을 삭제하시겠습니까?')) {
+      const updated = savedQuotes.filter(q => q.id !== id);
+      setSavedQuotes(updated);
+      localStorage.setItem('papa_saved_quotes', JSON.stringify(updated));
+    }
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -172,11 +180,24 @@ const QuotePage = ({ currentUserId }) => {
     return Math.round(num).toLocaleString('ko-KR');
   };
 
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
+
   return (
     <>
       <style>{`
-        @page { size: auto; margin: 0mm; }
+        @page { 
+          size: A4; 
+          margin: 15mm 12mm 15mm 12mm; 
+        }
         @media print {
+          html, body { 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            background: white !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
           body * { visibility: hidden !important; }
           #quote-print-area, #quote-print-area * { visibility: visible !important; }
           #quote-print-area {
@@ -191,13 +212,16 @@ const QuotePage = ({ currentUserId }) => {
           .no-print { display: none !important; }
           .quote-page { padding: 0 !important; background: white !important; }
           
-          .q-table { border-collapse: collapse; width: 100%; font-size: 10px !important; margin-bottom: 20px; font-family: 'Pretendard', sans-serif; }
-          .q-table th, .q-table td { border: 1px solid #000; padding: 4px 3px; text-align: center; }
+          .q-table { border-collapse: collapse; width: 100%; font-size: 9pt !important; margin-bottom: 12px; font-family: 'Pretendard', sans-serif; }
+          .q-table th, .q-table td { border: 1px solid #333; padding: 5px 4px; text-align: center; }
           .q-table th { font-weight: 700; }
           
-          .q-header { text-align: center; font-size: 16px; font-weight: 800; margin-bottom: 8px; font-family: 'Pretendard', sans-serif;}
+          .q-header-title { font-size: 18pt !important; }
+          .q-header-logo { font-size: 14pt !important; }
           .q-bg-green { background-color: #00FF00 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 700 !important; }
           .q-bg-gray { background-color: #E2E2E2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .q-footer-notice { font-size: 8pt !important; }
+          .q-stamp-area { margin-top: 24px !important; }
         }
         
         .quote-page { max-width: 1200px; margin: 0 auto; padding-bottom: 100px; }
@@ -245,20 +269,32 @@ const QuotePage = ({ currentUserId }) => {
           </div>
         </div>
 
-        <div id="quote-print-area" style={{ background: 'white', padding: '20px 40px', color: 'black', minHeight: 800, border: '1px solid var(--line)', borderRadius: 12 }}>
+        <div id="quote-print-area" style={{ background: 'white', padding: '32px 48px', color: 'black', minHeight: 800, border: '1px solid var(--line)', borderRadius: 12 }}>
           
-          <div className="q-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 20 }}>
-            <div style={{ fontSize: 24, fontWeight: 900, flex: 1, textAlign: 'left' }}>
+          {/* 문서 제목 */}
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <div className="q-header-title" style={{ fontSize: 28, fontWeight: 900, letterSpacing: '0.3em', borderBottom: '3px solid #000', display: 'inline-block', paddingBottom: 8, marginBottom: 8 }}>
+              견 적 서
+            </div>
+            <div style={{ fontSize: 12, color: '#555', marginTop: 8 }}>
+              견적일자: {dateStr}
+            </div>
+          </div>
+
+          {/* 프로젝트명 + 로고 */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16 }}>
+            <div style={{ fontSize: 20, fontWeight: 800, flex: 1, textAlign: 'left' }}>
               {editMode ? (
-                <input className="q-input" style={{ fontSize: 24, fontWeight: 900, textAlign: 'left', width: '100%' }} placeholder="프로젝트 명을 입력하세요" value={clientInfo.job} onChange={e => updateClientInfo('job', e.target.value)} />
+                <input className="q-input" style={{ fontSize: 20, fontWeight: 800, textAlign: 'left', width: '100%' }} placeholder="프로젝트 명을 입력하세요" value={clientInfo.job} onChange={e => updateClientInfo('job', e.target.value)} />
               ) : (clientInfo.job || '프로젝트 명')}
             </div>
             
-            <div style={{ fontSize: 22, letterSpacing: '-.03em', fontFamily: "'Montserrat', 'Pretendard', sans-serif", paddingBottom: 2 }}>
+            <div className="q-header-logo" style={{ fontSize: 20, letterSpacing: '-.03em', fontFamily: "'Montserrat', 'Pretendard', sans-serif", paddingBottom: 2 }}>
               <span style={{ fontWeight: 500 }}>found/</span><span style={{ fontWeight: 800 }}>Founded</span>
             </div>
           </div>
 
+          {/* 공급자/공급받는자 정보 테이블 */}
           <table className="q-table" style={{ marginBottom: 10 }}>
             <tbody>
               <tr>
@@ -266,12 +302,12 @@ const QuotePage = ({ currentUserId }) => {
                 <td colSpan={2} className="q-bg-green" style={{ width: '50%' }}>공급자</td>
               </tr>
               <tr>
-                <td>CLIENT</td>
-                <td>
+                <td style={{ width: '12%' }}>CLIENT</td>
+                <td style={{ width: '38%' }}>
                   {editMode ? <input className="q-input" value={clientInfo.client} onChange={e => updateClientInfo('client', e.target.value)} /> : clientInfo.client}
                 </td>
-                <td>회사명</td>
-                <td>
+                <td style={{ width: '12%' }}>회사명</td>
+                <td style={{ width: '38%' }}>
                   {editMode ? <input className="q-input" value={providerInfo.company} onChange={e => updateProviderInfo('company', e.target.value)} /> : providerInfo.company}
                 </td>
               </tr>
@@ -301,7 +337,7 @@ const QuotePage = ({ currentUserId }) => {
                   {formatMoney(finalQuote)} <span style={{ fontSize: 10, fontWeight: 400 }}>(VAT별도)</span>
                 </td>
                 <td>사업장주소</td>
-                <td>
+                <td style={{ fontSize: 11 }}>
                   {editMode ? <input className="q-input" value={providerInfo.address} onChange={e => updateProviderInfo('address', e.target.value)} /> : providerInfo.address}
                 </td>
               </tr>
@@ -318,12 +354,13 @@ const QuotePage = ({ currentUserId }) => {
             </tbody>
           </table>
 
-          <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, margin: '24px 0' }}>
+          <div style={{ textAlign: 'center', fontSize: 14, fontWeight: 700, margin: '24px 0' }}>
             아래와 같이 견적합니다.
           </div>
 
           <div style={{ textAlign: 'right', fontSize: 10, marginBottom: 4 }}>( 단위 : KRW )</div>
 
+          {/* 견적 상세 테이블 */}
           <table className="q-table">
             <thead>
               <tr className="q-bg-green">
@@ -340,7 +377,6 @@ const QuotePage = ({ currentUserId }) => {
             </thead>
             <tbody>
               {sectionsWithTotals.map((s, sIdx) => {
-                const isFirstRowOfFirstSection = sIdx === 0;
                 return (
                   <React.Fragment key={s.id}>
                     {s.rows.map((r, rIdx) => {
@@ -433,11 +469,25 @@ const QuotePage = ({ currentUserId }) => {
             </div>
           )}
 
-          <div style={{ textAlign: 'center', fontSize: 10, color: '#666', marginBottom: 30, lineHeight: 1.5 }}>
+          {/* 날인 영역 */}
+          <div className="q-stamp-area" style={{ marginTop: 40, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', gap: 24 }}>
+            <div style={{ textAlign: 'right', fontSize: 12, lineHeight: 2 }}>
+              <div>{dateStr}</div>
+              <div style={{ fontWeight: 700 }}>{providerInfo.company}</div>
+              <div>대표이사 {providerInfo.ceo}</div>
+            </div>
+            <div style={{ width: 60, height: 60, border: '2px solid #c00', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c00', fontSize: 11, fontWeight: 800, lineHeight: 1.2, textAlign: 'center' }}>
+              대표<br/>이사<br/>인
+            </div>
+          </div>
+
+          {/* 안내문 */}
+          <div className="q-footer-notice" style={{ textAlign: 'center', fontSize: 10, color: '#666', marginTop: 32, marginBottom: 20, lineHeight: 1.6, borderTop: '1px solid #ddd', paddingTop: 16 }}>
             ※ 당사는 본 견적서에 당사의 원가 또는 원가를 추정할 수 있는 정보를 기입하지 않았으며,<br/>
             이 밖에 당사의 원가 또는 원가를 추정할 수 있는 자료를 제출하지 않았음을 확인합니다.
           </div>
 
+          {/* 참고자료 (인쇄 시 숨김) */}
           <div className="no-print" style={{ fontSize: 11, fontWeight: 700, marginBottom: 6 }}>디자이너 인건비</div>
           <div className="no-print" style={{ textAlign: 'center', fontSize: 10, marginBottom: 4 }}>* 참고자료 : 디자이너 등급별 노임단가 기준 (2026)</div>
           
@@ -510,7 +560,7 @@ const QuotePage = ({ currentUserId }) => {
                     </div>
                     <div style={{ fontSize: 14, color: '#444', marginTop: 8 }}>
                       클라이언트: <strong>{q.clientInfo?.client || '미상'}</strong> <span style={{color:'#ccc', margin:'0 8px'}}>|</span>
-                      최종 견적: <strong style={{color:'#00C853'}}>{formatMoney(q.finalQuote)}</strong> 원
+                      최종 견적: <strong style={{color:'#00C853'}}>{formatMoney(q.finalQuote || 0)}</strong> 원
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
