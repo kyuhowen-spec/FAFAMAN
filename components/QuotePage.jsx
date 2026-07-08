@@ -188,7 +188,7 @@ const QuotePage = ({ currentUserId }) => {
       <style>{`
         @page { 
           size: A4; 
-          margin: 15mm 12mm 15mm 12mm; 
+          margin: 10mm 10mm 10mm 10mm; 
         }
         @media print {
           html, body { 
@@ -473,22 +473,32 @@ const QuotePage = ({ currentUserId }) => {
             </div>
           )}
 
-          {/* 날인 영역 */}
-          <div className="q-stamp-area" style={{ marginTop: 40, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', gap: 24 }}>
-            <div style={{ textAlign: 'right', fontSize: 12, lineHeight: 2 }}>
-              <div>{dateStr}</div>
-              <div style={{ fontWeight: 700 }}>{providerInfo.company}</div>
-              <div>대표이사 {providerInfo.ceo}</div>
+          {/* 안내문 + 날인 영역 — 1줄로 배치 */}
+          <div className="q-stamp-area" style={{ marginTop: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16 }}>
+            <div className="q-footer-notice" style={{ fontSize: 9, color: '#888', lineHeight: 1.6, flex: 1 }}>
+              ※ 당사는 본 견적서에 당사의 원가 또는 원가를 추정할 수 있는<br/>
+              정보를 기입하지 않았으며, 이 밖에 당사의 원가 또는<br/>
+              원가를 추정할 수 있는 자료를 제출하지 않았음을 확인합니다.
             </div>
-            <div style={{ width: 60, height: 60, border: '2px solid #c00', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c00', fontSize: 11, fontWeight: 800, lineHeight: 1.2, textAlign: 'center' }}>
-              대표<br/>이사<br/>인
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
+              <div style={{ textAlign: 'right', fontSize: 11, lineHeight: 1.8 }}>
+                <div>{dateStr}</div>
+                <div style={{ fontWeight: 700 }}>{providerInfo.company}</div>
+                <div>대표이사 {providerInfo.ceo}</div>
+              </div>
+              {(() => {
+                const certTpl = window.PAPA_DATA?.certTemplate;
+                const stampImg = certTpl?.stampImage;
+                if (stampImg) {
+                  return <img src={stampImg} alt="인감" style={{ width: 56, height: 56, objectFit: 'contain' }} />;
+                }
+                return (
+                  <div style={{ width: 56, height: 56, border: '2px solid #c00', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c00', fontSize: 10, fontWeight: 800, lineHeight: 1.2, textAlign: 'center' }}>
+                    대표<br/>이사<br/>인
+                  </div>
+                );
+              })()}
             </div>
-          </div>
-
-          {/* 안내문 */}
-          <div className="q-footer-notice" style={{ textAlign: 'center', fontSize: 10, color: '#666', marginTop: 32, marginBottom: 20, lineHeight: 1.6, borderTop: '1px solid #ddd', paddingTop: 16 }}>
-            ※ 당사는 본 견적서에 당사의 원가 또는 원가를 추정할 수 있는 정보를 기입하지 않았으며,<br/>
-            이 밖에 당사의 원가 또는 원가를 추정할 수 있는 자료를 제출하지 않았음을 확인합니다.
           </div>
 
           {/* 참고자료 (인쇄 시 숨김) */}
