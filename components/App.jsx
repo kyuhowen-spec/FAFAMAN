@@ -1193,6 +1193,19 @@ const SettingsPage = ({ onToast }) => {
   const data = window.PAPA_DATA;
   const [hosts, setHosts] = React.useState(data.allowedHosts || []);
   const [newHost, setNewHost] = React.useState('');
+  const [deviceLockEnabled, setDeviceLockEnabled] = React.useState(data.deviceLockEnabled !== false);
+
+  const toggleDeviceLock = () => {
+    const next = !deviceLockEnabled;
+    setDeviceLockEnabled(next);
+    data.deviceLockEnabled = next;
+    if (!next) {
+      // 기기 잠금 해제 시 모든 기기 귀속 초기화
+      try { localStorage.removeItem('papa_device_owner'); } catch {}
+    }
+    if (window.savePapaData) window.savePapaData();
+    onToast && onToast({ text: next ? '기기 잠금이 활성화되었습니다.' : '기기 잠금이 비활성화되었습니다.', icon: next ? 'lock' : 'unlock' });
+  };
 
   const addHost = () => {
     const val = newHost.trim();
@@ -1226,10 +1239,69 @@ const SettingsPage = ({ onToast }) => {
       <div>
         <div className="eyebrow">SETTINGS</div>
         <h1 style={{ fontSize: 32, fontWeight: 800, marginTop: 8, letterSpacing: '-.02em' }}>
-          서버 접속 제한 설정
+          서버 설정
         </h1>
         <div style={{ marginTop: 8, color: 'var(--ink-mute)', fontSize: 14, fontWeight: 500, lineHeight: 1.5 }}>
-          등록된 호스트(IP 또는 도메인)에서 접속할 때만 로그인이 가능합니다.<br/>
+          보안 및 접속 관련 설정을 관리합니다.
+        </div>
+      </div>
+
+      {/* Device Lock Toggle */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ padding: '24px 28px', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 14,
+            background: deviceLockEnabled ? 'linear-gradient(135deg, #3A6FF0, #5B8BF5)' : 'var(--bg)',
+            color: deviceLockEnabled ? 'white' : 'var(--ink-mute)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'all .2s',
+          }}>
+            <Icon name={deviceLockEnabled ? 'lock' : 'unlock'} size={22} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: '-.01em' }}>기기 잠금 (대리 출근 방지)</div>
+            <div style={{ fontSize: 13, color: 'var(--ink-mute)', marginTop: 4, lineHeight: 1.5 }}>
+              {deviceLockEnabled
+                ? '활성화됨 — 한 기기에서 한 명만 로그인 가능합니다. 대리 출근을 방지합니다.'
+                : '비활성화됨 — 동일 기기에서 여러 계정으로 자유롭게 로그인할 수 있습니다. (테스트 모드)'}
+            </div>
+          </div>
+          <button
+            onClick={toggleDeviceLock}
+            style={{
+              width: 56, height: 30, borderRadius: 999, padding: 3,
+              background: deviceLockEnabled ? 'var(--accent)' : 'var(--line)',
+              border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center',
+              justifyContent: deviceLockEnabled ? 'flex-end' : 'flex-start',
+              transition: 'background .2s',
+            }}
+          >
+            <div style={{
+              width: 24, height: 24, borderRadius: '50%',
+              background: 'white',
+              boxShadow: '0 2px 6px rgba(0,0,0,.15)',
+              transition: 'all .2s',
+            }} />
+          </button>
+        </div>
+        {deviceLockEnabled && (
+          <div style={{
+            padding: '14px 28px', borderTop: '1px solid var(--line-soft)',
+            background: 'var(--bg)', fontSize: 12, color: 'var(--ink-mute)', fontWeight: 500,
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <Icon name="info" size={13} />
+            관리자(admin)와 인사관리(hr) 계정은 기기 잠금과 관계없이 어디서든 로그인 가능합니다.
+          </div>
+        )}
+      </div>
+
+      {/* Host restriction - existing section */}
+      <div style={{ marginTop: 8 }}>
+        <div className="h2" style={{ marginBottom: 4 }}>서버 접속 제한</div>
+        <div style={{ color: 'var(--ink-mute)', fontSize: 13, fontWeight: 500, lineHeight: 1.5 }}>
+          등록된 호스트(IP 또는 도메인)에서 접속할 때만 로그인이 가능합니다.
           목록이 비어 있으면 모든 호스트에서 접속을 허용합니다.
         </div>
       </div>
