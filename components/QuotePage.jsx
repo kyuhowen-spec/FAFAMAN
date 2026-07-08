@@ -208,13 +208,17 @@ const QuotePage = ({ currentUserId }) => {
             padding: 0 !important;
             margin: 0 !important;
             background: white !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
           }
           .no-print { display: none !important; }
           .quote-page { padding: 0 !important; background: white !important; }
           
-          .q-table { border-collapse: collapse; width: 100%; font-size: 9pt !important; margin-bottom: 12px; font-family: 'Pretendard', sans-serif; }
-          .q-table th, .q-table td { border: 1px solid #333; padding: 5px 4px; text-align: center; }
+          .q-table { border-collapse: collapse; width: 100%; font-size: 8pt !important; margin-bottom: 10px; font-family: 'Pretendard', sans-serif; }
+          .q-table th, .q-table td { border: 1px solid #333; padding: 4px 3px; text-align: center; white-space: nowrap; }
           .q-table th { font-weight: 700; }
+          .q-table td[style*="text-align: left"] { white-space: normal; }
           
           .q-header-title { font-size: 18pt !important; }
           .q-header-logo { font-size: 14pt !important; }
