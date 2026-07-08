@@ -237,7 +237,6 @@ a { color: inherit; text-decoration: none; }
   backdrop-filter: blur(6px);
   z-index: 100;
   display: flex; align-items: flex-start; justify-content: center;
-  padding: 8vh 16px 8vh 16px;
   overflow-y: auto;
   animation: fadeIn .2s ease;
 }
@@ -247,7 +246,7 @@ a { color: inherit; text-decoration: none; }
   box-shadow: var(--shadow-lg);
   width: 520px;
   max-width: 100%;
-  margin: auto;
+  margin: 8vh auto;
   padding: 32px;
   animation: slideDown .25s ease;
 }
