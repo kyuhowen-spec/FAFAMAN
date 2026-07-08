@@ -472,10 +472,32 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
           next.department = 'EX';
           next.team = '';
         }
+        // 직급을 인사관리로 선택하면 권한도 hr로 변경
+        if (val === '인사관리') {
+          next.role = 'hr';
+          next.department = 'EX';
+          next.team = '';
+        }
       }
       if (key === 'department') {
         const deptTeams = teams.filter(t => t.dept === val);
         next.team = deptTeams.length > 0 ? deptTeams[0].key : '';
+        // 직무(department)를 인사관리로 선택하면 직급, 권한 모두 연동
+        if (val === '인사관리') {
+          next.title = '인사관리';
+          next.role = 'hr';
+          next.team = '';
+        }
+      }
+      // 권한을 hr로 선택하면 직급, 직무 모두 인사관리로 변경
+      if (key === 'role' && val === 'hr') {
+        next.title = '인사관리';
+        next.department = 'EX';
+        next.team = '';
+      }
+      // 권한을 hr 이외로 변경할 때, 직급이 인사관리면 초기화
+      if (key === 'role' && val !== 'hr' && prev.title === '인사관리') {
+        next.title = titleOrder[titleOrder.length - 1] || '디자이너';
       }
       if (key === 'rrn') {
         if (val.length >= 6) {
@@ -528,14 +550,14 @@ const OrgEditForm = ({ emp, employees, onClose, onSave, titleOrder, departments,
           <FormField label="사번 *" value={form.empNo} onChange={v => update('empNo', v)} placeholder="22001" disabled={!canFullEdit} />
 
           <FormSelect label="직무 (Department)" value={form.department} onChange={v => update('department', v)}
-            options={departments.map(d => ({ value: d.key, label: `${d.label} · ${d.full}` }))} disabled={!canFullEdit} />
+            options={departments.map(d => ({ value: d.key, label: `${d.label} · ${d.full}` })).concat([{ value: '인사관리', label: '인사관리 · HR Management' }])} disabled={!canFullEdit} />
             
           <FormSelect label="소속 팀" value={form.team} onChange={v => update('team', v)}
             options={[{value: '', label: '소속 없음'}].concat(teams.filter(t => t.dept === form.department).map(t => ({ value: t.key, label: t.key })))} 
             disabled={!canFullEdit || isExecutive} />
 
           <FormSelect label="직급" value={form.title} onChange={v => update('title', v)}
-            options={titleOrder.map(t => ({ value: t, label: t }))} disabled={!canFullEdit} />
+            options={titleOrder.map(t => ({ value: t, label: t })).concat([{ value: '인사관리', label: '인사관리' }])} disabled={!canFullEdit} />
 
           <FormSelect label="권한" value={form.role} onChange={v => update('role', v)}
             options={[

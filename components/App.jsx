@@ -922,7 +922,7 @@ const App = () => {
           notifCount={inboxCount}
         />
         <div className="content">
-          {active === 'dashboard' && me.role !== 'accountant' && (
+          {active === 'dashboard' && me.role !== 'accountant' && me.role !== 'hr' && (
             <DashboardPage
               me={currentUserId}
               myRole={me.role}
