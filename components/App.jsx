@@ -833,36 +833,19 @@ const App = () => {
 
   // Compute dynamic calendar events from approvals + static late events
   const calendarEvents = React.useMemo(() => {
-    // Keep only late events from static data (or anything else not related to leaves)
-    const base = window.PAPA_DATA.events.filter(e => e.type === 'late' || e.type === 'birthday');
+    // 생일만 표시 (지각 등 제외)
+    const base = window.PAPA_DATA.events.filter(e => e.type === 'birthday');
     
-    // Generate events for all approved leaves
     const leaveEvents = [];
     approvals.forEach(a => {
-      if (a.isLunch || a.isOvertime || a.stage !== 'approved') return;
+      if (a.stage !== 'approved') return;
+      // 휴가(연차, 반차, 리프레시)와 외근만 달력에 표시
+      if (!['연차', '반차', '리프레시', '외근'].includes(a.type)) return;
       
       const s = new Date(a.start);
       const e = new Date(a.end);
       let typeStr = a.type === '외근' ? `${a.hours}시간 외근` : a.type;
       let evType = a.type === '반차' ? 'halfday' : (a.type === '외근' ? 'holiday' : 'vacation');
-      
-      if (a.isWeekendWork) {
-        typeStr = a.duration === 'halfday' ? '주말 반일 근무' : '주말 종일 근무';
-        evType = 'halfday';
-        const addEventFor = (id) => {
-          const eEmp = window.PAPA_DATA.employees.find(x => x.id === id);
-          if (!eEmp) return;
-          leaveEvents.push({
-            date: a.start,
-            type: evType,
-            empId: id,
-            label: `${eEmp.name} ${typeStr}`,
-            reason: a.reason,
-          });
-        };
-        addEventFor(a.empId);
-        return;
-      }
 
       let cur = new Date(s);
       while (cur <= e) {
