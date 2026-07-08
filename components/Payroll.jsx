@@ -350,7 +350,7 @@ const AccountantPayroll = ({ payroll, schema, month, setMonth, months, onUpdateC
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 16, borderBottom: '1px solid var(--line)' }}>
             <Avatar empId={selectedEmp} size="md" />
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 16, fontWeight: 800 }}>{selEmp.name} <span style={{ fontWeight: 600, color: 'var(--ink-mute)', fontSize: 13 }}>{selEmp.title}</span></div>
+              <div style={{ fontSize: 16, fontWeight: 800 }}>{window.getEmployee(selectedEmp)?.name} <span style={{ fontWeight: 600, color: 'var(--ink-mute)', fontSize: 13 }}>{window.getEmployee(selectedEmp)?.title}</span></div>
               <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 2 }}>{monthLabel(month)} 귀속 급여 입력</div>
             </div>
             <button className="btn btn-ghost" onClick={() => setAddingItem(true)} style={{ fontSize: 12, padding: '8px 12px' }}>
