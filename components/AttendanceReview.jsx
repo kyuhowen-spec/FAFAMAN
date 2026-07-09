@@ -72,10 +72,22 @@ const AttendanceReviewPage = () => {
     // Monthly overtime minutes
     record.monthlyOvertimeMins = (data.monthlyOvertime || {})[empId] || 0;
 
-    // Late count for the month
-    record.lateCount = (data.lateLogs || []).filter(l =>
+    // Late count and total minutes for the month
+    const empLateLogs = (data.lateLogs || []).filter(l =>
       l.empId === empId && l.date && l.date.startsWith(selectedMonth)
-    ).length;
+    );
+    record.lateCount = empLateLogs.length;
+    record.lateMinsTotal = empLateLogs.reduce((sum, l) => sum + (l.delta || 0), 0);
+
+    // Vacation usage (연차, 반차, 리프레시)
+    record.usedVacation = 0;
+    record.usedHalfVacation = 0;
+    (data.approvals || []).filter(a => 
+      a.empId === empId && a.stage === 'approved' && ['연차', '반차', '리프레시'].includes(a.type) && a.start && a.start.startsWith(selectedMonth)
+    ).forEach(a => {
+      if (a.type === '반차') record.usedHalfVacation += 1;
+      else record.usedVacation += (a.days || 1);
+    });
 
     return record;
   };
@@ -85,17 +97,12 @@ const AttendanceReviewPage = () => {
 
     // ===== 시트 1: 월간 요약 =====
     const summaryData = [
-      ['이름', '사번', '부서', '직급', '근무 일수', '총 근무 시간(h)', '오늘 출근', '오늘 상태', '야근 승인(건)', '연장/야근(분)', '월 누적 야근(분)', '지각 횟수', '주말 반일(건)', '주말 종일(건)'],
+      ['이름', '사번', '부서', '직급', '근무 일수', '총 근무 시간(h)', '사용 연차(일)', '사용 반차(건)', '연장 근로(분)', '야간 근로(분)', '지각 횟수', '지각 누적(분)', '주말 반일(건)', '주말 종일(건)', '비고'],
     ];
 
     employees.forEach(emp => {
       const record = getLiveRecord(emp.id);
-      const todayInfo = getTodayInfo(emp.id);
-      const statusLabel = todayInfo ? ({
-        'working': '근무 중', 'checked_out': '퇴근', 'vacation': '휴가',
-        'halfday': '반차', 'not_checked_in': '미출근',
-      }[todayInfo.status] || todayInfo.status) : '-';
-
+      
       summaryData.push([
         emp.name,
         emp.empNo || emp.id,
@@ -103,24 +110,25 @@ const AttendanceReviewPage = () => {
         emp.title,
         record.days,
         record.hours,
-        todayInfo?.checkIn || '-',
-        statusLabel,
-        record.approvedOvertimeCount || 0,
+        record.usedVacation || 0,
+        record.usedHalfVacation || 0,
         record.overtime || 0,
         record.monthlyOvertimeMins || 0,
         record.lateCount || 0,
+        record.lateMinsTotal || 0,
         record.weekendHalf || 0,
         record.weekendFull || 0,
+        '',
       ]);
     });
 
     const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
     // 컬럼 너비 설정
     ws1['!cols'] = [
-      { wch: 10 }, { wch: 8 }, { wch: 12 }, { wch: 12 },
-      { wch: 10 }, { wch: 14 }, { wch: 12 }, { wch: 10 },
-      { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 10 },
-      { wch: 12 }, { wch: 12 },
+      { wch: 10 }, { wch: 8 }, { wch: 12 }, { wch: 10 },
+      { wch: 10 }, { wch: 14 }, { wch: 12 }, { wch: 12 },
+      { wch: 14 }, { wch: 14 }, { wch: 10 }, { wch: 12 },
+      { wch: 14 }, { wch: 14 }, { wch: 15 }
     ];
     XLSX.utils.book_append_sheet(wb, ws1, '월간 요약');
 
@@ -188,12 +196,18 @@ const AttendanceReviewPage = () => {
       </div>
 
       {/* Summary stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16 }}>
         {(() => {
           const totalDays = employees.reduce((s, e) => s + getLiveRecord(e.id).days, 0);
           const totalHours = employees.reduce((s, e) => s + getLiveRecord(e.id).hours, 0);
           const totalOvertimeMins = employees.reduce((s, e) => s + getLiveRecord(e.id).monthlyOvertimeMins, 0);
-          const totalLate = employees.reduce((s, e) => s + getLiveRecord(e.id).lateCount, 0);
+          const totalLateCount = employees.reduce((s, e) => s + getLiveRecord(e.id).lateCount, 0);
+          const totalLateMins = employees.reduce((s, e) => s + getLiveRecord(e.id).lateMinsTotal, 0);
+          const totalVacation = employees.reduce((s, e) => {
+            const r = getLiveRecord(e.id);
+            return s + (r.usedVacation || 0) + (r.usedHalfVacation ? r.usedHalfVacation * 0.5 : 0);
+          }, 0);
+
           return (
             <>
               <div className="card" style={{ padding: '18px 20px' }}>
@@ -205,14 +219,22 @@ const AttendanceReviewPage = () => {
                 <div style={{ fontSize: 28, fontWeight: 800, marginTop: 6, color: 'var(--ink)', letterSpacing: '-.02em' }}>{totalHours.toFixed(1)}<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-mute)' }}>h</span></div>
               </div>
               <div className="card" style={{ padding: '18px 20px' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', letterSpacing: '.06em' }}>총 야근 시간</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', letterSpacing: '.06em' }}>총 야근/연장</div>
                 <div style={{ fontSize: 28, fontWeight: 800, marginTop: 6, color: totalOvertimeMins > 0 ? 'var(--danger)' : 'var(--ink-mute)', letterSpacing: '-.02em' }}>
                   {totalOvertimeMins > 0 ? `${Math.floor(totalOvertimeMins / 60)}h ${totalOvertimeMins % 60}m` : '0'}
                 </div>
               </div>
               <div className="card" style={{ padding: '18px 20px' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', letterSpacing: '.06em' }}>총 지각 횟수</div>
-                <div style={{ fontSize: 28, fontWeight: 800, marginTop: 6, color: totalLate > 0 ? 'var(--warn-ink)' : 'var(--ink-mute)', letterSpacing: '-.02em' }}>{totalLate}<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-mute)' }}>회</span></div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', letterSpacing: '.06em' }}>총 휴가 사용</div>
+                <div style={{ fontSize: 28, fontWeight: 800, marginTop: 6, color: totalVacation > 0 ? 'var(--accent)' : 'var(--ink-mute)', letterSpacing: '-.02em' }}>
+                  {totalVacation}<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-mute)' }}>일</span>
+                </div>
+              </div>
+              <div className="card" style={{ padding: '18px 20px' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', letterSpacing: '.06em' }}>총 누적 지각</div>
+                <div style={{ fontSize: 28, fontWeight: 800, marginTop: 6, color: totalLateCount > 0 ? 'var(--warn-ink)' : 'var(--ink-mute)', letterSpacing: '-.02em' }}>
+                  {totalLateCount > 0 ? `${totalLateMins}m` : '0'}
+                </div>
               </div>
             </>
           );
@@ -230,8 +252,9 @@ const AttendanceReviewPage = () => {
                 <th style={thStyle}>상태</th>
                 <th style={thStyle}>근무 일수</th>
                 <th style={thStyle}>총 근무 시간</th>
+                <th style={thStyle}>사용 휴가</th>
                 <th style={thStyle}>야근/연장</th>
-                <th style={thStyle}>지각</th>
+                <th style={thStyle}>지각 (누적)</th>
                 <th style={thStyle}>휴일 근무</th>
               </tr>
             </thead>
@@ -300,6 +323,16 @@ const AttendanceReviewPage = () => {
                       <span style={{ fontWeight: 600 }}>{record.hours}</span>시간
                     </td>
                     <td style={tdStyle}>
+                      {(record.usedVacation > 0 || record.usedHalfVacation > 0) ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          {record.usedVacation > 0 && <span style={{ fontWeight: 600, color: 'var(--accent)', fontSize: 12 }}>연차 {record.usedVacation}일</span>}
+                          {record.usedHalfVacation > 0 && <span style={{ fontWeight: 600, color: 'var(--accent)', fontSize: 12 }}>반차 {record.usedHalfVacation}건</span>}
+                        </div>
+                      ) : (
+                        <span style={{ color: 'var(--ink-mute)' }}>-</span>
+                      )}
+                    </td>
+                    <td style={tdStyle}>
                       {(record.overtime > 0 || record.monthlyOvertimeMins > 0) ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                           {record.monthlyOvertimeMins > 0 && (
@@ -323,7 +356,7 @@ const AttendanceReviewPage = () => {
                           fontWeight: 700, color: record.lateCount >= 5 ? 'var(--danger)' : 'var(--warn-ink)',
                           fontSize: 13,
                         }}>
-                          {record.lateCount}회
+                          {record.lateCount}회 ({record.lateMinsTotal}분)
                           {record.lateCount >= 5 && (
                             <span style={{
                               marginLeft: 4, fontSize: 9, fontWeight: 800, padding: '2px 5px', borderRadius: 4,
