@@ -213,6 +213,7 @@ window.initPapaData = async () => {
     return {
       date: `${yyyy}-${mm}-${dd}`,
       weekday: weekday,
+      dayIndex: kstTime.getDay(), // 0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토
       label: `${kstTime.getMonth() + 1}월 ${kstTime.getDate()}일`,
       monthKr: `${kstTime.getMonth() + 1}월`
     };

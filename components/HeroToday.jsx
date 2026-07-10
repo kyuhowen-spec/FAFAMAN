@@ -8,6 +8,9 @@ const HeroToday = ({ me, attendance, approvals, penaltyMode, onCheckIn, onCheckO
   const isHalfday = status === 'halfday';
   const isCheckedOut = status === 'checked_out';
   const notIn = status === 'not_checked_in';
+  const dayIndex = window.PAPA_DATA.today.dayIndex ?? new Date().getDay();
+  const isMonday = dayIndex === 1;
+  const isFriday = dayIndex === 5;
 
   // 퇴근 후 다시 출근 가능 (오후 6시부터 다음날 오전 9시 전까지는 차단)
   const canCheckIn = (() => {
@@ -61,11 +64,16 @@ const HeroToday = ({ me, attendance, approvals, penaltyMode, onCheckIn, onCheckO
   } else if (isCheckedOut) {
     statusLabel = '퇴근 완료';
     clockLabel = '—';
-    subLabel = '오늘도 수고하셨어요 · 내일 9시 이후 출근 가능';
+    const tmrInfo = isMonday ? '내일 9–10시 출근' : isFriday ? '주말 잘 쉬세요 🌿' : '내일도 화이팅!';
+    subLabel = `오늘도 수고하셨어요 · ${tmrInfo}`;
   } else {
     statusLabel = '출근 전';
     clockLabel = '00:00';
-    subLabel = '9–11시 자율 출근 · 버튼을 눌러 체크인';
+    if (isMonday) {
+      subLabel = '오늘은 단축근무일 · 13시 출근 · 19시 퇴근';
+    } else {
+      subLabel = '9–10시 자율 출근 · 18시 이후 퇴근 가능';
+    }
   }
 
   return (

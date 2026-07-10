@@ -629,5 +629,116 @@ const RecheckInRequestForm = ({ me, onClose, onSubmit }) => {
     </div>
   );
 };
+// Friday Checkout Modal — 금요일 퇴근 시 주간 근무시간 확인
+const FridayCheckOutModal = ({ weeklyData, onConfirm, onCancel }) => {
+  const [deductionMins, setDeductionMins] = React.useState(0);
+  const { totalMins, dailyBreakdown } = weeklyData || { totalMins: 0, dailyBreakdown: [] };
+  const effectiveTotal = Math.max(0, totalMins - deductionMins);
+  const isShort = effectiveTotal < 40 * 60;
+  const shortfall = isShort ? 40 * 60 - effectiveTotal : 0;
 
-Object.assign(window, { LeaveRequestForm, LateReportForm, Toast, TweaksPanel, SeniorPicker, AdditionalWorkRequestForm, OutsideWorkRequestForm, RecheckInRequestForm });
+  const fmtMins = (mins) => {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={onCancel}>
+      <div className="modal" style={{ width: 520 }} onClick={e => e.stopPropagation()}>
+        <div className="eyebrow" style={{ color: 'var(--accent)' }}>FRIDAY CHECKOUT</div>
+        <h2 style={{ fontSize: 22, fontWeight: 800, marginTop: 6, letterSpacing: '-.02em' }}>
+          금요일 퇴근 확인
+        </h2>
+        <div style={{ fontSize: 13, color: 'var(--ink-mute)', marginTop: 6, fontWeight: 500 }}>
+          이번 주 근무시간을 확인하고 퇴근을 완료하세요.
+        </div>
+
+        {/* 주간 일별 근무시간 */}
+        <div style={{ marginTop: 20, background: 'var(--bg)', borderRadius: 12, padding: '14px 16px' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-mute)', letterSpacing: '.06em', marginBottom: 10 }}>이번 주 근무 현황</div>
+          {dailyBreakdown.map((d, i) => (
+            <div key={i} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '8px 0',
+              borderBottom: i < dailyBreakdown.length - 1 ? '1px solid var(--line)' : 'none',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{
+                  display: 'inline-block', width: 28, height: 28, borderRadius: 8,
+                  background: d.day === '월' ? 'var(--accent-soft)' : 'var(--bg-deeper)',
+                  textAlign: 'center', lineHeight: '28px',
+                  fontSize: 12, fontWeight: 700, color: d.day === '월' ? 'var(--accent)' : 'var(--ink-soft)',
+                }}>{d.day}</span>
+                <span style={{ fontSize: 12, color: 'var(--ink-mute)' }}>{d.date.slice(5).replace('-', '/')}</span>
+              </div>
+              <span style={{ fontWeight: 700, fontSize: 14, fontVariantNumeric: 'tabular-nums', color: d.mins > 0 ? 'var(--ink)' : 'var(--ink-mute)' }}>
+                {d.mins > 0 ? fmtMins(d.mins) : '-'}
+              </span>
+            </div>
+          ))}
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            marginTop: 10, paddingTop: 10, borderTop: '2px solid var(--line)',
+          }}>
+            <span style={{ fontSize: 14, fontWeight: 800 }}>총 근무시간</span>
+            <span style={{
+              fontSize: 18, fontWeight: 800, fontVariantNumeric: 'tabular-nums',
+              color: isShort ? 'var(--danger)' : 'var(--ok-ink)',
+            }}>
+              {fmtMins(effectiveTotal)} <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-mute)' }}>/ 40h</span>
+            </span>
+          </div>
+        </div>
+
+        {/* 미달 경고 */}
+        {isShort && (
+          <div style={{
+            marginTop: 14, padding: '12px 16px', borderRadius: 10,
+            background: 'var(--danger-soft)', border: '1px solid var(--danger)',
+            display: 'flex', alignItems: 'center', gap: 10,
+          }}>
+            <Icon name="alert-triangle" size={16} style={{ color: 'var(--danger)', flexShrink: 0 }} />
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--danger-ink)' }}>
+              주 40시간에 <strong>{fmtMins(shortfall)}</strong> 부족합니다. 퇴근 시 팀장·디렉터·대표이사에게 자동 알림됩니다.
+            </div>
+          </div>
+        )}
+
+        {/* 자진 차감 입력 */}
+        <div style={{ marginTop: 16 }}>
+          <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft)' }}>
+            근무 외 시간 자진 차감 (분)
+          </label>
+          <div style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 4, marginBottom: 8 }}>
+            업무와 무관한 시간이 있었다면 분 단위로 입력하여 자진 차감하세요.
+          </div>
+          <input
+            type="number"
+            className="input"
+            min="0"
+            max="480"
+            value={deductionMins || ''}
+            onChange={e => setDeductionMins(Math.max(0, parseInt(e.target.value) || 0))}
+            placeholder="0"
+            style={{ width: 120, fontVariantNumeric: 'tabular-nums' }}
+          />
+        </div>
+
+        {/* Buttons */}
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          <button className="btn btn-lg" style={{ flex: 1 }} onClick={onCancel}>취소</button>
+          <button
+            className="btn btn-primary btn-lg"
+            style={{ flex: 2 }}
+            onClick={() => onConfirm(deductionMins)}
+          >
+            <Icon name="log-out" size={14} /> 퇴근 확인
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+Object.assign(window, { LeaveRequestForm, LateReportForm, Toast, TweaksPanel, SeniorPicker, AdditionalWorkRequestForm, OutsideWorkRequestForm, RecheckInRequestForm, FridayCheckOutModal });

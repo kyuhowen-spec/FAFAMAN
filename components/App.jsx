@@ -309,14 +309,53 @@ const App = () => {
     const kstTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (9 * 3600000));
     const h = kstTime.getHours();
     const m = kstTime.getMinutes();
+    const dayIndex = kstTime.getDay(); // 0=일,1=월,...,5=금,6=토
+    const isMonday = dayIndex === 1;
     
-    const checkIn = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-    const outH = (h + 9) % 24;
-    const plannedOut = `${String(outH).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-
-    // Deadline: 11:00 normally, 10:00 when penalty is active
+    const actualCheckIn = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    
+    // === 요일별 근무 규칙 ===
+    let effectiveCheckIn = actualCheckIn;
+    let plannedOut;
+    let deadlineMins;
     const inPenalty = isPenaltyActiveToday(currentUserId);
-    const deadlineMins = (inPenalty ? 10 : 11) * 60;
+
+    if (isMonday) {
+      // 월요일: 13:00 출근, 19:00 퇴근 고정 (6시간 단축근무)
+      deadlineMins = 13 * 60 + 30; // 13:30까지 허용 (30분 유예)
+      plannedOut = '19:00';
+      if (h < 13) {
+        // 13시 이전 출근 → 근무시간 계산은 13:00부터
+        effectiveCheckIn = '13:00';
+      }
+    } else {
+      // 화~금: 9:00~10:00 자율출근, 18:00 이후 퇴근
+      deadlineMins = (inPenalty ? 10 : 10) * 60; // 10:00까지 출근
+      
+      // 9시 이전 출근 처리
+      if (h < 9) {
+        const todayStr = window.PAPA_DATA.today.date;
+        const hasEarlyApproval = (window.PAPA_DATA.approvals || []).some(a =>
+          a.empId === currentUserId && a.isEarlyWork && a.stage === 'approved' && a.start === todayStr
+        );
+        if (!hasEarlyApproval) {
+          // 미승인 → 근무시간 계산은 9:00부터
+          effectiveCheckIn = '09:00';
+        }
+      }
+      
+      // 퇴근 예정: 출근시간 + 9시간(점심 1시간 포함), 최소 18:00
+      const [eh, em] = effectiveCheckIn.split(':').map(Number);
+      const outMin = eh * 60 + em + 9 * 60; // 9시간 후
+      const outH = Math.floor(outMin / 60);
+      const outM = outMin % 60;
+      if (outMin < 18 * 60) {
+        plannedOut = '18:00';
+      } else {
+        plannedOut = `${String(outH).padStart(2,'0')}:${String(outM).padStart(2,'0')}`;
+      }
+    }
+
     const checkInMins = h * 60 + m;
     const lateMins = Math.max(0, checkInMins - deadlineMins);
     const wasLate = lateMins > 0;
@@ -330,22 +369,26 @@ const App = () => {
         data.attendance[currentUserId] = {
           ...prevAtt,
           status: 'working',
-          checkIn,
-          firstCheckIn: prevAtt.firstCheckIn || checkIn,
+          checkIn: effectiveCheckIn,
+          actualCheckIn: actualCheckIn,
+          firstCheckIn: prevAtt.firstCheckIn || effectiveCheckIn,
           plannedOut: prevAtt.plannedOut || plannedOut,
           lunch: prevAtt.lunch || 60,
           wasLate: isFirst ? wasLate : prevAtt.wasLate,
           lateMins: isFirst ? lateMins : prevAtt.lateMins,
+          isMonday: isMonday,
         };
 
         if (wasLate && isFirst) {
           const today = data.today.date;
-          const reasonNote = inPenalty ? '(벌칙 근태 · 10시 마감 조과)' : '(자동 기록 · 체크인 시각 기준)';
+          const reasonNote = isMonday 
+            ? '(월요일 단축근무 · 13시 마감 초과)'
+            : inPenalty ? '(벌칙 근태 · 10시 마감 초과)' : '(자동 기록 · 10시 마감 초과)';
           const newLog = {
             id: 'll_' + Date.now(),
             empId: currentUserId,
             date: today,
-            time: checkIn,
+            time: actualCheckIn,
             delta: lateMins,
             reason: reasonNote,
           };
@@ -369,30 +412,104 @@ const App = () => {
       });
 
       const isFirstTimeCheckIn = !attendance[currentUserId]?.firstCheckIn;
-      if (wasLate && isFirstTimeCheckIn) {
+      if (effectiveCheckIn !== actualCheckIn && isFirstTimeCheckIn) {
+        setToast({ text: `${actualCheckIn} 출근 · 근무시간은 ${effectiveCheckIn}부터 계산`, icon: 'info' });
+      } else if (wasLate && isFirstTimeCheckIn) {
         const next = (lateCounter[currentUserId] || 0) + 1;
         if (next >= 5 && !penaltyMode[currentUserId]) {
           setToast({ text: `⚠️ 지각 5회 도달 · 내일부터 7일간 10시 출근 벌칙 적용`, icon: 'flame' });
         } else {
-          setToast({ text: `${checkIn} 체크인 · ${lateMins}분 지각 자동 기록`, icon: 'alert-triangle' });
+          setToast({ text: `${actualCheckIn} 체크인 · ${lateMins}분 지각 자동 기록`, icon: 'alert-triangle' });
         }
       } else {
-        setToast({ text: `${checkIn} 출근 체크인 완료`, icon: 'check' });
+        const schedInfo = isMonday ? ' · 단축근무 19시 퇴근' : '';
+        setToast({ text: `${actualCheckIn} 출근 체크인 완료${schedInfo}`, icon: 'check' });
       }
     }
   };
   const [showCheckOutConfirm, setShowCheckOutConfirm] = React.useState(false);
+  const [showFridayCheckOut, setShowFridayCheckOut] = React.useState(false);
 
   const handleCheckOut = () => {
-    setShowCheckOutConfirm(true);
+    const now = new Date();
+    const kstTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (9 * 3600000));
+    const dayIndex = kstTime.getDay();
+    
+    if (dayIndex === 5) { // 금요일
+      setShowFridayCheckOut(true);
+    } else {
+      setShowCheckOutConfirm(true);
+    }
   };
 
-  const confirmCheckOut = () => {
+  // 주간 근무시간 계산 유틸 (월~금 해당 주)
+  const getWeeklyHours = (empId) => {
+    const todayStr = window.PAPA_DATA.today.date;
+    const todayDate = new Date(todayStr + 'T00:00:00');
+    const dayIdx = todayDate.getDay(); // 0=일,...
+    // 이번 주 월요일 구하기
+    const mondayOffset = dayIdx === 0 ? -6 : 1 - dayIdx;
+    const mondayDate = new Date(todayDate);
+    mondayDate.setDate(todayDate.getDate() + mondayOffset);
+    
+    const weekDates = [];
+    for (let i = 0; i < 5; i++) { // 월~금
+      const d = new Date(mondayDate);
+      d.setDate(mondayDate.getDate() + i);
+      weekDates.push(d.toISOString().slice(0, 10));
+    }
+    
+    let totalMins = 0;
+    const dailyBreakdown = [];
+    
+    weekDates.forEach((dateStr, idx) => {
+      let dayMins = 0;
+      const dayName = ['월', '화', '수', '목', '금'][idx];
+      
+      // attendanceHistory에서 찾기
+      const monthKey = dateStr.slice(0, 7);
+      const histRecord = window.PAPA_DATA.attendanceHistory?.[monthKey]?.[empId];
+      if (histRecord?.daily) {
+        const dayRecord = histRecord.daily.find(d => d.date === dateStr);
+        if (dayRecord) {
+          dayMins = Math.round((dayRecord.hours || 0) * 60);
+        }
+      }
+      
+      // 오늘이면 live attendance 사용
+      if (dateStr === todayStr) {
+        const att = window.PAPA_DATA.attendance?.[empId];
+        if (att) {
+          if (att.accumulatedSecs) {
+            dayMins = Math.round(att.accumulatedSecs / 60);
+          } else if (att.checkIn) {
+            const [ch, cm] = att.checkIn.split(':').map(Number);
+            const now2 = new Date();
+            const kst2 = new Date(now2.getTime() + now2.getTimezoneOffset()*60000 + 9*3600000);
+            const nowSecs = kst2.getHours()*3600 + kst2.getMinutes()*60 + kst2.getSeconds();
+            dayMins = Math.round(Math.max(0, nowSecs - (ch*3600 + cm*60)) / 60);
+          }
+        }
+      }
+      
+      totalMins += dayMins;
+      dailyBreakdown.push({ date: dateStr, day: dayName, mins: dayMins });
+    });
+    
+    return { totalMins, dailyBreakdown, weekDates };
+  };
+
+  const confirmCheckOut = (deductionMins) => {
     const now = new Date();
     const kstTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (9 * 3600000));
     const h = kstTime.getHours();
     const m = kstTime.getMinutes();
+    const dayIndex = kstTime.getDay();
+    const isFriday = dayIndex === 5;
+    const deduction = deductionMins || 0;
     
+    // 22시 이후: 승인된 야근 없으면 22시까지만 인정
+    let effectiveEndMins = h * 60 + m;
     let overtimeMins = 0;
     if (h >= 22) {
       const today = window.PAPA_DATA.today.date;
@@ -401,6 +518,9 @@ const App = () => {
       );
       if (hasApprovedOt) {
         overtimeMins = (h - 22) * 60 + m;
+      } else {
+        // 미승인 → 22:00까지만 근무시간 인정
+        effectiveEndMins = 22 * 60;
       }
     }
 
@@ -417,8 +537,20 @@ const App = () => {
         if (prevAtt.checkIn) {
           const [ch, cm] = prevAtt.checkIn.split(':').map(Number);
           const baseSecs = ch * 3600 + cm * 60;
-          const currentSecs = h * 3600 + m * 60 + kstTime.getSeconds();
-          sessionSecs = Math.max(0, currentSecs - baseSecs);
+          const endSecs = effectiveEndMins * 60;
+          sessionSecs = Math.max(0, endSecs - baseSecs);
+        }
+        
+        // 자진 차감 적용
+        if (deduction > 0) {
+          sessionSecs = Math.max(0, sessionSecs - deduction * 60);
+          if (!data.selfDeductions) data.selfDeductions = [];
+          data.selfDeductions.push({
+            empId: currentUserId,
+            date: data.today.date,
+            mins: deduction,
+            timestamp: now.toISOString(),
+          });
         }
         
         data.attendance[currentUserId] = {
@@ -428,11 +560,48 @@ const App = () => {
           checkIn: null,
           checkedOutAt: now.toISOString(),
         };
+
+        // 금요일 주 40시간 미달 시 자동 알림 생성
+        if (isFriday) {
+          const weekInfo = getWeeklyHours(currentUserId);
+          const totalAfterDeduction = weekInfo.totalMins - deduction;
+          if (totalAfterDeduction < 40 * 60) {
+            const shortfall = 40 * 60 - totalAfterDeduction;
+            const shortH = Math.floor(shortfall / 60);
+            const shortM = shortfall % 60;
+            
+            // 팀장, 디렉터, 대표이사에게 자동 알림 결재 생성
+            const emp = getEmployee(currentUserId);
+            const tl = data.employees.find(e => e.team === emp.team && e.role === 'senior' && e.id !== currentUserId);
+            const director = data.employees.find(e => e.department === emp.department && ['디렉터'].includes(e.title) && e.id !== currentUserId);
+            const ceo = data.employees.find(e => e.role === 'admin');
+            
+            const notifAppr = {
+              id: `weekly_short_${Date.now()}`,
+              empId: currentUserId,
+              type: '주간 근무 미달',
+              subtype: 'weekly_shortage',
+              start: data.today.date,
+              end: data.today.date,
+              days: 0,
+              reason: `주간 근무시간 ${Math.floor(totalAfterDeduction / 60)}h ${totalAfterDeduction % 60}m / 40h (${shortH}h ${shortM}m 미달)`,
+              appliedAt: now.toISOString().slice(0, 16).replace('T', ' '),
+              stage: 'info',
+              isWeeklyShortage: true,
+              notifyTargets: [tl?.id, director?.id, ceo?.id].filter(Boolean),
+            };
+            if (!data.approvals) data.approvals = [];
+            data.approvals.unshift(notifAppr);
+          }
+        }
       });
     }
     setShowCheckOutConfirm(false);
+    setShowFridayCheckOut(false);
     if (overtimeMins > 0) {
       setToast({ text: `오늘 수고하셨어요 👋 (야근 ${Math.floor(overtimeMins / 60)}h ${overtimeMins % 60}m 적립)`, icon: 'moon' });
+    } else if (h >= 22 && overtimeMins === 0) {
+      setToast({ text: '오늘 수고하셨어요 👋 (22시 이후 미승인 → 22시까지 인정)', icon: 'info' });
     } else {
       setToast({ text: '오늘 수고하셨어요 👋', icon: 'check' });
     }
@@ -1065,6 +1234,14 @@ const App = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {showFridayCheckOut && (
+        <FridayCheckOutModal
+          weeklyData={getWeeklyHours(currentUserId)}
+          onConfirm={(deductionMins) => confirmCheckOut(deductionMins)}
+          onCancel={() => setShowFridayCheckOut(false)}
+        />
       )}
 
       <TweaksPanel

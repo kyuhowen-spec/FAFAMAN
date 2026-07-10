@@ -1,6 +1,21 @@
-// Attendance Review Page - Admin & HR
+// Attendance Review Page - Admin, HR, Director only
 const AttendanceReviewPage = () => {
   const data = window.PAPA_DATA;
+  const currentUser = window.getEmployee(data.currentUserId || 'kh');
+  const canView = currentUser.role === 'admin' || currentUser.role === 'hr' || ['디렉터', '대표이사'].includes(currentUser.title);
+  
+  if (!canView) {
+    return (
+      <div className="fade-in" style={{ textAlign: 'center', padding: '80px 20px' }}>
+        <Icon name="lock" size={48} style={{ color: 'var(--ink-mute)', marginBottom: 16 }} />
+        <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)' }}>접근 권한이 없습니다</h2>
+        <p style={{ fontSize: 14, color: 'var(--ink-mute)', marginTop: 8 }}>
+          근태리뷰는 인사관리, 디렉터, 대표이사만 열람할 수 있습니다.
+        </p>
+      </div>
+    );
+  }
+
   const employees = data.employees;
   
   const currentMonthStr = data.today?.date?.slice(0, 7) || '2026-04';
@@ -250,6 +265,7 @@ const AttendanceReviewPage = () => {
                 <th style={thStyle}>부서 / 직급</th>
                 <th style={thStyle}>오늘 출근</th>
                 <th style={thStyle}>상태</th>
+                <th style={thStyle}>이번 주</th>
                 <th style={thStyle}>근무 일수</th>
                 <th style={thStyle}>총 근무 시간</th>
                 <th style={thStyle}>사용 휴가</th>
@@ -315,6 +331,51 @@ const AttendanceReviewPage = () => {
                       ) : (
                         <span style={{ color: 'var(--ink-mute)' }}>-</span>
                       )}
+                    </td>
+                    <td style={tdStyle}>
+                      {(() => {
+                        // 이번 주 근무시간 계산 (간이)
+                        const todayStr = data.today?.date;
+                        if (!todayStr) return <span style={{ color: 'var(--ink-mute)' }}>-</span>;
+                        const todayDate = new Date(todayStr + 'T00:00:00');
+                        const dayIdx = todayDate.getDay();
+                        const mondayOffset = dayIdx === 0 ? -6 : 1 - dayIdx;
+                        const mondayDate = new Date(todayDate);
+                        mondayDate.setDate(todayDate.getDate() + mondayOffset);
+                        let weekMins = 0;
+                        for (let i = 0; i < 5; i++) {
+                          const d = new Date(mondayDate);
+                          d.setDate(mondayDate.getDate() + i);
+                          const ds = d.toISOString().slice(0, 10);
+                          const mk = ds.slice(0, 7);
+                          const hist = data.attendanceHistory?.[mk]?.[emp.id];
+                          if (hist?.daily) {
+                            const dr = hist.daily.find(x => x.date === ds);
+                            if (dr) weekMins += Math.round((dr.hours || 0) * 60);
+                          }
+                          if (ds === todayStr) {
+                            const att = data.attendance?.[emp.id];
+                            if (att) {
+                              if (att.accumulatedSecs) weekMins += Math.round(att.accumulatedSecs / 60);
+                              else if (att.checkIn) {
+                                const [ch2, cm2] = att.checkIn.split(':').map(Number);
+                                const now2 = new Date();
+                                const kst2 = new Date(now2.getTime() + now2.getTimezoneOffset()*60000 + 9*3600000);
+                                weekMins += Math.round(Math.max(0, (kst2.getHours()*3600 + kst2.getMinutes()*60 + kst2.getSeconds()) - (ch2*3600 + cm2*60)) / 60);
+                              }
+                            }
+                          }
+                        }
+                        const weekH = Math.floor(weekMins / 60);
+                        const weekM = weekMins % 60;
+                        const isOver = weekMins >= 40 * 60;
+                        return (
+                          <span style={{ fontWeight: 700, fontSize: 12, color: isOver ? 'var(--ok-ink)' : 'var(--ink-soft)' }}>
+                            {weekH}h {weekM}m
+                            {isOver && <span style={{ marginLeft: 4, fontSize: 9, padding: '2px 5px', borderRadius: 4, background: 'var(--ok-soft)', color: 'var(--ok-ink)', fontWeight: 800 }}>✓</span>}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td style={tdStyle}>
                       <span style={{ fontWeight: 600, color: 'var(--accent)' }}>{record.days}</span>일
